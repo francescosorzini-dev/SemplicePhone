@@ -56,8 +56,13 @@ import app.semplicephone.model.IconKind
 import app.semplicephone.model.SosConfig
 import app.semplicephone.model.Tile
 import app.semplicephone.model.TileType
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.runtime.produceState
+import androidx.compose.ui.layout.ContentScale
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -151,14 +156,45 @@ private fun TileIconView(tile: Tile, launcher: TileLauncher, tint: Color, size: 
             if (bmp != null) Image(bmp, contentDescription = null, modifier = Modifier.size(size))
             else Icon(Symbols.get("grid"), null, Modifier.size(size), tint = tint)
         }
-        // PHOTO: foto contatto da M2; per ora simbolo persona.
-        tile.icon.kind == IconKind.PHOTO -> Icon(Symbols.get("person"), null, Modifier.size(size), tint = tint)
+        tile.icon.kind == IconKind.PHOTO || (tile.icon.kind == IconKind.AUTO && tile.type in PersonTypes) ->
+            ContactPhoto(tile, launcher, tint, size, initialsFallback = tile.icon.kind == IconKind.PHOTO)
         else -> {
             val name = tile.icon.ref.takeIf { it in Symbols.names } ?: Symbols.defaultFor(tile.type)
             Icon(Symbols.get(name), null, Modifier.size(size), tint = tint)
         }
     }
 }
+
+private val PersonTypes = setOf(TileType.CALL, TileType.WA_VIDEO, TileType.SMS)
+
+/**
+ * Foto del contatto in un cerchio con bordo. Senza foto: iniziali (icona "foto" scelta
+ * esplicitamente) oppure il simbolo del tipo di tile (icona automatica).
+ */
+@Composable
+private fun ContactPhoto(tile: Tile, launcher: TileLauncher, tint: Color, size: Dp, initialsFallback: Boolean) {
+    val px = with(LocalDensity.current) { size.roundToPx() }
+    val photo by produceState<ImageBitmap?>(null, tile.icon.ref, tile.target, px) {
+        value = withContext(Dispatchers.IO) { launcher.contacts.photo(tile.icon.ref, tile.target, px)?.asImageBitmap() }
+    }
+    val p = photo
+    when {
+        p != null -> Image(
+            p, contentDescription = null, contentScale = ContentScale.Crop,
+            modifier = Modifier.size(size).clip(CircleShape).border(3.dp, tint, CircleShape),
+        )
+        initialsFallback -> Box(
+            Modifier.size(size).clip(CircleShape).background(Color(0xFFD9D3C7)).border(3.dp, tint, CircleShape),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(initials(tile.label), color = Palette.Ink, fontSize = (size * 0.38f).fixedSp(), fontWeight = FontWeight.Bold)
+        }
+        else -> Icon(Symbols.get(Symbols.defaultFor(tile.type)), null, Modifier.size(size), tint = tint)
+    }
+}
+
+private fun initials(label: String): String =
+    label.split(' ').filter { it.isNotBlank() }.take(2).joinToString("") { it.take(1).uppercase() }.ifEmpty { "?" }
 
 @Composable
 private fun ClockTile(tile: Tile, modifier: Modifier, onSecretTap: () -> Unit) {

@@ -9,6 +9,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -17,6 +18,8 @@ import androidx.lifecycle.lifecycleScope
 import app.semplicephone.data.AppCatalog
 import app.semplicephone.data.AppEntry
 import app.semplicephone.data.ConfigRepository
+import app.semplicephone.data.Contacts
+import app.semplicephone.launch.Permissions
 import app.semplicephone.launch.TileLauncher
 import app.semplicephone.model.LauncherConfig
 import app.semplicephone.model.Tile
@@ -50,6 +53,11 @@ class MainActivity : ComponentActivity() {
     private lateinit var launcher: TileLauncher
     private lateinit var pins: PinStore
     private lateinit var catalog: AppCatalog
+    private lateinit var contacts: Contacts
+
+    /** Picker contatti o dialog permessi aperti dall'editor: non richiudere le impostazioni in onStop. */
+    private var externalActivity = false
+    private var permissionsTick by mutableIntStateOf(0)
 
     private val homePressCount = mutableIntStateOf(0)
     private val needsHomeRole = mutableStateOf(false)
@@ -63,12 +71,16 @@ class MainActivity : ComponentActivity() {
     private val requestHomeRole =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { refreshHomeRole() }
 
+    private val requestPermissions =
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissionsTick++ }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
         repo = ConfigRepository(applicationContext)
-        launcher = TileLauncher(this)
+        contacts = Contacts(applicationContext)
+        launcher = TileLauncher(this, contacts, onSos = ::onSosRequested)
         pins = PinStore(applicationContext)
         catalog = AppCatalog(applicationContext)
         lifecycleScope.launch { repo.load() }
@@ -108,6 +120,8 @@ class MainActivity : ComponentActivity() {
                             onResetDefaults = { lifecycleScope.launch { draft = repo.defaultConfig(); editPage = 0 } },
                             onSave = ::saveDraft,
                             onExit = ::closeSettings,
+                            missingPermissions = remember(d, permissionsTick) { Permissions.missing(this@MainActivity, d) },
+                            onRequestPermissions = { askPermissions(d) },
                         )
                     }
                     is Screen.EditTile -> draft?.let { d ->
@@ -123,6 +137,7 @@ class MainActivity : ComponentActivity() {
                             onSave = { t -> draft = d.withTile(s.pageIndex, t); screen = Screen.Layout },
                             onDelete = { draft = d.withoutTile(s.pageIndex, s.tile.id); screen = Screen.Layout },
                             onCancel = { screen = Screen.Layout },
+                            onExternalStart = { externalActivity = true },
                         )
                     }
                     Screen.Sos -> draft?.let { d ->
@@ -139,13 +154,15 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
+        externalActivity = false
+        permissionsTick++
         refreshHomeRole()
     }
 
     /** Uscendo dall'app (schermo spento, altra app) le impostazioni si richiudono: serve di nuovo il PIN. */
     override fun onStop() {
         super.onStop()
-        if (screen != Screen.Home) closeSettings()
+        if (screen != Screen.Home && !externalActivity) closeSettings()
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -188,9 +205,25 @@ class MainActivity : ComponentActivity() {
         val d = draft ?: return
         lifecycleScope.launch {
             runCatching { repo.save(d) }
-                .onSuccess { closeSettings() }
+                .onSuccess {
+                    askPermissions(d)
+                    closeSettings()
+                }
                 .onFailure { saveError = it.message ?: it.javaClass.simpleName }
         }
+    }
+
+    private fun askPermissions(cfg: LauncherConfig) {
+        val missing = Permissions.missing(this, cfg).map { it.permission }.distinct()
+        if (missing.isNotEmpty()) {
+            externalActivity = true
+            requestPermissions.launch(missing.toTypedArray())
+        }
+    }
+
+    /** M4 sostituirà questo con la schermata di conto alla rovescia. */
+    private fun onSosRequested() {
+        repo.config.value.sos.numbers.firstOrNull()?.let { launcher.call(it) }
     }
 
     private fun newTile(col: Int, row: Int) = Tile(

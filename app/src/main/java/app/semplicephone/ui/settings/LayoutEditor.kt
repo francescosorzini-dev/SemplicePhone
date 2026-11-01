@@ -42,6 +42,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.semplicephone.data.ConfigRepository
+import app.semplicephone.launch.Permissions
 import app.semplicephone.model.LauncherConfig
 import app.semplicephone.model.Page
 import app.semplicephone.model.Tile
@@ -70,6 +71,9 @@ fun LayoutEditor(
     onResetDefaults: () -> Unit,
     onSave: () -> Unit,
     onExit: () -> Unit,
+    missingPermissions: List<Permissions.Need> = emptyList(),
+    onRequestPermissions: () -> Unit = {},
+    extraSections: @Composable () -> Unit = {},
 ) {
     val page = draft.pages.getOrNull(pageIndex) ?: return
     val problems = remember(draft) { ConfigRepository.validate(draft) }
@@ -134,8 +138,17 @@ fun LayoutEditor(
             if (noSos) Text("Attenzione: nessun pulsante SOS nella Home.", color = Palette.Sos, fontWeight = FontWeight.Bold, fontSize = 16.sp)
             if (error != null) Text("Salvataggio non riuscito: $error", color = Palette.Sos, fontSize = 15.sp)
 
+            if (missingPermissions.isNotEmpty()) {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    SectionLabel("Permessi mancanti")
+                    missingPermissions.map { it.why }.distinct().forEach { Text("• $it", fontSize = 15.sp, color = Palette.Ink) }
+                    OutlinedButton(onClick = onRequestPermissions, modifier = Modifier.fillMaxWidth().height(52.dp)) { Text("Concedi permessi") }
+                }
+            }
+
             SectionLabel("Altre impostazioni")
             OutlinedButton(onClick = onEditSos, modifier = Modifier.fillMaxWidth().height(52.dp)) { Text("Numeri SOS") }
+            extraSections()
             OutlinedButton(onClick = onChangePin, modifier = Modifier.fillMaxWidth().height(52.dp)) { Text("Cambia PIN") }
             OutlinedButton(
                 onClick = { confirm = "Sostituire la disposizione con quella predefinita? Le modifiche non salvate vanno perse." to onResetDefaults },

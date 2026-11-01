@@ -1,5 +1,9 @@
 package app.semplicephone.ui.settings
 
+import android.content.Intent
+import android.provider.ContactsContract
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -85,11 +89,24 @@ fun TileEditor(
     onSave: (Tile) -> Unit,
     onDelete: () -> Unit,
     onCancel: () -> Unit,
+    onExternalStart: () -> Unit = {},
 ) {
     var t by remember { mutableStateOf(initial) }
     var pickApp by remember { mutableStateOf(false) }
     var confirmDelete by remember { mutableStateOf(false) }
     val conflict = ConfigRepository.conflict(page, t)
+    val pickContact = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { res ->
+        val picked = res.data?.data?.let { launcher.contacts.readPicked(it) } ?: return@rememberLauncherForActivityResult
+        val keepLabel = t.label.isNotBlank() && t.label != defaultLabel(t.type)
+        t = t.copy(
+            target = picked.number,
+            label = if (keepLabel) t.label else picked.name,
+            icon = when (t.icon.kind) {
+                IconKind.AUTO, IconKind.PHOTO -> TileIcon(t.icon.kind, picked.lookupKey?.let { "contact:$it" }.orEmpty())
+                else -> t.icon
+            },
+        )
+    }
 
     Column(Modifier.fillMaxSize().background(Color(0xFFECE9E2)).windowInsetsPadding(WindowInsets.safeDrawing)) {
         EditorHeader(if (isNew) "Nuovo tile" else "Modifica tile", onCancel, "Salva", enabled = conflict == null) { onSave(t) }
@@ -118,6 +135,14 @@ fun TileEditor(
                     }
                 }
                 TileType.CALL, TileType.WA_VIDEO, TileType.SMS -> {
+                    OutlinedButton(
+                        onClick = {
+                            onExternalStart()
+                            pickContact.launch(Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI))
+                        },
+                        modifier = Modifier.fillMaxWidth().height(52.dp),
+                        shape = RoundedCornerShape(10.dp),
+                    ) { Text("Scegli dalla rubrica", fontSize = 17.sp, color = Palette.Ink) }
                     Field("Numero di telefono", t.target, KeyboardType.Phone) { t = t.copy(target = it.filter { c -> c.isDigit() || c == '+' }) }
                     if (t.type == TileType.WA_VIDEO) Hint("Il numero deve essere salvato in rubrica con WhatsApp attivo.")
                     if (t.type == TileType.SMS) Field("Testo del messaggio", t.body) { t = t.copy(body = it) }
@@ -138,7 +163,7 @@ fun TileEditor(
                     t = t.copy(icon = TileIcon(k, if (k == IconKind.SYMBOL) t.icon.ref.ifBlank { Symbols.defaultFor(t.type) } else ""))
                 }
                 if (t.icon.kind == IconKind.SYMBOL) SymbolGrid(t.icon.ref) { t = t.copy(icon = TileIcon(IconKind.SYMBOL, it)) }
-                if (t.icon.kind == IconKind.PHOTO) Hint("Foto dai contatti: prossima versione. Per ora appare il simbolo persona.")
+                if (t.icon.kind == IconKind.PHOTO) Hint("Usa la foto del contatto in rubrica; senza foto mostra le iniziali.")
             }
 
             SectionLabel("Colore")

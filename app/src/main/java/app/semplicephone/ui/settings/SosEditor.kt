@@ -40,7 +40,7 @@ fun SosEditor(initial: SosConfig, onSave: (SosConfig) -> Unit, onCancel: () -> U
     val clean = numbers.map { it.trim() }.filter { it.isNotEmpty() }
 
     Column(Modifier.fillMaxSize().background(Color(0xFFECE9E2)).windowInsetsPadding(WindowInsets.safeDrawing)) {
-        EditorHeader("SOS", onCancel, "Fatto", enabled = clean.isNotEmpty()) { onSave(SosConfig(clean, hold)) }
+        EditorHeader("SOS", onCancel, "Fatto", enabled = clean.isNotEmpty()) { onSave(initial.copy(numbers = clean, holdSeconds = hold)) }
         Column(
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),

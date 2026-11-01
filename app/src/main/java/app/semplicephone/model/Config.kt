@@ -12,6 +12,24 @@ data class LauncherConfig(
     val version: Int = 1,
     val pages: List<Page> = emptyList(),
     val sos: SosConfig = SosConfig(),
+    val reminders: List<Reminder> = emptyList(),
+)
+
+/** Promemoria (farmaci o altro) a orario fisso, con ripetizione finché non viene confermato. */
+@Serializable
+data class Reminder(
+    val id: String,
+    /** "HH:mm", ora locale del telefono. */
+    val time: String,
+    /** 1 = lunedì … 7 = domenica (ISO); vuoto = tutti i giorni. */
+    val days: List<Int> = emptyList(),
+    val title: String = "È ora della medicina",
+    val detail: String = "",
+    val snoozeMinutes: Int = 10,
+    /** Se non si risponde, risuona ogni N minuti fino a maxRepeats volte. */
+    val repeatMinutes: Int = 5,
+    val maxRepeats: Int = 6,
+    val enabled: Boolean = true,
 )
 
 @Serializable
@@ -80,4 +98,8 @@ data class SosConfig(
     /** Il primo numero viene chiamato; a tutti viene inviato l'SMS (da M4). */
     val numbers: List<String> = emptyList(),
     val holdSeconds: Int = 3,
+    /** Secondi di conto alla rovescia annullabile dopo la pressione, prima di chiamare. */
+    val countdownSeconds: Int = 5,
+    /** Testo dell'SMS; la posizione viene aggiunta in fondo. */
+    val message: String = "Ho bisogno di aiuto.",
 )

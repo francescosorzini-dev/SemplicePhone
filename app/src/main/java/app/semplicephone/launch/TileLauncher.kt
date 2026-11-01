@@ -1,5 +1,6 @@
 package app.semplicephone.launch
 
+import android.Manifest
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
@@ -8,39 +9,43 @@ import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Process
+import android.os.SystemClock
 import android.provider.MediaStore
 import android.util.Log
 import android.widget.Toast
+import app.semplicephone.data.Contacts
 import app.semplicephone.model.SosConfig
 import app.semplicephone.model.Tile
 import app.semplicephone.model.TileType
 
-/** Traduce un tile in un Intent e lo avvia. Nessuna eccezione arriva alla UI. */
-class TileLauncher(private val context: Context) {
+/**
+ * Traduce un tile in un Intent e lo avvia. Nessuna eccezione arriva alla UI.
+ * [onSos] apre la schermata di conto alla rovescia (gestita dall'Activity).
+ */
+class TileLauncher(private val context: Context, val contacts: Contacts, private val onSos: () -> Unit = {}) {
 
     private val pm: PackageManager = context.packageManager
+    private var lastLaunch = 0L
 
     fun launch(tile: Tile, sos: SosConfig) {
+        // Antirimbalzo: un doppio tocco (frequente con mani poco ferme) non apre due volte.
+        val now = SystemClock.elapsedRealtime()
+        if (tile.type != TileType.SOS && now - lastLaunch < DEBOUNCE_MS) return
+        lastLaunch = now
         try {
             when (tile.type) {
                 TileType.APP -> {
                     val intent = appIntent(tile.target) ?: return notAvailable(tile)
                     start(intent)
                 }
-                // M2: chiamata diretta con CALL_PHONE; per ora apre il dialer col numero.
-                TileType.CALL -> start(Intent(Intent.ACTION_DIAL, Uri.parse("tel:${tile.target}")))
+                TileType.CALL -> call(tile.target)
                 TileType.SMS -> start(
-                    Intent(Intent.ACTION_SENDTO, Uri.parse("smsto:${tile.target}"))
-                        .putExtra("sms_body", tile.body),
+                    Intent(Intent.ACTION_SENDTO, Uri.parse("smsto:${tile.target}")).putExtra("sms_body", tile.body),
                 )
                 TileType.URL -> start(Intent(Intent.ACTION_VIEW, Uri.parse(tile.target)))
                 TileType.SHORTCUT -> startShortcut(tile)
-                // M4: countdown + chiamata diretta + SMS con posizione.
-                TileType.SOS -> sos.numbers.firstOrNull()?.let {
-                    start(Intent(Intent.ACTION_DIAL, Uri.parse("tel:$it")))
-                } ?: toast("Nessun numero SOS configurato")
-                // M2: videochiamata WhatsApp via data row del contatto.
-                TileType.WA_VIDEO -> toast("Videochiamata: disponibile a breve")
+                TileType.SOS -> if (sos.numbers.isEmpty()) toast("Nessun numero SOS configurato") else onSos()
+                TileType.WA_VIDEO -> whatsAppVideo(tile)
                 TileType.CLOCK -> Unit
             }
         } catch (e: ActivityNotFoundException) {
@@ -48,6 +53,27 @@ class TileLauncher(private val context: Context) {
         } catch (e: SecurityException) {
             Log.w(TAG, "avvio negato per ${tile.id}", e)
             notAvailable(tile)
+        }
+    }
+
+    /** Chiamata diretta se c'è CALL_PHONE, altrimenti dialer col numero già composto. */
+    fun call(number: String) {
+        if (number.isBlank()) return toast("Numero non impostato")
+        val uri = Uri.parse("tel:${Uri.encode(number)}")
+        val action = if (Permissions.granted(context, Manifest.permission.CALL_PHONE)) Intent.ACTION_CALL else Intent.ACTION_DIAL
+        start(Intent(action, uri))
+    }
+
+    private fun whatsAppVideo(tile: Tile) {
+        if (tile.target.isBlank()) return toast("Numero non impostato")
+        if (pm.getLaunchIntentForPackage(Contacts.WHATSAPP) == null) return toast("WhatsApp non è installato")
+        val intent = contacts.whatsAppVideoIntent(tile.target)
+        if (intent != null) {
+            start(intent)
+        } else {
+            // Contatto non in rubrica o senza WhatsApp: apre almeno la chat.
+            toast("Apro la chat WhatsApp")
+            start(Intent(Intent.ACTION_VIEW, Uri.parse("https://wa.me/${tile.target.filter(Char::isDigit)}")).setPackage(Contacts.WHATSAPP))
         }
     }
 
@@ -71,6 +97,7 @@ class TileLauncher(private val context: Context) {
     fun isAvailable(tile: Tile): Boolean = when (tile.type) {
         TileType.APP -> appIntent(tile.target) != null
         TileType.SHORTCUT -> tile.target.contains('/')
+        TileType.WA_VIDEO -> pm.getLaunchIntentForPackage(Contacts.WHATSAPP) != null
         else -> true
     }
 
@@ -83,7 +110,7 @@ class TileLauncher(private val context: Context) {
         la.startShortcut(pkg, id, null, null, Process.myUserHandle())
     }
 
-    private fun start(intent: Intent) {
+    fun start(intent: Intent) {
         context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
     }
 
@@ -93,5 +120,6 @@ class TileLauncher(private val context: Context) {
 
     companion object {
         private const val TAG = "TileLauncher"
+        private const val DEBOUNCE_MS = 1200L
     }
 }
