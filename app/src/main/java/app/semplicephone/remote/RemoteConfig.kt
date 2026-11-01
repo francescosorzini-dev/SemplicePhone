@@ -245,6 +245,7 @@ class RemoteClient(private val context: Context) {
 class RemoteWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
     override suspend fun doWork(): Result {
         val res = RemoteClient(applicationContext).sync()
+        runCatching { app.semplicephone.update.Updater(applicationContext).autoUpdateIfSilent() }
         return if (res.startsWith("Errore")) Result.retry() else Result.success()
     }
 }

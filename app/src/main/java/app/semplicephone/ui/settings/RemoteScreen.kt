@@ -32,7 +32,10 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.semplicephone.BuildConfig
 import app.semplicephone.remote.RemoteClient
+import app.semplicephone.update.UpdateInfo
+import app.semplicephone.update.Updater
 import app.semplicephone.remote.RemoteSettings
 import app.semplicephone.ui.Palette
 import kotlinx.coroutines.launch
@@ -54,11 +57,16 @@ fun RemoteScreen(onBack: () -> Unit) {
     var status by remember { mutableStateOf(settings.lastResult) }
     var lastCheck by remember { mutableStateOf(settings.lastCheck) }
     var busy by remember { mutableStateOf(false) }
+    val updater = remember { Updater(context) }
+    var updateUrl by remember { mutableStateOf(updater.url) }
+    var updateStatus by remember { mutableStateOf(updater.lastResult) }
+    var available by remember { mutableStateOf<UpdateInfo?>(null) }
 
     fun persist() {
         settings.url = url
         settings.publicKey = key
         settings.enabled = enabled
+        updater.url = updateUrl
         RemoteClient.schedule(context)
     }
 
@@ -108,6 +116,43 @@ fun RemoteScreen(onBack: () -> Unit) {
                     color = if (status.startsWith("Applicata") || status.startsWith("Già")) Color(0xFF1B6E34) else Palette.Ink)
             }
             Text("Versione applicata: ${settings.lastSeq}", fontSize = 15.sp, color = Color(0xFF4A4A4A))
+
+            SectionLabel("Aggiornamenti dell'app")
+            Text("Installata: ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})", fontSize = 15.sp)
+            OutlinedTextField(updateUrl, { updateUrl = it }, label = { Text("Indirizzo update.json") }, modifier = Modifier.fillMaxWidth())
+            OutlinedButton(
+                onClick = {
+                    updater.url = updateUrl
+                    busy = true
+                    scope.launch {
+                        available = updater.check()
+                        updateStatus = updater.lastResult
+                        busy = false
+                    }
+                },
+                enabled = !busy,
+                modifier = Modifier.fillMaxWidth().height(52.dp),
+            ) { Text("Controlla aggiornamenti") }
+            available?.let { info ->
+                OutlinedButton(
+                    onClick = {
+                        busy = true
+                        scope.launch {
+                            updater.install(info)
+                            updateStatus = updater.lastResult
+                            busy = false
+                        }
+                    },
+                    enabled = !busy,
+                    modifier = Modifier.fillMaxWidth().height(52.dp),
+                ) { Text("Installa ${info.versionName}") }
+            }
+            if (updateStatus.isNotBlank()) Text(updateStatus, fontSize = 15.sp)
+            Text(
+                "Con SemplicePhone amministratore del dispositivo gli aggiornamenti si installano da soli " +
+                    "durante il controllo periodico; altrimenti Android chiede conferma.",
+                fontSize = 14.sp, color = Color(0xFF4A4A4A),
+            )
         }
     }
 }

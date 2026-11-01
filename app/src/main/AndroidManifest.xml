@@ -16,6 +16,7 @@
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
     <!-- Package visibility: elenco delle app avviabili senza QUERY_ALL_PACKAGES -->
     <queries>
@@ -84,6 +85,10 @@
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
         </receiver>
+
+        <receiver
+            android:name=".update.InstallStatusReceiver"
+            android:exported="false" />
 
         <receiver
             android:name=".admin.AdminReceiver"

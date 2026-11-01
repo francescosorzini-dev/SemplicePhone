@@ -13,8 +13,9 @@ android {
         applicationId = "app.semplicephone"
         minSdk = 29
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1.0"
+        // In CI di release: -PversionCode=<numero run> -PversionName=<tag>
+        versionCode = (project.findProperty("versionCode") as String?)?.toInt() ?: 1
+        versionName = (project.findProperty("versionName") as String?) ?: "0.1.0-dev"
 
         // Valori predefiniti per la config remota, sovrascrivibili da gradle.properties o -P.
         val remoteUrl = (project.findProperty("semplice.remoteUrl") as String?)
@@ -22,11 +23,29 @@ android {
         val remotePubkey = (project.findProperty("semplice.remotePubkey") as String?) ?: ""
         buildConfigField("String", "REMOTE_URL", "\"$remoteUrl\"")
         buildConfigField("String", "REMOTE_PUBKEY", "\"$remotePubkey\"")
+        val updateUrl = (project.findProperty("semplice.updateUrl") as String?)
+            ?: "https://github.com/francescosorzini-dev/SemplicePhone/releases/latest/download/update.json"
+        buildConfigField("String", "UPDATE_URL", "\"$updateUrl\"")
+    }
+
+    // Firma release da variabili d'ambiente (secrets GitHub); senza, l'APK release resta non firmato.
+    val keystorePath = System.getenv("SIGNING_KEYSTORE")
+    if (keystorePath != null && file(keystorePath).exists()) {
+        signingConfigs {
+            create("release") {
+                storeFile = file(keystorePath)
+                storePassword = System.getenv("SIGNING_STORE_PASSWORD")
+                keyAlias = System.getenv("SIGNING_KEY_ALIAS")
+                keyPassword = System.getenv("SIGNING_KEY_PASSWORD")
+            }
+        }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = true
+            isShrinkResources = true
+            signingConfigs.findByName("release")?.let { signingConfig = it }
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }

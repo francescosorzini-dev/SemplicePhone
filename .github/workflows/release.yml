@@ -1,0 +1,64 @@
+name: release
+
+# Tag vX.Y.Z → APK release firmato + update.json pubblicati come GitHub Release.
+# Secrets richiesti: SIGNING_KEYSTORE_B64, SIGNING_STORE_PASSWORD, SIGNING_KEY_ALIAS, SIGNING_KEY_PASSWORD
+# (vedi tools/release/new-keystore.ps1).
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Keystore
+        env:
+          KS: ${{ secrets.SIGNING_KEYSTORE_B64 }}
+        run: |
+          if [ -z "$KS" ]; then echo "::error::Secret SIGNING_KEYSTORE_B64 mancante (tools/release/new-keystore.ps1)"; exit 1; fi
+          echo "$KS" | base64 -d > "$RUNNER_TEMP/release.jks"
+          echo "SIGNING_KEYSTORE=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
+
+      - name: Build release firmata
+        env:
+          SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
+          SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          ./gradlew --no-daemon testDebugUnitTest assembleRelease \
+            -PversionName="$VERSION" -PversionCode="${{ github.run_number }}0"
+
+      - name: APK + update.json
+        run: |
+          set -euo pipefail
+          VERSION="${GITHUB_REF_NAME#v}"
+          APK="SemplicePhone-$VERSION.apk"
+          cp app/build/outputs/apk/release/app-release.apk "$APK"
+          "$ANDROID_HOME"/build-tools/*/apksigner verify --print-certs "$APK" | head -3
+          SHA=$(sha256sum "$APK" | cut -d' ' -f1)
+          cat > update.json <<EOF
+          {"versionCode": ${{ github.run_number }}0, "versionName": "$VERSION",
+           "apkUrl": "https://github.com/${{ github.repository }}/releases/download/${GITHUB_REF_NAME}/$APK",
+           "sha256": "$SHA"}
+          EOF
+          cat update.json
+          echo "APK=$APK" >> "$GITHUB_ENV"
+
+      - name: GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" "$APK" update.json --title "SemplicePhone ${GITHUB_REF_NAME}" --generate-notes
