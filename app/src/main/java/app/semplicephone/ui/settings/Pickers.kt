@@ -61,7 +61,14 @@ fun SectionLabel(text: String) {
 }
 
 @Composable
-fun Stepper(label: String, value: Int, range: IntRange, onChange: (Int) -> Unit, modifier: Modifier = Modifier) {
+fun Stepper(
+    label: String,
+    value: Int,
+    range: IntRange,
+    onChange: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+    format: (Int) -> String = { "$it" },
+) {
     Column(modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(label, fontSize = 15.sp, color = Palette.Ink)
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -71,7 +78,7 @@ fun Stepper(label: String, value: Int, range: IntRange, onChange: (Int) -> Unit,
                 modifier = Modifier.size(48.dp).semantics { contentDescription = "$label meno" },
                 contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp),
             ) { Text("−", fontSize = 22.sp) }
-            Text("$value", fontSize = 20.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 12.dp))
+            Text(format(value), fontSize = 20.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 12.dp))
             OutlinedButton(
                 onClick = { onChange(value + 1) },
                 enabled = value < range.last,

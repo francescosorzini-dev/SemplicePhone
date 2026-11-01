@@ -42,6 +42,11 @@ object Symbols {
         ),
         "person" to listOf("M8 8a4 4 0 1 0 8 0a4 4 0 1 0-8 0", "M4 21a8 8 0 0 1 16 0"),
         "alert" to listOf("M12 3l10 18H2z", "M12 10v5", "M12 18v0.5"),
+        "pill" to listOf("M4.6 12.4l7.8-7.8a4.2 4.2 0 0 1 6 6l-7.8 7.8a4.2 4.2 0 0 1-6-6z", "M8.5 8.5l7 7"),
+        "home" to listOf("M3 11l9-7 9 7", "M5 10v10h14V10", "M10 20v-6h4v6"),
+        "heart" to listOf("M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"),
+        "music" to listOf("M9 18V6l10-2v12", "M5 18a2 2 0 1 0 4 0a2 2 0 1 0-4 0", "M15 16a2 2 0 1 0 4 0a2 2 0 1 0-4 0"),
+        "radio" to listOf("M4 9h16v11H4z", "M7 9l10-5", "M9 14.5a2 2 0 1 0 4 0a2 2 0 1 0-4 0", "M16 13h1M16 16h1"),
         "grid" to listOf("M5 5h6v6H5zM13 5h6v6h-6zM5 13h6v6H5zM13 13h6v6h-6z"),
     )
 

@@ -28,6 +28,8 @@ import app.semplicephone.model.IconKind
 import app.semplicephone.model.TileType
 import app.semplicephone.security.PinStore
 import app.semplicephone.sos.SosScreen
+import app.semplicephone.reminders.ReminderScheduler
+import app.semplicephone.ui.settings.RemindersEditor
 import app.semplicephone.ui.settings.ProtectionScreen
 import app.semplicephone.admin.Protection as DeviceProtection
 import androidx.compose.material3.OutlinedButton
@@ -56,6 +58,7 @@ sealed interface Screen {
     data object Sos : Screen
     data object Protection : Screen
     data object SosCountdown : Screen
+    data object Reminders : Screen
 }
 
 class MainActivity : ComponentActivity() {
@@ -66,6 +69,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var catalog: AppCatalog
     private lateinit var contacts: Contacts
     private lateinit var protection: DeviceProtection
+    private lateinit var scheduler: ReminderScheduler
 
     /** Picker contatti o dialog permessi aperti dall'editor: non richiudere le impostazioni in onStop. */
     private var externalActivity = false
@@ -93,10 +97,15 @@ class MainActivity : ComponentActivity() {
         repo = ConfigRepository(applicationContext)
         contacts = Contacts(applicationContext)
         protection = DeviceProtection(applicationContext)
+        scheduler = ReminderScheduler(applicationContext)
         launcher = TileLauncher(this, contacts, onSos = ::onSosRequested)
         pins = PinStore(applicationContext)
         catalog = AppCatalog(applicationContext)
-        lifecycleScope.launch { repo.load() }
+        lifecycleScope.launch {
+            repo.load()
+            // Riallinea gli allarmi a ogni avvio (es. dopo un aggiornamento o un restore).
+            scheduler.scheduleAll(repo.config.value)
+        }
 
         onBackPressedDispatcher.addCallback(this) { goBack() }
 
@@ -136,6 +145,9 @@ class MainActivity : ComponentActivity() {
                             missingPermissions = remember(d, permissionsTick) { Permissions.missing(this@MainActivity, d) },
                             onRequestPermissions = { askPermissions(d) },
                             extraSections = {
+                                OutlinedButton(onClick = { screen = Screen.Reminders }, modifier = Modifier.fillMaxWidth().height(52.dp)) {
+                                    Text("Promemoria farmaci (${d.reminders.size})")
+                                }
                                 OutlinedButton(onClick = { screen = Screen.Protection }, modifier = Modifier.fillMaxWidth().height(52.dp)) {
                                     Text("Protezione del telefono")
                                 }
@@ -154,6 +166,15 @@ class MainActivity : ComponentActivity() {
                             launcher = launcher,
                             onSave = { t -> draft = d.withTile(s.pageIndex, t); screen = Screen.Layout },
                             onDelete = { draft = d.withoutTile(s.pageIndex, s.tile.id); screen = Screen.Layout },
+                            onCancel = { screen = Screen.Layout },
+                            onExternalStart = { externalActivity = true },
+                        )
+                    }
+                    Screen.Reminders -> draft?.let { d ->
+                        RemindersEditor(
+                            initial = d.reminders,
+                            scheduler = scheduler,
+                            onSave = { draft = d.copy(reminders = it); screen = Screen.Layout },
                             onCancel = { screen = Screen.Layout },
                             onExternalStart = { externalActivity = true },
                         )
@@ -223,7 +244,7 @@ class MainActivity : ComponentActivity() {
             Screen.Home -> Screen.Home
             is Screen.Pin -> if (draft != null) Screen.Layout else { closeSettings(); Screen.Home }
             Screen.Layout -> { closeSettings(); Screen.Home }
-            is Screen.EditTile, Screen.Sos, Screen.Protection -> Screen.Layout
+            is Screen.EditTile, Screen.Sos, Screen.Protection, Screen.Reminders -> Screen.Layout
             Screen.SosCountdown -> Screen.Home
         }
     }
@@ -233,6 +254,7 @@ class MainActivity : ComponentActivity() {
         lifecycleScope.launch {
             runCatching { repo.save(d) }
                 .onSuccess {
+                    scheduler.scheduleAll(d)
                     askPermissions(d)
                     closeSettings()
                 }

@@ -6,6 +6,7 @@ import app.semplicephone.model.LauncherConfig
 import app.semplicephone.model.Page
 import app.semplicephone.model.Tile
 import app.semplicephone.model.TileType
+import app.semplicephone.reminders.ReminderTime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -20,13 +21,7 @@ import java.io.File
  */
 class ConfigRepository(private val context: Context) {
 
-    private val json = Json {
-        ignoreUnknownKeys = true
-        encodeDefaults = true
-        prettyPrint = true
-    }
-
-    private val file: File get() = File(context.filesDir, "config.json")
+    private val file: File get() = File(context.filesDir, CONFIG_FILE)
 
     private val _config = MutableStateFlow(LauncherConfig())
     val config: StateFlow<LauncherConfig> = _config.asStateFlow()
@@ -56,21 +51,39 @@ class ConfigRepository(private val context: Context) {
             ?: LauncherConfig()
     }
 
-    private fun parseOrNull(text: String, origin: String): LauncherConfig? = try {
-        val cfg = json.decodeFromString(LauncherConfig.serializer(), text)
-        val problems = validate(cfg)
-        if (problems.isEmpty()) cfg else {
-            Log.w(TAG, "config $origin scartata: ${problems.joinToString("; ")}")
-            null
-        }
-    } catch (e: Exception) {
-        Log.w(TAG, "config $origin non leggibile", e)
-        null
-    }
+    private fun parseOrNull(text: String, origin: String): LauncherConfig? = parse(text, origin)
 
     companion object {
         private const val TAG = "ConfigRepository"
         private const val DEFAULT_ASSET = "default_config.json"
+        private const val CONFIG_FILE = "config.json"
+
+        val json = Json {
+            ignoreUnknownKeys = true
+            encodeDefaults = true
+            prettyPrint = true
+        }
+
+        /** Parse + validazione; null (con log) se il testo non è una config valida. */
+        fun parse(text: String, origin: String): LauncherConfig? = try {
+            val cfg = json.decodeFromString(LauncherConfig.serializer(), text)
+            val problems = validate(cfg)
+            if (problems.isEmpty()) cfg else {
+                Log.w(TAG, "config $origin scartata: ${problems.joinToString("; ")}")
+                null
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "config $origin non leggibile", e)
+            null
+        }
+
+        /** Lettura sincrona per receiver e activity secondarie (file piccolo, ok fuori dal main thread o al boot). */
+        fun readCurrent(context: Context): LauncherConfig {
+            val f = File(context.filesDir, CONFIG_FILE)
+            return f.takeIf { it.exists() }?.let { parse(it.readText(), "locale") }
+                ?: parse(context.assets.open(DEFAULT_ASSET).bufferedReader().use { it.readText() }, "default")
+                ?: LauncherConfig()
+        }
 
         /** Controlli strutturali: tile dentro la griglia, nessuna sovrapposizione, id unici. */
         fun validate(cfg: LauncherConfig): List<String> {
@@ -79,6 +92,10 @@ class ConfigRepository(private val context: Context) {
             val ids = cfg.pages.flatMap { p -> p.tiles.map(Tile::id) }
             ids.groupingBy { it }.eachCount().filter { it.value > 1 }.keys.forEach { out += "id duplicato $it" }
             cfg.pages.forEachIndexed { pi, page -> out += validatePage(pi, page) }
+            cfg.reminders.forEach { r ->
+                if (ReminderTime.parse(r.time) == null) out += "promemoria «${r.title}»: orario non valido"
+            }
+            cfg.reminders.groupingBy { it.id }.eachCount().filter { it.value > 1 }.keys.forEach { out += "promemoria duplicato $it" }
             return out
         }
 
