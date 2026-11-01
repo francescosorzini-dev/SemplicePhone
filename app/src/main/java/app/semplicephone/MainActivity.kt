@@ -27,6 +27,15 @@ import app.semplicephone.model.TileIcon
 import app.semplicephone.model.IconKind
 import app.semplicephone.model.TileType
 import app.semplicephone.security.PinStore
+import app.semplicephone.sos.SosScreen
+import app.semplicephone.ui.settings.ProtectionScreen
+import app.semplicephone.admin.Protection as DeviceProtection
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import app.semplicephone.ui.HomeScreen
 import app.semplicephone.ui.SempliceTheme
 import app.semplicephone.ui.settings.LayoutEditor
@@ -45,6 +54,8 @@ sealed interface Screen {
     data object Layout : Screen
     data class EditTile(val pageIndex: Int, val tile: Tile, val isNew: Boolean) : Screen
     data object Sos : Screen
+    data object Protection : Screen
+    data object SosCountdown : Screen
 }
 
 class MainActivity : ComponentActivity() {
@@ -54,6 +65,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var pins: PinStore
     private lateinit var catalog: AppCatalog
     private lateinit var contacts: Contacts
+    private lateinit var protection: DeviceProtection
 
     /** Picker contatti o dialog permessi aperti dall'editor: non richiudere le impostazioni in onStop. */
     private var externalActivity = false
@@ -80,6 +92,7 @@ class MainActivity : ComponentActivity() {
 
         repo = ConfigRepository(applicationContext)
         contacts = Contacts(applicationContext)
+        protection = DeviceProtection(applicationContext)
         launcher = TileLauncher(this, contacts, onSos = ::onSosRequested)
         pins = PinStore(applicationContext)
         catalog = AppCatalog(applicationContext)
@@ -122,6 +135,11 @@ class MainActivity : ComponentActivity() {
                             onExit = ::closeSettings,
                             missingPermissions = remember(d, permissionsTick) { Permissions.missing(this@MainActivity, d) },
                             onRequestPermissions = { askPermissions(d) },
+                            extraSections = {
+                                OutlinedButton(onClick = { screen = Screen.Protection }, modifier = Modifier.fillMaxWidth().height(52.dp)) {
+                                    Text("Protezione del telefono")
+                                }
+                            },
                         )
                     }
                     is Screen.EditTile -> draft?.let { d ->
@@ -140,6 +158,13 @@ class MainActivity : ComponentActivity() {
                             onExternalStart = { externalActivity = true },
                         )
                     }
+                    Screen.Protection -> ProtectionScreen(protection, onBack = { screen = Screen.Layout })
+                    Screen.SosCountdown -> SosScreen(
+                        cfg = config.sos,
+                        launcher = launcher,
+                        contactNames = { contacts.displayName(it) },
+                        onDone = { screen = Screen.Home },
+                    )
                     Screen.Sos -> draft?.let { d ->
                         SosEditor(
                             initial = d.sos,
@@ -162,7 +187,8 @@ class MainActivity : ComponentActivity() {
     /** Uscendo dall'app (schermo spento, altra app) le impostazioni si richiudono: serve di nuovo il PIN. */
     override fun onStop() {
         super.onStop()
-        if (screen != Screen.Home && !externalActivity) closeSettings()
+        // L'SOS in corso non si interrompe se lo schermo si spegne o parte la chiamata.
+        if (screen != Screen.Home && screen != Screen.SosCountdown && !externalActivity) closeSettings()
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -197,7 +223,8 @@ class MainActivity : ComponentActivity() {
             Screen.Home -> Screen.Home
             is Screen.Pin -> if (draft != null) Screen.Layout else { closeSettings(); Screen.Home }
             Screen.Layout -> { closeSettings(); Screen.Home }
-            is Screen.EditTile, Screen.Sos -> Screen.Layout
+            is Screen.EditTile, Screen.Sos, Screen.Protection -> Screen.Layout
+            Screen.SosCountdown -> Screen.Home
         }
     }
 
@@ -221,9 +248,8 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    /** M4 sostituirà questo con la schermata di conto alla rovescia. */
     private fun onSosRequested() {
-        repo.config.value.sos.numbers.firstOrNull()?.let { launcher.call(it) }
+        if (repo.config.value.sos.numbers.isNotEmpty()) screen = Screen.SosCountdown
     }
 
     private fun newTile(col: Int, row: Int) = Tile(

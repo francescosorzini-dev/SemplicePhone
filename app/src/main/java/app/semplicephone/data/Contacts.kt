@@ -69,6 +69,19 @@ class Contacts(private val context: Context) {
         }
     }
 
+    /** Nome in rubrica per [number], o il numero stesso se sconosciuto o senza permesso. */
+    fun displayName(number: String): String {
+        if (!canRead() || number.isBlank()) return number
+        return try {
+            val filter = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(number))
+            cr.query(filter, arrayOf(ContactsContract.PhoneLookup.DISPLAY_NAME), null, null, null)?.use { c ->
+                if (c.moveToFirst()) c.getString(0) else null
+            } ?: number
+        } catch (e: Exception) {
+            number
+        }
+    }
+
     /** Foto del contatto ridotta a [px] di lato; null senza foto o senza permesso. */
     fun photo(ref: String, number: String, px: Int): Bitmap? {
         val cacheKey = "$ref|$number|$px"
