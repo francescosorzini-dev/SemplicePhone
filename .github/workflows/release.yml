@@ -64,7 +64,11 @@ jobs:
           APK="SemplicePhone-$VERSION.apk"
           cp app/build/outputs/apk/release/app-release.apk "$APK"
           APKSIGNER=$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -1)apksigner
-          "$APKSIGNER" verify --print-certs "$APK" | grep -E "Signer #1 certificate (DN|SHA-256)"
+          "$APKSIGNER" verify --verbose --print-certs "$APK" > certs.txt
+          cat certs.txt
+          # Deve essere firmato con la chiave di SemplicePhone (impronta del certificato release).
+          EXPECTED=eb1d18526755ed14677f462f31c3464eaf51b2a93079b01be23191bfbc613f2e
+          tr -d ': ' < certs.txt | tr 'A-F' 'a-f' | grep -q "$EXPECTED" || { echo "::error::APK non firmato con la chiave attesa"; exit 1; }
           SHA=$(sha256sum "$APK" | cut -d' ' -f1)
           cat > update.json <<EOF
           {"versionCode": ${{ github.run_number }}0, "versionName": "$VERSION",
