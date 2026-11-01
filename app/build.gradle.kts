@@ -15,6 +15,13 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "0.1.0"
+
+        // Valori predefiniti per la config remota, sovrascrivibili da gradle.properties o -P.
+        val remoteUrl = (project.findProperty("semplice.remoteUrl") as String?)
+            ?: "https://example.com/semplicephone/?device={device}"
+        val remotePubkey = (project.findProperty("semplice.remotePubkey") as String?) ?: ""
+        buildConfigField("String", "REMOTE_URL", "\"$remoteUrl\"")
+        buildConfigField("String", "REMOTE_PUBKEY", "\"$remotePubkey\"")
     }
 
     buildTypes {
@@ -31,6 +38,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     testOptions {
@@ -56,6 +64,9 @@ dependencies {
     implementation("androidx.activity:activity-compose:1.10.1")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.9.1")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1")
+    implementation("androidx.work:work-runtime-ktx:2.10.0")
+    // Solo la verifica Ed25519 (API di sistema solo da Android 13); R8 toglie il resto.
+    implementation("org.bouncycastle:bcprov-jdk18on:1.78.1")
 
     testImplementation("junit:junit:4.13.2")
 }

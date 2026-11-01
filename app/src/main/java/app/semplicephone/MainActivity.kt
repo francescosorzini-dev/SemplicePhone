@@ -30,6 +30,8 @@ import app.semplicephone.security.PinStore
 import app.semplicephone.sos.SosScreen
 import app.semplicephone.reminders.ReminderScheduler
 import app.semplicephone.ui.settings.RemindersEditor
+import app.semplicephone.ui.settings.RemoteScreen
+import app.semplicephone.remote.RemoteClient
 import app.semplicephone.ui.settings.ProtectionScreen
 import app.semplicephone.admin.Protection as DeviceProtection
 import androidx.compose.material3.OutlinedButton
@@ -59,6 +61,7 @@ sealed interface Screen {
     data object Protection : Screen
     data object SosCountdown : Screen
     data object Reminders : Screen
+    data object Remote : Screen
 }
 
 class MainActivity : ComponentActivity() {
@@ -94,7 +97,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
-        repo = ConfigRepository(applicationContext)
+        repo = ConfigRepository.get(applicationContext)
         contacts = Contacts(applicationContext)
         protection = DeviceProtection(applicationContext)
         scheduler = ReminderScheduler(applicationContext)
@@ -105,6 +108,7 @@ class MainActivity : ComponentActivity() {
             repo.load()
             // Riallinea gli allarmi a ogni avvio (es. dopo un aggiornamento o un restore).
             scheduler.scheduleAll(repo.config.value)
+            RemoteClient.schedule(applicationContext)
         }
 
         onBackPressedDispatcher.addCallback(this) { goBack() }
@@ -148,6 +152,9 @@ class MainActivity : ComponentActivity() {
                                 OutlinedButton(onClick = { screen = Screen.Reminders }, modifier = Modifier.fillMaxWidth().height(52.dp)) {
                                     Text("Promemoria farmaci (${d.reminders.size})")
                                 }
+                                OutlinedButton(onClick = { screen = Screen.Remote }, modifier = Modifier.fillMaxWidth().height(52.dp)) {
+                                    Text("Gestione da remoto")
+                                }
                                 OutlinedButton(onClick = { screen = Screen.Protection }, modifier = Modifier.fillMaxWidth().height(52.dp)) {
                                     Text("Protezione del telefono")
                                 }
@@ -179,6 +186,7 @@ class MainActivity : ComponentActivity() {
                             onExternalStart = { externalActivity = true },
                         )
                     }
+                    Screen.Remote -> RemoteScreen(onBack = { screen = Screen.Layout })
                     Screen.Protection -> ProtectionScreen(protection, onBack = { screen = Screen.Layout })
                     Screen.SosCountdown -> SosScreen(
                         cfg = config.sos,
@@ -244,7 +252,7 @@ class MainActivity : ComponentActivity() {
             Screen.Home -> Screen.Home
             is Screen.Pin -> if (draft != null) Screen.Layout else { closeSettings(); Screen.Home }
             Screen.Layout -> { closeSettings(); Screen.Home }
-            is Screen.EditTile, Screen.Sos, Screen.Protection, Screen.Reminders -> Screen.Layout
+            is Screen.EditTile, Screen.Sos, Screen.Protection, Screen.Reminders, Screen.Remote -> Screen.Layout
             Screen.SosCountdown -> Screen.Home
         }
     }

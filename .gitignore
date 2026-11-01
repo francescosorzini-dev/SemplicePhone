@@ -10,3 +10,4 @@
 .cxx
 *.keystore
 *.jks
+tools/remote-server/data/

@@ -58,6 +58,13 @@ class ConfigRepository(private val context: Context) {
         private const val DEFAULT_ASSET = "default_config.json"
         private const val CONFIG_FILE = "config.json"
 
+        @Volatile private var instance: ConfigRepository? = null
+
+        /** Istanza unica di processo: Home, editor e sync remota condividono lo stesso StateFlow. */
+        fun get(context: Context): ConfigRepository = instance ?: synchronized(this) {
+            instance ?: ConfigRepository(context.applicationContext).also { instance = it }
+        }
+
         val json = Json {
             ignoreUnknownKeys = true
             encodeDefaults = true

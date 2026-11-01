@@ -1,0 +1,113 @@
+package app.semplicephone.ui.settings
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import app.semplicephone.remote.RemoteClient
+import app.semplicephone.remote.RemoteSettings
+import app.semplicephone.ui.Palette
+import kotlinx.coroutines.launch
+import java.text.DateFormat
+import java.util.Date
+
+/**
+ * Config remota: URL (con {device}), chiave pubblica Ed25519 del server, ID del dispositivo da
+ * registrare sul server. Le impostazioni si salvano subito (non fanno parte della bozza).
+ */
+@Composable
+fun RemoteScreen(onBack: () -> Unit) {
+    val context = LocalContext.current
+    val settings = remember { RemoteSettings(context) }
+    val scope = rememberCoroutineScope()
+    var enabled by remember { mutableStateOf(settings.enabled) }
+    var url by remember { mutableStateOf(settings.url) }
+    var key by remember { mutableStateOf(settings.publicKey) }
+    var status by remember { mutableStateOf(settings.lastResult) }
+    var lastCheck by remember { mutableStateOf(settings.lastCheck) }
+    var busy by remember { mutableStateOf(false) }
+
+    fun persist() {
+        settings.url = url
+        settings.publicKey = key
+        settings.enabled = enabled
+        RemoteClient.schedule(context)
+    }
+
+    Column(Modifier.fillMaxSize().background(Color(0xFFECE9E2)).windowInsetsPadding(WindowInsets.safeDrawing)) {
+        EditorHeader("Gestione da remoto", { persist(); onBack() }, "Fatto") { persist(); onBack() }
+        Column(
+            Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
+        ) {
+            Text(
+                "Il telefono scarica ogni 6 ore la configurazione pubblicata sul server e la applica solo se " +
+                    "la firma è valida. Le modifiche fatte qui sul telefono vengono sostituite alla pubblicazione successiva.",
+                fontSize = 15.sp, color = Color(0xFF4A4A4A),
+            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("Attiva", fontSize = 17.sp, modifier = Modifier.weight(1f))
+                Switch(checked = enabled, onCheckedChange = { enabled = it })
+            }
+            SectionLabel("ID di questo telefono")
+            SelectionContainer {
+                Text(settings.deviceId, fontFamily = FontFamily.Monospace, fontSize = 22.sp, fontWeight = FontWeight.Bold,
+                    modifier = Modifier.fillMaxWidth().background(Color.White).padding(12.dp))
+            }
+            OutlinedTextField(url, { url = it }, label = { Text("Indirizzo (usa {device} per l'ID)") }, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(key, { key = it }, label = { Text("Chiave pubblica del server (Base64)") }, modifier = Modifier.fillMaxWidth())
+            OutlinedButton(
+                onClick = {
+                    persist()
+                    busy = true
+                    scope.launch {
+                        status = RemoteClient(context).sync()
+                        lastCheck = settings.lastCheck
+                        busy = false
+                    }
+                },
+                enabled = !busy && enabled,
+                modifier = Modifier.fillMaxWidth().height(52.dp),
+            ) { Text(if (busy) "Controllo in corso…" else "Aggiorna ora") }
+            if (lastCheck > 0) {
+                Text(
+                    "Ultimo controllo: ${DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(Date(lastCheck))}",
+                    fontSize = 15.sp,
+                )
+            }
+            if (status.isNotBlank()) {
+                Text(status, fontSize = 16.sp, fontWeight = FontWeight.Bold,
+                    color = if (status.startsWith("Applicata") || status.startsWith("Già")) Color(0xFF1B6E34) else Palette.Ink)
+            }
+            Text("Versione applicata: ${settings.lastSeq}", fontSize = 15.sp, color = Color(0xFF4A4A4A))
+        }
+    }
+}
