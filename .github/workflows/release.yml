@@ -6,6 +6,12 @@ name: release
 on:
   push:
     tags: ['v*']
+  # Avvio manuale (anche via API): il tag viene creato da GitHub insieme alla Release.
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Versione, es. 0.2.0'
+        required: true
 
 permissions:
   contents: write
@@ -24,6 +30,17 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
+      - name: Versione e tag
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            V="${{ inputs.version }}"; V="${V#v}"
+          else
+            V="${GITHUB_REF_NAME#v}"
+          fi
+          echo "$V" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+([-.][0-9A-Za-z.]+)?$' || { echo "::error::versione non valida: $V"; exit 1; }
+          echo "VERSION=$V" >> "$GITHUB_ENV"
+          echo "TAG=v$V" >> "$GITHUB_ENV"
+
       - name: Keystore
         env:
           KS: ${{ secrets.SIGNING_KEYSTORE_B64 }}
@@ -38,21 +55,19 @@ jobs:
           SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
           SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
         run: |
-          VERSION="${GITHUB_REF_NAME#v}"
           ./gradlew --no-daemon testDebugUnitTest assembleRelease \
             -PversionName="$VERSION" -PversionCode="${{ github.run_number }}0"
 
       - name: APK + update.json
         run: |
           set -euo pipefail
-          VERSION="${GITHUB_REF_NAME#v}"
           APK="SemplicePhone-$VERSION.apk"
           cp app/build/outputs/apk/release/app-release.apk "$APK"
           "$ANDROID_HOME"/build-tools/*/apksigner verify --print-certs "$APK" | head -3
           SHA=$(sha256sum "$APK" | cut -d' ' -f1)
           cat > update.json <<EOF
           {"versionCode": ${{ github.run_number }}0, "versionName": "$VERSION",
-           "apkUrl": "https://github.com/${{ github.repository }}/releases/download/${GITHUB_REF_NAME}/$APK",
+           "apkUrl": "https://github.com/${{ github.repository }}/releases/download/$TAG/$APK",
            "sha256": "$SHA"}
           EOF
           cat update.json
@@ -61,4 +76,4 @@ jobs:
       - name: GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" "$APK" update.json --title "SemplicePhone ${GITHUB_REF_NAME}" --generate-notes
+        run: gh release create "$TAG" "$APK" update.json --target "$GITHUB_SHA" --title "SemplicePhone $TAG" --generate-notes
