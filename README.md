@@ -32,7 +32,7 @@ fanno scartare la config (si resta sull'ultima valida).
 | | Stato |
 |---|---|
 | M0 – scheletro, ruolo HOME, CI | ✅ |
-| M1 – home a tile da config, orologio | ✅ (editor tile + PIN: prossimo) |
+| M1 – home a tile da config, orologio, editor tile con PIN | ✅ |
 | M2 – contatti con foto, chiamata diretta, video WhatsApp | |
 | M3 – blocco modifiche | |
 | M4 – SOS con countdown, SMS con posizione | |
