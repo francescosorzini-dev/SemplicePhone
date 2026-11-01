@@ -17,9 +17,9 @@ android {
         versionCode = (project.findProperty("versionCode") as String?)?.toInt() ?: 1
         versionName = (project.findProperty("versionName") as String?) ?: "0.1.0-dev"
 
-        // Valori predefiniti per la config remota, sovrascrivibili da gradle.properties o -P.
-        val remoteUrl = (project.findProperty("semplice.remoteUrl") as String?)
-            ?: "https://example.com/semplicephone/?device={device}"
+        // Valori predefiniti per la config remota (vuoti = da inserire nel telefono),
+        // sovrascrivibili da gradle.properties o -P per build dedicate.
+        val remoteUrl = (project.findProperty("semplice.remoteUrl") as String?) ?: ""
         val remotePubkey = (project.findProperty("semplice.remotePubkey") as String?) ?: ""
         buildConfigField("String", "REMOTE_URL", "\"$remoteUrl\"")
         buildConfigField("String", "REMOTE_PUBKEY", "\"$remotePubkey\"")

@@ -90,7 +90,13 @@ fun RemoteScreen(onBack: () -> Unit) {
                 Text(settings.deviceId, fontFamily = FontFamily.Monospace, fontSize = 22.sp, fontWeight = FontWeight.Bold,
                     modifier = Modifier.fillMaxWidth().background(Color.White).padding(12.dp))
             }
-            OutlinedTextField(url, { url = it }, label = { Text("Indirizzo (usa {device} per l'ID)") }, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(
+                url, { url = it },
+                label = { Text("Indirizzo (usa {device} per l'ID)") },
+                placeholder = { Text("https://example.com/semplicephone/?device={device}") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+            )
             OutlinedTextField(key, { key = it }, label = { Text("Chiave pubblica del server (Base64)") }, modifier = Modifier.fillMaxWidth())
             OutlinedButton(
                 onClick = {
