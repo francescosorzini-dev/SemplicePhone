@@ -46,7 +46,7 @@ jobs:
           KS: ${{ secrets.SIGNING_KEYSTORE_B64 }}
         run: |
           if [ -z "$KS" ]; then echo "::error::Secret SIGNING_KEYSTORE_B64 mancante (tools/release/new-keystore.ps1)"; exit 1; fi
-          echo "$KS" | base64 -d > "$RUNNER_TEMP/release.jks"
+          echo "$KS" | tr -d ' \r\n' | base64 -d > "$RUNNER_TEMP/release.jks"
           echo "SIGNING_KEYSTORE=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
 
       - name: Build release firmata
