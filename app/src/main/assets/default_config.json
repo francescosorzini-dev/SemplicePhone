@@ -16,5 +16,5 @@
       ]
     }
   ],
-  "sos": { "numbers": ["112"], "holdSeconds": 3 }
+  "sos": { "numbers": [], "holdSeconds": 3, "countdownSeconds": 5, "message": "Ho bisogno di aiuto." }
 }

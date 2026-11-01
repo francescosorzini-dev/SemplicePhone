@@ -111,6 +111,9 @@ function validate_config($cfg): array {
             }
         }
     }
+    foreach (($cfg->sos->numbers ?? []) as $n) {
+        if (!preg_match('/^\+?\d[\d ]{2,19}$/', (string)$n)) $err[] = "numero SOS non valido: «{$n}»";
+    }
     foreach (($cfg->reminders ?? []) as $rem) {
         if (!preg_match('/^([01]?\d|2[0-3]):[0-5]\d$/', (string)($rem->time ?? ''))) $err[] = 'promemoria «' . ($rem->title ?? '?') . '»: orario non valido';
     }
@@ -157,7 +160,7 @@ const DEFAULT_CONFIG = <<<'JSON'
       ]
     }
   ],
-  "sos": { "numbers": ["112"], "holdSeconds": 3, "countdownSeconds": 5, "message": "Ho bisogno di aiuto." },
+  "sos": { "numbers": ["+39 numero familiare"], "holdSeconds": 3, "countdownSeconds": 5, "message": "Ho bisogno di aiuto." },
   "reminders": []
 }
 JSON;

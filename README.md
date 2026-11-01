@@ -1,31 +1,77 @@
 # SemplicePhone
 
-Launcher Android per anziani: home fatta solo di tile grandi, tutti configurabili
-(app, chiamata, videochiamata WhatsApp, SMS, link, scorciatoie, orologio, SOS).
-Distribuzione via APK (sideload), non Play Store.
+Launcher Android per anziani. La Home è fatta solo di tile grandi e ogni tile è configurabile:
+app, chiamata, videochiamata WhatsApp, SMS, link, scorciatoie, orologio, SOS.
+Si distribuisce via APK (sideload), non dal Play Store. La configurazione si può gestire anche da
+remoto, con firma Ed25519.
 
-- Kotlin + Jetpack Compose, minSdk 29 / targetSdk 35
-- Config in JSON: `app/src/main/assets/default_config.json` (default),
-  `filesDir/config.json` (locale), config remota firmata (M6)
+- Kotlin + Jetpack Compose, minSdk 29 / targetSdk 35, font Atkinson Hyperlegible (OFL)
+- Config JSON: `assets/default_config.json` (predefinita) → `filesDir/config.json` (locale) →
+  config remota firmata (sostituisce quella locale quando arriva una versione più nuova)
+
+## Installazione su un telefono
+
+1. Scarica l'APK dall'ultima [Release](../../releases) oppure dagli artifact della CI (build debug).
+2. Installalo e tocca il banner «usa SemplicePhone come schermata Home».
+3. Apri le impostazioni con **5 tocchi rapidi sull'orologio** (o sullo sfondo della griglia) e
+   scegli il PIN.
+4. Configura tile, numeri SOS e promemoria, poi premi **Salva**. A quel punto vengono chiesti
+   solo i permessi che servono ai tile presenti.
+
+### Protezione avanzata (facoltativa, Device Owner)
+
+Su un telefono appena ripristinato e senza account aggiunti:
+
+```
+adb shell dpm set-device-owner app.semplicephone/.admin.AdminReceiver
+```
+
+Così si sbloccano:
+- **Blocchi**: Home fissa, tendina bloccata, niente installazioni o disinstallazioni, niente
+  ripristino di fabbrica.
+- **Permessi** concessi in automatico.
+- **Aggiornamenti** dell'app silenziosi.
+
+Ogni opzione si toglie da Impostazioni › Protezione, compreso il ruolo di Device Owner.
+
+## Funzioni
+
+| | |
+|---|---|
+| **Home** | griglia per pagine (1–4 colonne × 1–8 righe), tile w×h, swipe tra pagine, tasto Home → pagina 1 |
+| **Tile** | `app` (package o ruoli `@dialer @sms @camera @gallery @browser`), `call`, `wa_video`, `sms`, `url`, `shortcut`, `clock`, `sos` |
+| **Contatti** | scelta dalla rubrica, foto in cerchio (o iniziali), chiamata diretta con `CALL_PHONE` |
+| **SOS** | pressione prolungata → conto alla rovescia annullabile → SMS con posizione a tutti i numeri → chiamata al primo |
+| **Promemoria** | allarme a schermo intero anche a telefono bloccato, «PRESO» / rinvio, ripetizione fino a conferma, registro esiti |
+| **Editor** | protetto da PIN (PBKDF2, blocco dopo 5 errori); bozza applicata solo dopo validazione |
+| **Remoto** | busta firmata Ed25519, anti-replay, PIN impostabile, report batteria/promemoria; server in [`tools/remote-server`](tools/remote-server) |
+| **Aggiornamenti** | `update.json` + verifica SHA-256 + PackageInstaller |
 
 ## Build
 
-La CI (GitHub Actions) produce l'APK debug come artifact a ogni push su `main`.
-In locale: `./gradlew assembleDebug` (JDK 17, Android SDK 35).
+- Ogni push su `main` esegue la CI: APK debug come artifact, unit test e build release R8 di controllo.
+- Release firmata: esegui una volta [`tools/release/new-keystore.ps1`](tools/release/new-keystore.ps1),
+  che crea la chiave e i secrets GitHub. Poi `git tag v0.2.0 && git push origin v0.2.0`.
+  La GitHub Release conterrà l'APK firmato e `update.json`.
+- In locale: `./gradlew assembleDebug testDebugUnitTest` (JDK 17, Android SDK 35).
+
+Valori di default sovrascrivibili con `-P` o in `gradle.properties`: `semplice.remoteUrl`,
+`semplice.remotePubkey`, `semplice.updateUrl`.
 
 ## Modello tile
 
 ```json
 { "id": "t1", "col": 0, "row": 1, "w": 2, "h": 1,
   "type": "app | call | wa_video | sms | url | shortcut | clock | sos",
-  "target": "package | @dialer @sms @camera @gallery @browser | numero | url | pkg/shortcutId",
+  "target": "package | @ruolo | numero | https://… | pacchetto/shortcutId",
   "label": "Telefono",
-  "icon": { "kind": "auto | app | symbol | photo | none", "ref": "phone" },
-  "color": "#1F4FA8" }
+  "icon": { "kind": "auto | app | symbol | photo | none", "ref": "phone | contact:<lookupKey>" },
+  "color": "#1F4FA8", "body": "testo SMS" }
 ```
 
-Ogni pagina ha `cols` (1–4) e `rows` (1–8); tile fuori griglia o sovrapposti
-fanno scartare la config (si resta sull'ultima valida).
+Una config con tile fuori griglia, sovrapposti, id duplicati o orari non validi viene scartata
+e resta in uso l'ultima valida. L'app, il server PHP e gli unit test applicano la stessa
+validazione.
 
 ## Milestone
 
@@ -33,9 +79,17 @@ fanno scartare la config (si resta sull'ultima valida).
 |---|---|
 | M0 – scheletro, ruolo HOME, CI | ✅ |
 | M1 – home a tile da config, orologio, editor tile con PIN | ✅ |
-| M2 – contatti con foto, chiamata diretta, video WhatsApp | |
-| M3 – blocco modifiche | |
-| M4 – SOS con countdown, SMS con posizione | |
-| M5 – promemoria farmaci | |
-| M6 – config remota firmata Ed25519 | |
-| M7 – build release firmata, Device Owner opzionale | |
+| M2 – contatti con foto, chiamata diretta, video WhatsApp | ✅ |
+| M3 – blocco modifiche, Device Owner | ✅ |
+| M4 – SOS con countdown, SMS con posizione | ✅ |
+| M5 – promemoria farmaci | ✅ |
+| M6 – config remota firmata Ed25519 + server PHP | ✅ |
+| M7 – release firmata, aggiornamento in-app | ✅ |
+
+## Limiti noti
+
+- **Videochiamata WhatsApp**: usa la data row del contatto, che non è documentata da WhatsApp.
+  Se manca apre la chat.
+- **Scorciatoie app**: si inseriscono a mano come `pacchetto/id`.
+- **Spostamento dei tile**: si fa con colonna e riga nell'editor (niente trascinamento).
+- **Tendina e impostazioni di sistema**: bloccabili solo con Device Owner.

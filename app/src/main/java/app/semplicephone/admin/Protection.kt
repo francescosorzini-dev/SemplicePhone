@@ -67,6 +67,19 @@ class Protection(private val context: Context) {
         prefs.edit().putBoolean(item.name, on).apply()
     }
 
+    /**
+     * Con Device Owner concede da sé i permessi runtime: così una config arrivata da remoto
+     * (es. nuovo tile di chiamata) funziona senza che nessuno tocchi il telefono.
+     */
+    fun grantRuntimePermissions(permissions: Collection<String>) {
+        if (!isDeviceOwner) return
+        permissions.forEach { p ->
+            runCatching {
+                dpm.setPermissionGrantState(admin, context.packageName, p, DevicePolicyManager.PERMISSION_GRANT_STATE_GRANTED)
+            }
+        }
+    }
+
     /** Toglie tutte le protezioni e rinuncia al ruolo di Device Owner (irreversibile senza adb). */
     fun releaseDeviceOwner() {
         if (!isDeviceOwner) return

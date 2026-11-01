@@ -157,6 +157,8 @@ class RemoteClient(private val context: Context) {
             if (problems.isNotEmpty()) return "Configurazione non valida: ${problems.first()}"
             ConfigRepository.get(context).save(cfg)
             ReminderScheduler(context).scheduleAll(cfg)
+            app.semplicephone.admin.Protection(context)
+                .grantRuntimePermissions(app.semplicephone.launch.Permissions.required(cfg).map { n -> n.permission })
         }
         p.pinHash?.let { PinStore(context).setEncoded(it) }
         settings.lastSeq = p.seq

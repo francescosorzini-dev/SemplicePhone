@@ -46,6 +46,8 @@ fun SosEditor(initial: SosConfig, onSave: (SosConfig) -> Unit, onCancel: () -> U
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             Text("Il primo numero viene chiamato. Tutti riceveranno un SMS con la posizione.", fontSize = 15.sp, color = Color(0xFF4A4A4A))
+            Text("Usa numeri di familiari o vicini: Android non permette alle app di chiamare direttamente " +
+                "il 112 e il servizio SMS del 112 è riservato a chi è registrato.", fontSize = 15.sp, color = Color(0xFF4A4A4A))
             numbers.forEachIndexed { i, n ->
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     OutlinedTextField(

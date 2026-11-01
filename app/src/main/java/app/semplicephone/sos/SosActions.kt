@@ -85,7 +85,7 @@ object SosSms {
         var sent = 0
         numbers.forEach { n ->
             try {
-                sms.sendMultipartTextMessage(n, null, parts, null, null)
+                sms.sendMultipartTextMessage(n.filter { it.isDigit() || it == '+' }, null, parts, null, null)
                 sent++
             } catch (e: Exception) {
                 Log.w("SosSms", "invio a $n fallito", e)

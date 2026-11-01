@@ -271,6 +271,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun askPermissions(cfg: LauncherConfig) {
+        protection.grantRuntimePermissions(Permissions.required(cfg).map { it.permission })
         val missing = Permissions.missing(this, cfg).map { it.permission }.distinct()
         if (missing.isNotEmpty()) {
             externalActivity = true

@@ -136,6 +136,10 @@ fun LayoutEditor(
                 }
             }
             if (noSos) Text("Attenzione: nessun pulsante SOS nella Home.", color = Palette.Sos, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            if (!noSos && draft.sos.numbers.isEmpty()) {
+                Text("Il pulsante SOS non ha numeri: impostali in «Numeri SOS» (familiari, non il 112).",
+                    color = Palette.Sos, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            }
             if (error != null) Text("Salvataggio non riuscito: $error", color = Palette.Sos, fontSize = 15.sp)
 
             if (missingPermissions.isNotEmpty()) {
