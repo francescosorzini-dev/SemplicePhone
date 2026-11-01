@@ -5,6 +5,7 @@ import android.util.Log
 import app.semplicephone.model.LauncherConfig
 import app.semplicephone.model.Page
 import app.semplicephone.model.Tile
+import app.semplicephone.model.TileType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -49,6 +50,12 @@ class ConfigRepository(private val context: Context) {
         _config.value = cfg
     }
 
+    /** Config predefinita degli asset (per "Ripristina predefiniti" nell'editor). */
+    suspend fun defaultConfig(): LauncherConfig = withContext(Dispatchers.IO) {
+        parseOrNull(context.assets.open(DEFAULT_ASSET).bufferedReader().use { it.readText() }, "default")
+            ?: LauncherConfig()
+    }
+
     private fun parseOrNull(text: String, origin: String): LauncherConfig? = try {
         val cfg = json.decodeFromString(LauncherConfig.serializer(), text)
         val problems = validate(cfg)
@@ -73,6 +80,28 @@ class ConfigRepository(private val context: Context) {
             ids.groupingBy { it }.eachCount().filter { it.value > 1 }.keys.forEach { out += "id duplicato $it" }
             cfg.pages.forEachIndexed { pi, page -> out += validatePage(pi, page) }
             return out
+        }
+
+        /** Problema di [tile] dentro [page] (fuori griglia o sovrapposto ad altri), null se va bene. */
+        fun conflict(page: Page, tile: Tile): String? {
+            if (tile.col < 0 || tile.row < 0 || tile.col + tile.w > page.cols || tile.row + tile.h > page.rows) {
+                return "Il tile esce dalla griglia (${page.cols} colonne × ${page.rows} righe)"
+            }
+            val other = page.tiles.firstOrNull { o ->
+                o.id != tile.id &&
+                    tile.col < o.col + o.w && o.col < tile.col + tile.w &&
+                    tile.row < o.row + o.h && o.row < tile.row + tile.h
+            }
+            return other?.let { "Si sovrappone a «${it.label.ifBlank { it.type.name.lowercase() }}»" }
+        }
+
+        /** Prima cella libera di [page], o null se piena. */
+        fun firstFreeCell(page: Page): Pair<Int, Int>? {
+            for (r in 0 until page.rows) for (c in 0 until page.cols) {
+                val probe = Tile(id = "\u0000probe", col = c, row = r, type = TileType.APP)
+                if (conflict(page, probe) == null) return c to r
+            }
+            return null
         }
 
         private fun validatePage(pi: Int, page: Page): List<String> {

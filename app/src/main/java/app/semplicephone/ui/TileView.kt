@@ -72,9 +72,15 @@ private val TileShape = RoundedCornerShape(18.dp)
 private fun Dp.fixedSp(): TextUnit = with(LocalDensity.current) { this@fixedSp.toSp() }
 
 @Composable
-fun TileView(tile: Tile, sos: SosConfig, launcher: TileLauncher, modifier: Modifier = Modifier) {
+fun TileView(
+    tile: Tile,
+    sos: SosConfig,
+    launcher: TileLauncher,
+    modifier: Modifier = Modifier,
+    onSecretTap: () -> Unit = {},
+) {
     when (tile.type) {
-        TileType.CLOCK -> ClockTile(tile, modifier)
+        TileType.CLOCK -> ClockTile(tile, modifier, onSecretTap)
         TileType.SOS -> SosTile(tile, sos, launcher, modifier)
         else -> ActionTile(tile, sos, launcher, modifier)
     }
@@ -155,8 +161,11 @@ private fun TileIconView(tile: Tile, launcher: TileLauncher, tint: Color, size: 
 }
 
 @Composable
-private fun ClockTile(tile: Tile, modifier: Modifier) {
+private fun ClockTile(tile: Tile, modifier: Modifier, onSecretTap: () -> Unit) {
     var now by remember { mutableStateOf(LocalDateTime.now()) }
+    // Accesso impostazioni: 5 tocchi entro 3 s. Nessun feedback visivo, per non invitare a provare.
+    val taps = remember { ArrayDeque<Long>() }
+    val secretTap by androidx.compose.runtime.rememberUpdatedState(onSecretTap)
     LaunchedEffect(Unit) {
         while (true) {
             // Allineato al cambio minuto.
@@ -175,6 +184,7 @@ private fun ClockTile(tile: Tile, modifier: Modifier) {
             .clip(TileShape)
             .background(bg)
             .border(if (bg.isLight()) 2.dp else 0.dp, Palette.Ink, TileShape)
+            .secretTaps(taps) { secretTap() }
             .semantics { contentDescription = "Sono le $time, $date" },
         contentAlignment = Alignment.Center,
     ) {
@@ -244,3 +254,19 @@ private fun SosTile(tile: Tile, sos: SosConfig, launcher: TileLauncher, modifier
 }
 
 private fun Color.isLight() = contentColorFor(this) == Palette.Ink
+
+/**
+ * 5 tocchi entro 3 s → [onTrigger]. Usato sull'orologio e sullo sfondo della griglia,
+ * così le impostazioni restano raggiungibili anche se l'orologio viene tolto.
+ */
+fun Modifier.secretTaps(taps: ArrayDeque<Long>, onTrigger: () -> Unit): Modifier = pointerInput(Unit) {
+    detectTapGestures(onTap = {
+        val t = System.currentTimeMillis()
+        taps.addLast(t)
+        while (taps.isNotEmpty() && t - taps.first() > 3_000) taps.removeFirst()
+        if (taps.size >= 5) {
+            taps.clear()
+            onTrigger()
+        }
+    })
+}

@@ -23,6 +23,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -45,6 +48,7 @@ fun HomeScreen(
     homePressCount: Int,
     showSetHomeBanner: Boolean,
     onSetHome: () -> Unit,
+    onOpenSettings: () -> Unit,
 ) {
     val pages = config.pages
     val pagerState = rememberPagerState { pages.size.coerceAtLeast(1) }
@@ -67,7 +71,7 @@ fun HomeScreen(
             modifier = Modifier.weight(1f).fillMaxWidth(),
             beyondViewportPageCount = 1,
         ) { index ->
-            pages.getOrNull(index)?.let { PageGrid(it, config, launcher) }
+            pages.getOrNull(index)?.let { PageGrid(it, config, launcher, onOpenSettings) }
         }
 
         if (pages.size > 1) PageDots(pages.size, pagerState.currentPage)
@@ -76,8 +80,10 @@ fun HomeScreen(
 
 /** Posizionamento assoluto per cella: supporta span w×h arbitrari validati dal repository. */
 @Composable
-private fun PageGrid(page: Page, config: LauncherConfig, launcher: TileLauncher) {
-    BoxWithConstraints(Modifier.fillMaxSize()) {
+private fun PageGrid(page: Page, config: LauncherConfig, launcher: TileLauncher, onOpenSettings: () -> Unit) {
+    val taps = remember { ArrayDeque<Long>() }
+    val open by rememberUpdatedState(onOpenSettings)
+    BoxWithConstraints(Modifier.fillMaxSize().secretTaps(taps) { open() }) {
         val cellW = (maxWidth - Gap * (page.cols - 1)) / page.cols
         val cellH = (maxHeight - Gap * (page.rows - 1)) / page.rows
         page.tiles.forEach { t ->
@@ -88,6 +94,7 @@ private fun PageGrid(page: Page, config: LauncherConfig, launcher: TileLauncher)
                 modifier = Modifier
                     .offset(x = (cellW + Gap) * t.col, y = (cellH + Gap) * t.row)
                     .size(width = cellW * t.w + Gap * (t.w - 1), height = cellH * t.h + Gap * (t.h - 1)),
+                onSecretTap = onOpenSettings,
             )
         }
     }
