@@ -160,7 +160,7 @@ const DEFAULT_CONFIG = <<<'JSON'
       ]
     }
   ],
-  "sos": { "numbers": ["+39 numero familiare"], "holdSeconds": 3, "countdownSeconds": 5, "message": "Ho bisogno di aiuto." },
+  "sos": { "numbers": [], "holdSeconds": 3, "countdownSeconds": 5, "message": "Ho bisogno di aiuto." },
   "reminders": []
 }
 JSON;
@@ -168,137 +168,547 @@ JSON;
 // ---------------------------------------------------------------- pannello di gestione
 session_set_cookie_params(['httponly' => true, 'samesite' => 'Strict', 'secure' => !empty($_SERVER['HTTPS'])]);
 session_start();
+$nonce = base64_encode(random_bytes(16));
 header('X-Frame-Options: DENY');
-header("Content-Security-Policy: default-src 'self'; style-src 'unsafe-inline'");
+header("Content-Security-Policy: default-src 'self'; style-src 'unsafe-inline'; script-src 'nonce-$nonce'");
 $adminFile = DATA . '/admin.json';
 $admin = read_json($adminFile);
 $csrf = $_SESSION['csrf'] ??= bin2hex(random_bytes(16));
 $msg = ''; $err = [];
 
 function h($s): string { return htmlspecialchars((string)$s, ENT_QUOTES); }
-function check_csrf(string $csrf): void { if (!hash_equals($csrf, (string)($_POST['csrf'] ?? ''))) { http_response_code(400); exit('CSRF'); } }
+function check_csrf(string $csrf): void { if (!hash_equals($csrf, (string)($_POST['csrf'] ?? ''))) { http_response_code(400); exit('Sessione scaduta: ricarica la pagina.'); } }
+function ago(?int $t): string {
+    if (!$t) return 'mai';
+    $d = time() - $t;
+    if ($d < 90) return 'adesso';
+    if ($d < 3600) return intdiv($d, 60) . ' min fa';
+    if ($d < 86400) return intdiv($d, 3600) . ' ore fa';
+    return intdiv($d, 86400) . ' giorni fa';
+}
+function base_url(): string {
+    return (!empty($_SERVER['HTTPS']) ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'host') . strtok($_SERVER['REQUEST_URI'] ?? '/', '?');
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     check_csrf($csrf);
     $act = $_POST['act'] ?? '';
     if ($act === 'setup' && !$admin) {
         $pw = (string)($_POST['password'] ?? '');
-        if (strlen($pw) < 10) $err[] = 'Password di almeno 10 caratteri';
+        if (strlen($pw) < 10) $err[] = 'La password deve avere almeno 10 caratteri.';
+        elseif ($pw !== (string)($_POST['password2'] ?? '')) $err[] = 'Le due password non coincidono.';
         else { write_atomic($adminFile, json_encode(['hash' => password_hash($pw, PASSWORD_DEFAULT)])); $_SESSION['ok'] = true; header('Location: ?'); exit; }
     } elseif ($act === 'login' && $admin) {
         usleep(300000);
         if (password_verify((string)($_POST['password'] ?? ''), $admin['hash'])) { session_regenerate_id(true); $_SESSION['ok'] = true; header('Location: ?'); exit; }
-        $err[] = 'Password errata';
+        $err[] = 'Password errata.';
     } elseif ($act === 'logout') {
         session_destroy(); header('Location: ?'); exit;
     } elseif (!empty($_SESSION['ok'])) {
-        $id = (string)($_POST['id'] ?? '');
-        if (!valid_id($id)) $err[] = 'ID dispositivo non valido (6–32 caratteri a-z, 0-9)';
+        $id = strtolower(trim((string)($_POST['id'] ?? '')));
+        if (!valid_id($id)) $err[] = 'Codice telefono non valido: 6–32 caratteri, solo lettere minuscole e cifre.';
         elseif ($act === 'publish') {
-            $src = (string)($_POST['config'] ?? '');
-            $cfg = json_decode($src);
-            if (json_last_error() !== JSON_ERROR_NONE) $err[] = 'JSON non valido: ' . json_last_error_msg();
+            $cfg = json_decode((string)($_POST['config'] ?? ''));
+            if (json_last_error() !== JSON_ERROR_NONE) $err[] = 'Configurazione non leggibile: ' . json_last_error_msg();
             else $err = validate_config($cfg);
             $pin = trim((string)($_POST['pin'] ?? ''));
-            if ($pin !== '' && !preg_match('/^\d{4,8}$/', $pin)) $err[] = 'Il PIN deve avere da 4 a 8 cifre';
+            if ($pin !== '' && !preg_match('/^\d{4,8}$/', $pin)) $err[] = 'Il PIN deve avere da 4 a 8 cifre.';
             if (!$err) {
                 write_atomic(dev_path($id, 'config.json'), json_encode($cfg, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
                 $meta = read_json(dev_path($id, 'meta.json'), []);
                 $meta['name'] = trim((string)($_POST['name'] ?? ($meta['name'] ?? '')));
                 write_atomic(dev_path($id, 'meta.json'), json_encode($meta));
-                $seq = publish($id, $cfg, $pin !== '' ? $pin : null);
-                $msg = "Pubblicata versione $seq per $id. Il telefono la applica al prossimo controllo (o con «Aggiorna ora»).";
+                publish($id, $cfg, $pin !== '' ? $pin : null);
+                $msg = 'Pubblicato. Il telefono lo riceve entro 6 ore, oppure subito con «Aggiorna ora» nelle sue impostazioni.';
             }
+        } elseif ($act === 'rename') {
+            $meta = read_json(dev_path($id, 'meta.json'), []);
+            $meta['name'] = trim((string)($_POST['name'] ?? ''));
+            write_atomic(dev_path($id, 'meta.json'), json_encode($meta));
+            header('Location: ?edit=' . urlencode($id)); exit;
         } elseif ($act === 'forget') {
             @unlink(dev_path($id, 'secret'));
-            $msg = "Segreto di $id dimenticato: il prossimo telefono che si presenta con questo ID viene registrato.";
+            $msg = 'Fatto: il prossimo telefono che si collega con questo codice viene accettato.';
         }
     }
 }
 
 $logged = !empty($_SESSION['ok']);
-$edit = $logged && isset($_GET['edit']) && valid_id((string)$_GET['edit']) ? (string)$_GET['edit'] : null;
+$edit = $logged && isset($_GET['edit']) && valid_id(strtolower((string)$_GET['edit'])) ? strtolower((string)$_GET['edit']) : null;
 ?><!doctype html>
 <html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>SemplicePhone – gestione</title>
 <style>
-body{font:16px/1.45 system-ui,sans-serif;margin:0;background:#F7F5F0;color:#1A1A1A}
-main{max-width:980px;margin:0 auto;padding:16px}
-h1{font-size:24px}h2{font-size:19px;margin-top:28px}
-.card{background:#fff;border:1px solid #d9d3c7;border-radius:12px;padding:14px;margin:10px 0}
-input,textarea,button{font:inherit}input[type=text],input[type=password]{padding:10px;border:2px solid #1A1A1A;border-radius:8px;width:100%;box-sizing:border-box}
-textarea{width:100%;box-sizing:border-box;min-height:460px;font:13px/1.4 ui-monospace,monospace;border:2px solid #1A1A1A;border-radius:8px;padding:10px}
-button{background:#1A1A1A;color:#fff;border:0;border-radius:10px;padding:11px 18px;min-height:44px;cursor:pointer}
-button.sec{background:#fff;color:#1A1A1A;border:2px solid #1A1A1A}
-.ok{background:#E3F1E7;border-color:#1B6E34}.err{background:#FCE4E4;border-color:#B71C1C;color:#7a1010}
-code{background:#eee;padding:2px 5px;border-radius:4px;word-break:break-all}
-table{border-collapse:collapse;width:100%}td,th{text-align:left;padding:8px;border-bottom:1px solid #e5e0d6;vertical-align:top}
-.row{display:flex;gap:10px;flex-wrap:wrap}.row>*{flex:1 1 220px}
-a{color:#1F4FA8}
-</style></head><body><main>
-<h1>SemplicePhone – gestione remota</h1>
-<?php if ($msg): ?><div class="card ok"><?= h($msg) ?></div><?php endif; ?>
-<?php foreach ($err as $e): ?><div class="card err"><?= h($e) ?></div><?php endforeach; ?>
+:root{--ink:#1A1A1A;--mute:#5a5650;--line:#d9d3c7;--bg:#F7F5F0;--card:#fff;--accent:#1F4FA8;--ok:#1B6E34;--warn:#A84300;--bad:#B71C1C}
+*{box-sizing:border-box}
+body{font:16px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;margin:0;background:var(--bg);color:var(--ink)}
+header.top{background:var(--ink);color:#fff}
+header.top .in{max-width:1080px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;gap:12px}
+header.top .brand{font-weight:700;font-size:19px;flex:1}
+header.top a{color:#fff}
+main{max-width:1080px;margin:0 auto;padding:16px}
+h1{font-size:26px;margin:8px 0 4px}h2{font-size:20px;margin:26px 0 8px}h3{font-size:17px;margin:14px 0 6px}
+p.lead{color:var(--mute);margin-top:0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin:12px 0}
+.msg{border-radius:12px;padding:12px 14px;margin:12px 0;font-weight:600}
+.msg.ok{background:#E3F1E7;color:#124a24}.msg.err{background:#FCE4E4;color:#7a1010}
+label{display:block;font-weight:600;margin:10px 0 4px}
+.hint{font-weight:400;color:var(--mute);font-size:14px}
+input[type=text],input[type=password],input[type=tel],input[type=url],input[type=time],input[type=number],select,textarea{font:inherit;padding:10px 12px;border:2px solid #bdb6a8;border-radius:10px;width:100%;background:#fff;color:var(--ink)}
+input:focus,select:focus,textarea:focus{outline:3px solid #9db7e8;border-color:var(--accent)}
+textarea.json{min-height:420px;font:13px/1.4 ui-monospace,Consolas,monospace}
+button,.btn{font:inherit;font-weight:600;border:0;border-radius:10px;padding:10px 16px;min-height:44px;cursor:pointer;background:var(--ink);color:#fff;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+button.sec,.btn.sec{background:#fff;color:var(--ink);border:2px solid var(--ink)}
+button.danger{background:#fff;color:var(--bad);border:2px solid var(--bad)}
+button.small{min-height:36px;padding:6px 12px;font-size:14px}
+button:disabled{opacity:.45;cursor:not-allowed}
+.row{display:flex;gap:12px;flex-wrap:wrap}.row>*{flex:1 1 200px}
+.grid-devices{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.dev{display:block;color:inherit;text-decoration:none;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
+.dev:hover{border-color:var(--ink)}
+.dev .name{font-weight:700;font-size:18px}
+.pill{display:inline-block;border-radius:999px;padding:2px 10px;font-size:13px;font-weight:600;margin:6px 6px 0 0}
+.pill.ok{background:#E3F1E7;color:#124a24}.pill.warn{background:#FFF0DF;color:#7a3500}.pill.bad{background:#FCE4E4;color:#7a1010}.pill.mute{background:#eee;color:#444}
+code.k{display:block;background:#f1eee7;border-radius:8px;padding:10px;word-break:break-all;font:14px ui-monospace,Consolas,monospace;margin:4px 0}
+ol.steps{padding-left:22px}ol.steps li{margin:6px 0}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;border-bottom:2px solid var(--line);margin:16px 0 0}
+.tabs button{background:transparent;color:var(--ink);border-radius:10px 10px 0 0;border:2px solid transparent;border-bottom:0;margin-bottom:-2px}
+.tabs button[aria-selected=true]{background:var(--card);border-color:var(--line)}
+.tabpanel{background:var(--card);border:1px solid var(--line);border-top:0;border-radius:0 0 14px 14px;padding:16px}
+.editor{display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start}
+.phone{flex:0 0 300px;background:#F7F5F0;border:8px solid var(--ink);border-radius:28px;padding:12px}
+.phonegrid{display:grid;gap:8px}
+.tile{border-radius:12px;padding:6px;display:flex;align-items:center;justify-content:center;text-align:center;font-weight:700;font-size:14px;cursor:pointer;border:2px solid transparent;min-height:56px;overflow:hidden}
+.tile.sel{outline:4px solid #E8A33D;outline-offset:1px}
+.tile.light{border-color:var(--ink)}
+.cell{border:2px dashed #b9b2a4;border-radius:12px;background:transparent;color:var(--mute);font-size:22px;min-height:56px;padding:0}
+.cell:hover{border-color:var(--ink);color:var(--ink)}
+.side{flex:1 1 340px;min-width:280px}
+.swatches{display:flex;gap:8px;flex-wrap:wrap}
+.sw{width:40px;height:40px;border-radius:50%;border:2px solid var(--ink);padding:0;min-height:0}
+.sw[aria-pressed=true]{outline:4px solid #E8A33D;outline-offset:2px}
+.days{display:flex;gap:6px}
+.days label{margin:0;display:flex;flex-direction:column;align-items:center;font-size:13px}
+.issues{background:#FCE4E4;color:#7a1010;border-radius:10px;padding:10px 14px;margin:10px 0}
+.issues:empty{display:none}
+.rem{border:1px solid var(--line);border-radius:12px;padding:12px;margin:10px 0}
+.pagebar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.pagebar button[aria-pressed=true]{background:var(--accent);color:#fff;border-color:var(--accent)}
+.sticky{position:sticky;bottom:0;background:var(--bg);padding:12px 0;border-top:1px solid var(--line);display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+table{border-collapse:collapse;width:100%}td,th{text-align:left;padding:8px;border-bottom:1px solid #ece7dd}
+details summary{cursor:pointer;font-weight:600}
+@media (max-width:640px){.phone{flex-basis:100%}}
+</style></head><body>
+<header class="top"><div class="in"><div class="brand">SemplicePhone · gestione</div>
+<?php if ($logged): ?><form method="post" style="margin:0"><input type="hidden" name="csrf" value="<?= h($csrf) ?>"><input type="hidden" name="act" value="logout"><button class="small sec">Esci</button></form><?php endif; ?>
+</div></header>
+<main>
+<?php if ($msg): ?><div class="msg ok" role="status"><?= h($msg) ?></div><?php endif; ?>
+<?php foreach ($err as $e): ?><div class="msg err" role="alert"><?= h($e) ?></div><?php endforeach; ?>
 
 <?php if (!$admin): ?>
-  <form method="post" class="card"><input type="hidden" name="csrf" value="<?= h($csrf) ?>"><input type="hidden" name="act" value="setup">
-    <p>Primo avvio: scegli la password del pannello.</p>
-    <input type="password" name="password" autocomplete="new-password" required minlength="10" aria-label="Password"><p><button>Imposta password</button></p>
+  <h1>Benvenuto</h1>
+  <p class="lead">Primo avvio: scegli la password con cui entrerai in questo pannello.</p>
+  <form method="post" class="card" style="max-width:480px"><input type="hidden" name="csrf" value="<?= h($csrf) ?>"><input type="hidden" name="act" value="setup">
+    <label for="p1">Password <span class="hint">(almeno 10 caratteri)</span></label><input id="p1" type="password" name="password" autocomplete="new-password" required minlength="10">
+    <label for="p2">Ripeti la password</label><input id="p2" type="password" name="password2" autocomplete="new-password" required minlength="10">
+    <p><button>Inizia</button></p>
   </form>
+
 <?php elseif (!$logged): ?>
-  <form method="post" class="card"><input type="hidden" name="csrf" value="<?= h($csrf) ?>"><input type="hidden" name="act" value="login">
-    <label>Password<br><input type="password" name="password" autocomplete="current-password" required></label><p><button>Entra</button></p>
-  </form>
-<?php else: ?>
-  <form method="post" style="float:right"><input type="hidden" name="csrf" value="<?= h($csrf) ?>"><input type="hidden" name="act" value="logout"><button class="sec">Esci</button></form>
-  <div class="card">
-    <strong>Chiave pubblica</strong> (da inserire nel telefono, Impostazioni › Gestione da remoto):<br><code><?= h(public_key_b64()) ?></code><br>
-    <strong>Indirizzo</strong>: <code><?= h((!empty($_SERVER['HTTPS']) ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'host') . strtok($_SERVER['REQUEST_URI'] ?? '/', '?')) ?>?device={device}</code>
-  </div>
-
-<?php if ($edit):
-    $meta = read_json(dev_path($edit, 'meta.json'), []);
-    $src = $_POST['config'] ?? (is_file(dev_path($edit, 'config.json')) ? file_get_contents(dev_path($edit, 'config.json')) : DEFAULT_CONFIG);
-?>
-  <p><a href="?">← Tutti i telefoni</a></p>
-  <h2>Telefono <code><?= h($edit) ?></code></h2>
-  <form method="post"><input type="hidden" name="csrf" value="<?= h($csrf) ?>"><input type="hidden" name="act" value="publish"><input type="hidden" name="id" value="<?= h($edit) ?>">
-    <div class="row">
-      <label>Nome (solo per te)<br><input type="text" name="name" value="<?= h($meta['name'] ?? '') ?>"></label>
-      <label>Nuovo PIN impostazioni (vuoto = invariato)<br><input type="text" name="pin" inputmode="numeric" pattern="\d{4,8}" autocomplete="off"></label>
-    </div>
-    <p><label>Configurazione (JSON, stesso formato dell'app)<br><textarea name="config" spellcheck="false"><?= h($src) ?></textarea></label></p>
-    <p><button>Firma e pubblica</button></p>
-  </form>
-  <?php
-    $lines = is_file(DATA . "/reports/$edit.jsonl") ? array_slice(file(DATA . "/reports/$edit.jsonl", FILE_IGNORE_NEW_LINES), -20) : [];
-    $events = [];
-    foreach ($lines as $l) foreach ((json_decode($l, true)['reminderEvents'] ?? []) as $ev) $events[] = $ev;
-    $events = array_slice(array_reverse($events), 0, 30);
-  ?>
-  <h2>Promemoria recenti</h2>
-  <?php if (!$events): ?><p>Nessun evento ricevuto.</p><?php else: ?>
-  <table><tr><th>Quando</th><th>Promemoria</th><th>Esito</th></tr>
-  <?php foreach ($events as $ev): ?><tr><td><?= h(date('d/m H:i', (int)(($ev['at'] ?? 0) / 1000))) ?></td><td><?= h($ev['id'] ?? '') ?></td><td><?= h(str_replace('_', ' ', $ev['outcome'] ?? '')) ?></td></tr><?php endforeach; ?>
-  </table><?php endif; ?>
-  <form method="post" class="card"><input type="hidden" name="csrf" value="<?= h($csrf) ?>"><input type="hidden" name="act" value="forget"><input type="hidden" name="id" value="<?= h($edit) ?>">
-    Telefono reinstallato o sostituito? <button class="sec">Dimentica il segreto registrato</button>
+  <h1>Accedi</h1>
+  <form method="post" class="card" style="max-width:420px"><input type="hidden" name="csrf" value="<?= h($csrf) ?>"><input type="hidden" name="act" value="login">
+    <label for="pw">Password</label><input id="pw" type="password" name="password" autocomplete="current-password" required autofocus>
+    <p><button>Entra</button></p>
   </form>
 
-<?php else:
+<?php elseif (!$edit):
     $ids = [];
     foreach (glob(DATA . '/devices/*.{secret,meta.json,config.json}', GLOB_BRACE) ?: [] as $f) $ids[explode('.', basename($f))[0]] = true;
     ksort($ids);
 ?>
-  <h2>Telefoni</h2>
-  <?php if (!$ids): ?><p>Nessun telefono ancora. Attiva la gestione da remoto sul telefono e premi «Aggiorna ora»: comparirà qui col suo ID.</p><?php else: ?>
-  <table><tr><th>ID</th><th>Nome</th><th>Ultimo contatto</th><th>Batteria</th><th>Versione pubblicata / applicata</th></tr>
-  <?php foreach (array_keys($ids) as $id): $m = read_json(dev_path($id, 'meta.json'), []); ?>
-    <tr><td><a href="?edit=<?= h($id) ?>"><code><?= h($id) ?></code></a></td><td><?= h($m['name'] ?? '') ?></td>
-    <td><?= isset($m['lastSeen']) ? h(date('d/m/Y H:i', (int)$m['lastSeen'])) : '—' ?></td>
-    <td><?= isset($m['battery']) && $m['battery'] >= 0 ? h($m['battery'] . '%' . (!empty($m['charging']) ? ' ⚡' : '')) : '—' ?></td>
-    <td><?= h(($m['seq'] ?? '—') . ' / ' . ($m['appliedSeq'] ?? '—')) ?></td></tr>
-  <?php endforeach; ?></table><?php endif; ?>
-  <form method="get" class="card"><label>Prepara un telefono per ID<br><input type="text" name="edit" pattern="[a-z0-9]{6,32}" required></label><p><button>Apri</button></p></form>
-<?php endif; endif; ?>
-</main></body></html>
+  <h1>I tuoi telefoni</h1>
+  <p class="lead">Tocca un telefono per cambiarne la schermata, i numeri SOS e i promemoria.</p>
+  <?php if (!$ids): ?><div class="card">Nessun telefono collegato. Segui i passi qui sotto per collegare il primo.</div><?php endif; ?>
+  <div class="grid-devices">
+  <?php foreach (array_keys($ids) as $id): $m = read_json(dev_path($id, 'meta.json'), []);
+      $seen = (int)($m['lastSeen'] ?? 0);
+      $online = $seen && time() - $seen < 8 * 3600;
+      $synced = isset($m['seq'], $m['appliedSeq']) && (int)$m['appliedSeq'] >= (int)$m['seq'];
+  ?>
+    <a class="dev" href="?edit=<?= h($id) ?>">
+      <div class="name"><?= h(($m['name'] ?? '') !== '' ? $m['name'] : 'Telefono senza nome') ?></div>
+      <div class="hint">Codice <?= h($id) ?> · ultimo contatto <?= h(ago($seen ?: null)) ?></div>
+      <span class="pill <?= $seen ? ($online ? 'ok' : 'warn') : 'mute' ?>"><?= $seen ? ($online ? 'Collegato' : 'Non si sente da un po\'') : 'Mai collegato' ?></span>
+      <?php if (isset($m['battery']) && $m['battery'] >= 0): ?><span class="pill <?= $m['battery'] < 20 && empty($m['charging']) ? 'bad' : 'mute' ?>">Batteria <?= (int)$m['battery'] ?>%<?= !empty($m['charging']) ? ' in carica' : '' ?></span><?php endif; ?>
+      <?php if (isset($m['seq'])): ?><span class="pill <?= $synced ? 'ok' : 'warn' ?>"><?= $synced ? 'Aggiornato' : 'Modifiche in arrivo' ?></span><?php else: ?><span class="pill mute">Da configurare</span><?php endif; ?>
+    </a>
+  <?php endforeach; ?>
+  </div>
+
+  <h2>Collegare un telefono</h2>
+  <div class="card">
+    <ol class="steps">
+      <li>Sul telefono tocca <b>5 volte</b> l'orologio, inserisci il PIN e apri <b>Gestione da remoto</b>.</li>
+      <li>Copia questi due valori nei campi del telefono:
+        <label>Indirizzo</label><code class="k" id="u"><?= h(base_url()) ?>?device={device}</code><button class="small sec" data-copy="u">Copia indirizzo</button>
+        <label>Chiave pubblica</label><code class="k" id="k"><?= h(public_key_b64()) ?></code><button class="small sec" data-copy="k">Copia chiave</button>
+      </li>
+      <li>Attiva l'interruttore e premi <b>Aggiorna ora</b>: il telefono compare in questa pagina.</li>
+    </ol>
+    <details><summary>Preparare la configurazione prima di collegare il telefono</summary>
+      <form method="get" class="row" style="align-items:flex-end;margin-top:8px">
+        <div><label for="nid">Codice del telefono <span class="hint">(lo vedi in Gestione da remoto)</span></label><input id="nid" type="text" name="edit" pattern="[a-z0-9]{6,32}" required></div>
+        <div style="flex:0 0 auto"><button>Apri</button></div>
+      </form>
+    </details>
+  </div>
+
+<?php else:
+    $meta = read_json(dev_path($edit, 'meta.json'), []);
+    $src = $_POST['config'] ?? (is_file(dev_path($edit, 'config.json')) ? file_get_contents(dev_path($edit, 'config.json')) : DEFAULT_CONFIG);
+    $lines = is_file(DATA . "/reports/$edit.jsonl") ? array_slice(file(DATA . "/reports/$edit.jsonl", FILE_IGNORE_NEW_LINES), -40) : [];
+    $events = [];
+    foreach ($lines as $l) foreach ((json_decode($l, true)['reminderEvents'] ?? []) as $ev) $events[] = $ev;
+    $events = array_slice(array_reverse($events), 0, 30);
+?>
+  <p><a href="?">← Tutti i telefoni</a></p>
+  <h1><?= h(($meta['name'] ?? '') !== '' ? $meta['name'] : 'Telefono senza nome') ?></h1>
+  <p class="lead">Codice <?= h($edit) ?> · ultimo contatto <?= h(ago(isset($meta['lastSeen']) ? (int)$meta['lastSeen'] : null)) ?>
+    <?php if (isset($meta['battery']) && $meta['battery'] >= 0): ?> · batteria <?= (int)$meta['battery'] ?>%<?php endif; ?></p>
+
+  <form method="post" id="pubform">
+    <input type="hidden" name="csrf" value="<?= h($csrf) ?>"><input type="hidden" name="act" value="publish"><input type="hidden" name="id" value="<?= h($edit) ?>">
+    <div class="row">
+      <div><label for="name">Nome <span class="hint">(solo per te, es. «Nonna Maria»)</span></label><input id="name" type="text" name="name" value="<?= h($meta['name'] ?? '') ?>"></div>
+      <div><label for="pin">Nuovo PIN del telefono <span class="hint">(lascia vuoto per non cambiarlo)</span></label><input id="pin" type="text" name="pin" inputmode="numeric" pattern="\d{4,8}" autocomplete="off" placeholder="4–8 cifre"></div>
+    </div>
+
+    <div class="tabs" role="tablist">
+      <button type="button" role="tab" aria-selected="true" data-tab="t-screen">Schermata</button>
+      <button type="button" role="tab" aria-selected="false" data-tab="t-sos">SOS</button>
+      <button type="button" role="tab" aria-selected="false" data-tab="t-rem">Promemoria</button>
+      <button type="button" role="tab" aria-selected="false" data-tab="t-json">Avanzato</button>
+    </div>
+
+    <section class="tabpanel" id="t-screen" role="tabpanel">
+      <div class="pagebar" id="pagebar"></div>
+      <div class="editor">
+        <div class="phone" aria-label="Anteprima della schermata"><div class="phonegrid" id="phonegrid"></div></div>
+        <div class="side" id="side"></div>
+      </div>
+    </section>
+    <section class="tabpanel" id="t-sos" role="tabpanel" hidden></section>
+    <section class="tabpanel" id="t-rem" role="tabpanel" hidden></section>
+    <section class="tabpanel" id="t-json" role="tabpanel" hidden>
+      <p class="hint">La stessa configurazione in formato JSON. Le modifiche fatte qui si vedono nelle altre schede.</p>
+      <textarea class="json" name="config" id="config" spellcheck="false"><?= h($src) ?></textarea>
+      <div class="issues" id="jsonerr"></div>
+    </section>
+
+    <div class="issues" id="issues" role="alert"></div>
+    <div class="sticky">
+      <button id="pubbtn">Pubblica sul telefono</button>
+      <span class="hint" id="dirty"></span>
+    </div>
+  </form>
+
+  <h2>Promemoria: cosa è successo</h2>
+  <div class="card">
+  <?php if (!$events): ?><p class="hint">Ancora nessuna notizia dal telefono.</p><?php else: ?>
+    <table><tr><th>Quando</th><th>Promemoria</th><th>Esito</th></tr>
+    <?php foreach ($events as $ev): $o = $ev['outcome'] ?? ''; ?><tr><td><?= h(date('d/m H:i', (int)(($ev['at'] ?? 0) / 1000))) ?></td><td data-rem="<?= h($ev['id'] ?? '') ?>"><?= h($ev['id'] ?? '') ?></td>
+      <td><span class="pill <?= $o === 'preso' ? 'ok' : ($o === 'rinviato' ? 'warn' : 'bad') ?>"><?= h(['preso' => 'Preso', 'rinviato' => 'Rinviato', 'non_confermato' => 'Non confermato'][$o] ?? $o) ?></span></td></tr><?php endforeach; ?>
+    </table>
+  <?php endif; ?>
+  </div>
+
+  <details class="card"><summary>Il telefono è stato reinstallato o sostituito?</summary>
+    <p>Per sicurezza il pannello accetta solo il telefono che si è collegato la prima volta. Dopo una reinstallazione premi qui e ricollega il telefono.</p>
+    <form method="post"><input type="hidden" name="csrf" value="<?= h($csrf) ?>"><input type="hidden" name="act" value="forget"><input type="hidden" name="id" value="<?= h($edit) ?>">
+      <button class="danger">Accetta di nuovo il prossimo collegamento</button></form>
+  </details>
+<?php endif; ?>
+</main>
+
+<script nonce="<?= h($nonce) ?>">
+// Copia negli appunti (pagina elenco)
+document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click', e => {
+  e.preventDefault();
+  const t = document.getElementById(b.dataset.copy).textContent.trim();
+  (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(
+    () => { const o = b.textContent; b.textContent = 'Copiato ✓'; setTimeout(() => b.textContent = o, 1500); },
+    () => { prompt('Copia questo valore:', t); });
+}));
+
+(function () {
+  const ta = document.getElementById('config');
+  if (!ta) return;
+
+  const TYPES = {app: 'Apri un\'app', call: 'Chiama un numero', wa_video: 'Videochiamata WhatsApp', sms: 'Messaggio già scritto',
+    url: 'Pagina web', shortcut: 'Scorciatoia di un\'app', clock: 'Orologio e data', sos: 'Pulsante SOS'};
+  const APPS = [['@dialer', 'Telefono (quella del telefono)'], ['@sms', 'Messaggi (quella del telefono)'], ['@camera', 'Fotocamera (quella del telefono)'],
+    ['@gallery', 'Galleria foto (quella del telefono)'], ['@browser', 'Internet (quello del telefono)'], ['com.whatsapp', 'WhatsApp'],
+    ['org.telegram.messenger', 'Telegram'], ['com.google.android.youtube', 'YouTube'], ['com.google.android.apps.maps', 'Google Maps'],
+    ['com.google.android.gm', 'Gmail'], ['com.android.chrome', 'Chrome']];
+  const APP_LABEL = {'@dialer': 'Telefono', '@sms': 'Messaggi', '@camera': 'Fotocamera', '@gallery': 'Foto', '@browser': 'Internet',
+    'com.whatsapp': 'WhatsApp', 'org.telegram.messenger': 'Telegram', 'com.google.android.youtube': 'YouTube',
+    'com.google.android.apps.maps': 'Mappe', 'com.google.android.gm': 'Posta', 'com.android.chrome': 'Internet'};
+  const ICONS = {auto: 'Automatica', app: 'Icona dell\'app', symbol: 'Simbolo', photo: 'Foto del contatto', none: 'Nessuna'};
+  const SYMBOLS = {phone: 'Telefono', message: 'Messaggio', video: 'Video', photo: 'Foto', camera: 'Fotocamera', weather: 'Meteo', web: 'Internet',
+    person: 'Persona', alert: 'Attenzione', pill: 'Medicina', home: 'Casa', heart: 'Cuore', music: 'Musica', radio: 'Radio', grid: 'Riquadri'};
+  const PALETTE = [['#1F4FA8', 'Blu'], ['#0B6E4F', 'Verde'], ['#6A1B9A', 'Viola'], ['#1A1A1A', 'Nero'], ['#B71C1C', 'Rosso'],
+    ['#A84300', 'Arancio'], ['#00695C', 'Petrolio'], ['#FFFFFF', 'Bianco'], ['#FFF3C4', 'Giallo chiaro']];
+  const DAYS = ['L', 'M', 'M', 'G', 'V', 'S', 'D'];
+
+  let cfg, page = 0, selId = null, dirty = false;
+  try { cfg = JSON.parse(ta.value); } catch (e) { cfg = null; }
+  if (!cfg) { show('t-json'); return; }
+  cfg.pages = cfg.pages || [{cols: 2, rows: 5, tiles: []}];
+  cfg.sos = cfg.sos || {numbers: [], holdSeconds: 3, countdownSeconds: 5, message: 'Ho bisogno di aiuto.'};
+  cfg.reminders = cfg.reminders || [];
+
+  // -------- utilità
+  function el(tag, attrs, ...kids) {
+    const n = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs || {})) {
+      if (k.startsWith('on')) n.addEventListener(k.slice(2), v);
+      else if (k === 'style') n.style.cssText = v;
+      else if (v === true) n.setAttribute(k, '');
+      else if (v !== false && v != null) n.setAttribute(k, v);
+    }
+    kids.flat().forEach(c => n.append(c instanceof Node ? c : document.createTextNode(c)));
+    return n;
+  }
+  function select(opts, value, onchange, id) {
+    return el('select', {id, onchange: e => onchange(e.target.value)},
+      Object.entries(opts).map(([v, t]) => el('option', {value: v, selected: v === value}, t)));
+  }
+  function field(label, input, hint) { return el('div', {}, el('label', {}, label, hint ? el('span', {class: 'hint'}, ' ' + hint) : ''), input); }
+  function light(hex) {
+    const m = /^#?([0-9a-f]{6})$/i.exec(hex || ''); if (!m) return false;
+    const n = parseInt(m[1], 16), c = [n >> 16 & 255, n >> 8 & 255, n & 255].map(v => { v /= 255; return v <= .03928 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4; });
+    return .2126 * c[0] + .7152 * c[1] + .0722 * c[2] > .45;
+  }
+  function uid(p) { return p + Date.now().toString(36) + Math.floor(Math.random() * 1e4).toString(36); }
+  function changed() {
+    ta.value = JSON.stringify(cfg, null, 2); dirty = true;
+    document.getElementById('dirty').textContent = 'Modifiche non ancora pubblicate';
+    issues();
+  }
+  function cur() { return cfg.pages[page]; }
+  function overlap(a, b) { return a.col < b.col + (b.w || 1) && b.col < a.col + (a.w || 1) && a.row < b.row + (b.h || 1) && b.row < a.row + (a.h || 1); }
+  function problems() {
+    const out = [], ids = {};
+    cfg.pages.forEach((p, pi) => {
+      p.tiles.forEach(t => {
+        if (ids[t.id]) out.push('Due riquadri hanno lo stesso codice (' + t.id + ').'); ids[t.id] = 1;
+        const w = t.w || 1, h = t.h || 1;
+        if (t.col < 0 || t.row < 0 || t.col + w > p.cols || t.row + h > p.rows) out.push('Pagina ' + (pi + 1) + ': «' + name(t) + '» esce dalla griglia.');
+        p.tiles.forEach(o => { if (o !== t && o.id > t.id && overlap(t, o)) out.push('Pagina ' + (pi + 1) + ': «' + name(t) + '» e «' + name(o) + '» si sovrappongono.'); });
+        if (['call', 'wa_video', 'sms'].includes(t.type) && !(t.target || '').trim()) out.push('«' + name(t) + '»: manca il numero di telefono.');
+        if (t.type === 'url' && !/^https?:\/\//.test(t.target || '')) out.push('«' + name(t) + '»: l\'indirizzo web deve iniziare con https://');
+      });
+    });
+    (cfg.sos.numbers || []).forEach(n => { if (!/^\+?\d[\d ]{2,19}$/.test(n)) out.push('Numero SOS non valido: «' + n + '».'); });
+    const hasSos = cfg.pages.some(p => p.tiles.some(t => t.type === 'sos'));
+    if (hasSos && !(cfg.sos.numbers || []).length) out.push('Il pulsante SOS non ha numeri: aggiungili nella scheda SOS.');
+    cfg.reminders.forEach(r => { if (!/^([01]?\d|2[0-3]):[0-5]\d$/.test(r.time || '')) out.push('Promemoria «' + (r.title || '') + '»: orario non valido.'); });
+    return out;
+  }
+  function issues() {
+    const p = problems(), box = document.getElementById('issues');
+    box.replaceChildren(...(p.length ? [el('b', {}, 'Da sistemare prima di pubblicare:'), el('ul', {}, p.map(x => el('li', {}, x)))] : []));
+    document.getElementById('pubbtn').disabled = p.length > 0;
+  }
+  function name(t) { return t.type === 'clock' ? 'Orologio' : (t.label || TYPES[t.type] || t.type); }
+
+  // -------- schede
+  function show(id) {
+    document.querySelectorAll('[role=tab]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === id)));
+    document.querySelectorAll('[role=tabpanel]').forEach(p => p.hidden = p.id !== id);
+  }
+  document.querySelectorAll('[role=tab]').forEach(b => b.addEventListener('click', () => {
+    if (!document.getElementById('t-json').hidden && b.dataset.tab !== 't-json') {
+      try { cfg = JSON.parse(ta.value); document.getElementById('jsonerr').textContent = ''; }
+      catch (e) { document.getElementById('jsonerr').textContent = 'Il JSON contiene un errore: ' + e.message; return; }
+      page = Math.min(page, cfg.pages.length - 1); render();
+    }
+    show(b.dataset.tab);
+  }));
+  ta.addEventListener('input', () => { dirty = true; document.getElementById('dirty').textContent = 'Modifiche non ancora pubblicate'; });
+
+  // -------- schermata
+  function renderPages() {
+    const bar = document.getElementById('pagebar');
+    bar.replaceChildren(
+      ...cfg.pages.map((_, i) => el('button', {type: 'button', class: 'small sec', 'aria-pressed': String(i === page), onclick: () => { page = i; selId = null; render(); }}, 'Pagina ' + (i + 1))),
+      el('button', {type: 'button', class: 'small sec', onclick: () => { cfg.pages.push({cols: cur().cols, rows: cur().rows, tiles: []}); page = cfg.pages.length - 1; selId = null; changed(); render(); }}, '+ Pagina'),
+      el('span', {style: 'flex:1'}),
+      el('label', {style: 'margin:0', for: 'cols'}, 'Colonne'), select({1: '1', 2: '2', 3: '3', 4: '4'}, String(cur().cols), v => { cur().cols = +v; changed(); render(); }, 'cols'),
+      el('label', {style: 'margin:0', for: 'rows'}, 'Righe'), select({3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8'}, String(cur().rows), v => { cur().rows = +v; changed(); render(); }, 'rows'),
+      cfg.pages.length > 1 ? el('button', {type: 'button', class: 'small danger', onclick: () => {
+        if (!confirm('Eliminare la pagina ' + (page + 1) + ' e i suoi riquadri?')) return;
+        cfg.pages.splice(page, 1); page = Math.max(0, page - 1); selId = null; changed(); render();
+      }}, 'Elimina pagina') : '');
+    bar.querySelectorAll('select').forEach(s => s.style.width = 'auto');
+  }
+
+  function renderGrid() {
+    const p = cur(), g = document.getElementById('phonegrid');
+    g.style.gridTemplateColumns = 'repeat(' + p.cols + ', minmax(0,1fr))';
+    g.style.gridAutoRows = '62px';
+    const occ = Array.from({length: p.rows}, () => Array(p.cols).fill(false));
+    const kids = [];
+    p.tiles.forEach(t => {
+      const w = t.w || 1, h = t.h || 1;
+      for (let r = t.row; r < Math.min(t.row + h, p.rows); r++) for (let c = t.col; c < Math.min(t.col + w, p.cols); c++) if (r >= 0 && c >= 0) occ[r][c] = true;
+      const isL = light(t.color);
+      kids.push(el('div', {
+        class: 'tile' + (t.id === selId ? ' sel' : '') + (isL ? ' light' : ''), role: 'button', tabindex: '0',
+        style: 'grid-column:' + (t.col + 1) + ' / span ' + w + ';grid-row:' + (t.row + 1) + ' / span ' + h + ';background:' + (t.color || '#1F4FA8') + ';color:' + (isL ? '#1A1A1A' : '#fff'),
+        onclick: () => { selId = t.id; render(); }, onkeydown: e => { if (e.key === 'Enter') { selId = t.id; render(); } }
+      }, t.type === 'clock' ? '🕑 Orologio' : t.type === 'sos' ? '⚠ ' + (t.label || 'SOS') : name(t)));
+    });
+    for (let r = 0; r < p.rows; r++) for (let c = 0; c < p.cols; c++) if (!occ[r][c]) {
+      kids.push(el('button', {type: 'button', class: 'cell', title: 'Aggiungi un riquadro qui', 'aria-label': 'Aggiungi riquadro riga ' + (r + 1) + ' colonna ' + (c + 1),
+        style: 'grid-column:' + (c + 1) + ';grid-row:' + (r + 1), onclick: () => {
+          const t = {id: uid('t'), col: c, row: r, w: 1, h: 1, type: 'app', target: '@dialer', label: 'Telefono', icon: {kind: 'auto', ref: ''}, color: '#1F4FA8'};
+          p.tiles.push(t); selId = t.id; changed(); render();
+        }}, '+'));
+    }
+    g.replaceChildren(...kids);
+  }
+
+  function renderSide() {
+    const side = document.getElementById('side'), p = cur(), t = p.tiles.find(x => x.id === selId);
+    if (!t) {
+      side.replaceChildren(el('h3', {}, 'Come si usa'), el('p', {}, 'Tocca un riquadro dell\'anteprima per modificarlo, oppure un «+» per aggiungerne uno nuovo.'),
+        el('p', {class: 'hint'}, 'La griglia è quella che vedrà il telefono. Righe e colonne si cambiano in alto.'));
+      return;
+    }
+    const upd = (k, v) => { t[k] = v; changed(); render(); };
+    t.icon = t.icon || {kind: 'auto', ref: ''};
+    const parts = [el('h3', {}, 'Riquadro selezionato'),
+      field('Cosa fa', select(TYPES, t.type, v => {
+        t.type = v;
+        if (v === 'clock') { t.color = '#FFFFFF'; delete t.label; }
+        if (v === 'sos') { t.color = '#B71C1C'; t.label = 'SOS'; t.w = Math.min(2, p.cols); }
+        if (['call', 'wa_video', 'sms'].includes(v) && t.icon.kind === 'symbol') t.icon = {kind: 'auto', ref: ''};
+        changed(); render();
+      }))];
+
+    if (t.type === 'app') {
+      const known = APPS.some(a => a[0] === t.target);
+      const opts = Object.fromEntries(APPS.concat([['__other', 'Altra app (nome pacchetto)…']]));
+      parts.push(field('Quale app', select(opts, known ? t.target : '__other', v => {
+        if (v === '__other') { t.target = ''; } else { t.target = v; if (!t.label || Object.values(APP_LABEL).includes(t.label)) t.label = APP_LABEL[v] || t.label; }
+        changed(); render();
+      })));
+      if (!known) parts.push(field('Nome pacchetto', el('input', {type: 'text', value: t.target || '', placeholder: 'es. it.ilmeteo', onchange: e => upd('target', e.target.value.trim())}),
+        '(si trova nell\'indirizzo della pagina Play Store dopo «id=»)'));
+    }
+    if (['call', 'wa_video', 'sms'].includes(t.type)) {
+      parts.push(field('Numero di telefono', el('input', {type: 'tel', value: t.target || '', placeholder: '+39 333 1234567', onchange: e => upd('target', e.target.value.replace(/[^\d+]/g, ''))})));
+      if (t.type === 'wa_video') parts.push(el('p', {class: 'hint'}, 'Il numero deve essere in rubrica sul telefono, con WhatsApp attivo.'));
+      if (t.type === 'sms') parts.push(field('Testo del messaggio', el('input', {type: 'text', value: t.body || '', onchange: e => upd('body', e.target.value)})));
+    }
+    if (t.type === 'url') parts.push(field('Indirizzo', el('input', {type: 'url', value: t.target || '', placeholder: 'https://', onchange: e => upd('target', e.target.value.trim())})));
+    if (t.type === 'shortcut') parts.push(field('Scorciatoia', el('input', {type: 'text', value: t.target || '', placeholder: 'pacchetto/id', onchange: e => upd('target', e.target.value.trim())}), '(per esperti)'));
+    if (t.type !== 'clock') parts.push(field('Scritta sul riquadro', el('input', {type: 'text', value: t.label || '', maxlength: '30', onchange: e => upd('label', e.target.value)})));
+
+    if (!['clock', 'sos'].includes(t.type)) {
+      parts.push(field('Icona', select(ICONS, t.icon.kind || 'auto', v => { t.icon = {kind: v, ref: v === 'symbol' ? (t.icon.ref && SYMBOLS[t.icon.ref] ? t.icon.ref : 'phone') : (v === 'photo' || v === 'auto' ? (t.icon.ref || '').startsWith('contact:') ? t.icon.ref : '' : '')}; changed(); render(); })));
+      if (t.icon.kind === 'symbol') parts.push(field('Simbolo', select(SYMBOLS, t.icon.ref || 'phone', v => { t.icon.ref = v; changed(); render(); })));
+      if (t.icon.kind === 'photo' || (t.icon.kind === 'auto' && ['call', 'wa_video', 'sms'].includes(t.type)))
+        parts.push(el('p', {class: 'hint'}, 'La foto viene presa dalla rubrica del telefono in base al numero.'));
+    }
+
+    parts.push(el('label', {}, 'Colore'), el('div', {class: 'swatches'}, PALETTE.map(([hex, nm]) =>
+      el('button', {type: 'button', class: 'sw', title: nm, 'aria-label': nm, 'aria-pressed': String((t.color || '').toUpperCase() === hex), style: 'background:' + hex, onclick: () => upd('color', hex)}))));
+
+    const nums = n => Object.fromEntries(Array.from({length: n}, (_, i) => [String(i + 1), String(i + 1)]));
+    parts.push(el('div', {class: 'row'},
+      field('Larghezza', select(nums(p.cols), String(t.w || 1), v => upd('w', +v))),
+      field('Altezza', select(nums(p.rows), String(t.h || 1), v => upd('h', +v))),
+      field('Colonna', select(nums(p.cols), String(t.col + 1), v => upd('col', +v - 1))),
+      field('Riga', select(nums(p.rows), String(t.row + 1), v => upd('row', +v - 1)))));
+    const clash = p.tiles.find(o => o !== t && overlap(t, o));
+    if (clash) parts.push(el('p', {class: 'issues'}, 'Si sovrappone a «' + name(clash) + '»: spostalo o rimpiccioliscilo.'));
+    parts.push(el('p', {}, el('button', {type: 'button', class: 'danger', onclick: () => {
+      const lastSos = t.type === 'sos' && cfg.pages.every(pp => pp.tiles.filter(x => x.type === 'sos' && x !== t).length === 0);
+      if (!confirm(lastSos ? 'È l\'ultimo pulsante SOS: toglierlo comunque?' : 'Eliminare «' + name(t) + '»?')) return;
+      p.tiles = p.tiles.filter(x => x !== t); selId = null; changed(); render();
+    }}, 'Elimina riquadro')));
+    side.replaceChildren(...parts);
+  }
+
+  // -------- SOS
+  function renderSos() {
+    const s = cfg.sos, box = document.getElementById('t-sos');
+    s.numbers = s.numbers || [];
+    const list = s.numbers.map((n, i) => el('div', {class: 'row', style: 'align-items:flex-end'},
+      field(i === 0 ? 'Numero da chiamare' : 'Altro numero (riceve l\'SMS)', el('input', {type: 'tel', value: n, onchange: e => { s.numbers[i] = e.target.value.trim(); changed(); }})),
+      el('div', {style: 'flex:0 0 auto'}, el('button', {type: 'button', class: 'small danger', onclick: () => { s.numbers.splice(i, 1); changed(); renderSos(); }}, 'Togli'))));
+    box.replaceChildren(
+      el('p', {}, 'Tenendo premuto il pulsante SOS, il telefono manda a tutti questi numeri un SMS con la posizione e poi chiama il primo.'),
+      el('p', {class: 'hint'}, 'Usa numeri di familiari o vicini: le app non possono chiamare direttamente il 112.'),
+      ...list,
+      el('p', {}, el('button', {type: 'button', class: 'sec', disabled: s.numbers.length >= 5, onclick: () => { s.numbers.push(''); renderSos(); }}, '+ Aggiungi numero')),
+      el('div', {class: 'row'},
+        field('Secondi da tenere premuto', select({1: '1', 2: '2', 3: '3', 4: '4', 5: '5'}, String(s.holdSeconds || 3), v => { s.holdSeconds = +v; changed(); })),
+        field('Secondi per annullare', select({3: '3', 5: '5', 8: '8', 10: '10'}, String(s.countdownSeconds || 5), v => { s.countdownSeconds = +v; changed(); }))),
+      field('Testo dell\'SMS', el('input', {type: 'text', value: s.message || '', onchange: e => { s.message = e.target.value; changed(); }}), '(la posizione viene aggiunta in fondo)'));
+  }
+
+  // -------- promemoria
+  function renderRem() {
+    const box = document.getElementById('t-rem');
+    const items = cfg.reminders.slice().sort((a, b) => (a.time || '').localeCompare(b.time || '')).map(r => {
+      const set = (k, v) => { r[k] = v; changed(); };
+      const all = !r.days || !r.days.length;
+      return el('div', {class: 'rem'},
+        el('div', {class: 'row'},
+          field('Ora', el('input', {type: 'time', value: r.time || '08:00', onchange: e => { set('time', e.target.value); renderRem(); }})),
+          field('Titolo', el('input', {type: 'text', value: r.title || '', onchange: e => set('title', e.target.value)})),
+          field('Dettaglio', el('input', {type: 'text', value: r.detail || '', placeholder: 'es. 1 compressa di …', onchange: e => set('detail', e.target.value)}))),
+        el('label', {}, 'Giorni'),
+        el('div', {class: 'days'}, DAYS.map((d, i) => el('label', {}, el('input', {type: 'checkbox', checked: all || r.days.includes(i + 1), onchange: e => {
+          let ds = all ? [1, 2, 3, 4, 5, 6, 7] : r.days.slice();
+          ds = e.target.checked ? ds.concat(i + 1) : ds.filter(x => x !== i + 1);
+          ds = [...new Set(ds)].sort();
+          set('days', ds.length === 7 || !ds.length ? [] : ds);
+        }}), d))),
+        el('div', {class: 'row'},
+          field('Se rinvia, riprova dopo', select({5: '5 min', 10: '10 min', 15: '15 min', 30: '30 min'}, String(r.snoozeMinutes || 10), v => set('snoozeMinutes', +v))),
+          field('Se non risponde, risuona ogni', select({2: '2 min', 5: '5 min', 10: '10 min'}, String(r.repeatMinutes || 5), v => set('repeatMinutes', +v))),
+          field('Per al massimo', select({0: 'nessuna ripetizione', 3: '3 volte', 6: '6 volte', 10: '10 volte'}, String(r.maxRepeats ?? 6), v => set('maxRepeats', +v)))),
+        el('div', {class: 'row', style: 'align-items:center;margin-top:8px'},
+          el('label', {style: 'margin:0;font-weight:400'}, el('input', {type: 'checkbox', checked: r.enabled !== false, onchange: e => set('enabled', e.target.checked)}), ' Attivo'),
+          el('div', {style: 'flex:0 0 auto'}, el('button', {type: 'button', class: 'small danger', onclick: () => {
+            if (!confirm('Eliminare il promemoria delle ' + r.time + '?')) return;
+            cfg.reminders = cfg.reminders.filter(x => x !== r); changed(); renderRem();
+          }}, 'Elimina'))));
+    });
+    box.replaceChildren(
+      el('p', {}, 'All\'ora indicata il telefono suona e mostra a tutto schermo il pulsante «PRESO». Gli esiti compaiono in fondo a questa pagina.'),
+      ...(items.length ? items : [el('p', {class: 'hint'}, 'Nessun promemoria.')]),
+      el('p', {}, el('button', {type: 'button', class: 'sec', onclick: () => {
+        cfg.reminders.push({id: uid('r'), time: '08:00', days: [], title: 'È ora della medicina', detail: '', snoozeMinutes: 10, repeatMinutes: 5, maxRepeats: 6, enabled: true});
+        changed(); renderRem();
+      }}, '+ Aggiungi promemoria')));
+    // Nomi leggibili nella tabella esiti
+    document.querySelectorAll('[data-rem]').forEach(td => { const r = cfg.reminders.find(x => x.id === td.dataset.rem); if (r) td.textContent = r.time + ' · ' + (r.title || ''); });
+  }
+
+  function render() { renderPages(); renderGrid(); renderSide(); renderSos(); renderRem(); issues(); }
+  render();
+  window.addEventListener('beforeunload', e => { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
+  document.getElementById('pubform').addEventListener('submit', () => {
+    // Se si sta modificando il JSON a mano, si pubblica quello (lo valida il server).
+    if (document.getElementById('t-json').hidden) ta.value = JSON.stringify(cfg, null, 2);
+    dirty = false;
+  });
+})();
+</script>
+</body></html>

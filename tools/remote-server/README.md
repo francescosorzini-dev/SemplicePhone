@@ -11,8 +11,14 @@ per esempio `https://example.com/semplicephone/`. Al primo accesso crea `data/`,
 1. Sul telefono: impostazioni (5 tocchi sull'orologio) › Gestione da remoto. Lì trovi l'**ID del telefono**.
 2. Sempre sul telefono, inserisci l'indirizzo `https://…/semplicephone/?device={device}` e la
    **chiave pubblica** mostrata in cima al pannello. Poi attiva e premi «Aggiorna ora».
-3. Il telefono compare nel pannello. Aprilo, modifica il JSON (stesso formato dell'app) e premi
-   **Firma e pubblica**. Facoltativo: imposta un nuovo PIN.
+3. Il telefono compare nel pannello. Aprilo e configura tutto senza toccare codice:
+   - **Schermata**: anteprima della griglia; tocca un riquadro per modificarlo o un «+» per aggiungerne uno.
+   - **SOS**: numeri, secondi da tenere premuto, testo dell'SMS.
+   - **Promemoria**: ora, giorni, titolo e dettaglio, ripetizioni.
+   - **Avanzato**: la stessa configurazione in JSON, per chi preferisce scriverla a mano.
+
+   Il pannello segnala cosa manca prima di poter premere **Pubblica sul telefono**. Facoltativo:
+   imposta un nuovo PIN.
 
 Il telefono controlla ogni 6 ore. Per applicare subito c'è «Aggiorna ora».
 
