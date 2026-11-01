@@ -63,7 +63,8 @@ jobs:
           set -euo pipefail
           APK="SemplicePhone-$VERSION.apk"
           cp app/build/outputs/apk/release/app-release.apk "$APK"
-          "$ANDROID_HOME"/build-tools/*/apksigner verify --print-certs "$APK" | head -3
+          APKSIGNER=$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -1)apksigner
+          "$APKSIGNER" verify --print-certs "$APK" | grep -E "Signer #1 certificate (DN|SHA-256)"
           SHA=$(sha256sum "$APK" | cut -d' ' -f1)
           cat > update.json <<EOF
           {"versionCode": ${{ github.run_number }}0, "versionName": "$VERSION",
