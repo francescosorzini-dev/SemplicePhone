@@ -14,6 +14,9 @@ adb shell date 110209302026.00 >/dev/null
 adb shell settings put system screen_off_timeout 1800000
 adb shell svc power stayon true
 adb shell cmd role add-role-holder android.app.role.HOME $P 0 || true
+# Il launcher dell'immagine va in ANR sull'emulatore lento e il suo dialogo copre lo schermo: lo si disattiva.
+for L0 in com.google.android.apps.nexuslauncher com.android.launcher3; do adb shell pm disable-user --user 0 $L0 >/dev/null 2>&1 || true; done
+adb shell settings put global hide_error_dialogs 1 || true
 adb shell pm grant $P android.permission.READ_CONTACTS
 # Contatti dimostrativi: nell'SOS compaiono i nomi invece dei numeri
 contact() {
