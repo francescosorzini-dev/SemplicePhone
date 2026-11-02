@@ -8,6 +8,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.provider.Settings
 import androidx.core.content.ContextCompat
+import app.semplicephone.BuildConfig
 import app.semplicephone.model.IconKind
 import app.semplicephone.model.LauncherConfig
 import app.semplicephone.model.TileType
@@ -40,7 +41,7 @@ object Permissions {
         if (cfg.phone.batteryAlertPercent > 0 && cfg.sos.numbers.isNotEmpty()) {
             out.putIfAbsent(Manifest.permission.SEND_SMS, "SMS ai familiari con batteria scarica")
         }
-        if (cfg.phone.smsUpdateCommand) out[Manifest.permission.RECEIVE_SMS] = "comando SMS «#AGGIORNA» dai familiari"
+        if (cfg.phone.smsUpdateCommand && BuildConfig.FULL) out[Manifest.permission.RECEIVE_SMS] = "comando SMS «#AGGIORNA» dai familiari"
         if (cfg.reminders.isNotEmpty() && Build.VERSION.SDK_INT >= 33) {
             out[Manifest.permission.POST_NOTIFICATIONS] = "promemoria farmaci"
         }
@@ -51,7 +52,7 @@ object Permissions {
         required(cfg).filter { !granted(context, it.permission) }
 
     fun requiredSpecial(cfg: LauncherConfig): List<Special> = buildList {
-        if (cfg.phone.badges) add(
+        if (cfg.phone.badges && BuildConfig.FULL) add(
             Special("badges", "Accesso alle notifiche", "pallino con chiamate perse e messaggi sui riquadri",
                 Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS),
         )

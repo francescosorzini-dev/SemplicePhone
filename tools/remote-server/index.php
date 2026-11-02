@@ -27,7 +27,7 @@ const PBKDF2_ITER = 60000;
 const MAX_REPORT = 262144;
 const HISTORY_KEEP = 30;
 const SOURCE_URL = 'https://github.com/francescosorzini-dev/SemplicePhone';
-const VERSION = '0.4.1';
+const VERSION = '0.5.0';
 const TILE_TYPES = ['app', 'call', 'wa_video', 'sms', 'url', 'shortcut', 'clock', 'sos'];
 const EVENT_TITLES = [
     'sos' => '🆘 SOS attivato',
@@ -199,7 +199,7 @@ if (isset($_GET['device'])) {
         }
         $r['receivedAt'] = time();
         append_jsonl(DATA . "/reports/$id.jsonl", $r);
-        foreach (['battery', 'charging', 'appVersion', 'lastResult', 'badgesAccess'] as $k) $meta[$k] = $r[$k] ?? null;
+        foreach (['battery', 'charging', 'appVersion', 'lastResult', 'badgesAccess', 'edition'] as $k) $meta[$k] = $r[$k] ?? null;
         $meta['appliedSeq'] = $r['seq'] ?? null;
         write_atomic(dev_path($id, 'meta.json'), json_encode($meta));
         if ($backOnline) send_alert(EVENT_TITLES['online'], 'Il telefono si è ricollegato.', $id);
@@ -645,11 +645,12 @@ details summary{cursor:pointer;font-weight:600}
   <p><a href="?">← Tutti i telefoni</a></p>
   <h1><?= h(($meta['name'] ?? '') !== '' ? $meta['name'] : 'Telefono senza nome') ?></h1>
   <p class="lead">Codice <?= h($edit) ?> · ultimo contatto <?= h(ago(isset($meta['lastSeen']) ? (int)$meta['lastSeen'] : null)) ?>
-    <?php if (isset($meta['battery']) && $meta['battery'] >= 0): ?> · batteria <?= (int)$meta['battery'] ?>%<?php endif; ?></p>
+    <?php if (isset($meta['battery']) && $meta['battery'] >= 0): ?> · batteria <?= (int)$meta['battery'] ?>%<?php endif; ?>
+    <?php if (!empty($meta['appVersion'])): ?> · app <?= h($meta['appVersion']) ?><?php endif; ?></p>
 
   <?php if ($loaded): ?><div class="msg warn"><?= h($loaded) ?></div><?php endif; ?>
   <?php if (isset($meta['badgesAccess']) && !$meta['badgesAccess']): ?><div class="msg warn">Sul telefono manca l'«Accesso alle notifiche»: i pallini sui riquadri non compaiono finché non viene concesso dalle impostazioni di SemplicePhone.</div><?php endif; ?>
-  <form method="post" id="pubform" data-dirty="<?= $loaded ? '1' : '0' ?>">
+  <form method="post" id="pubform" data-dirty="<?= $loaded ? '1' : '0' ?>" data-edition="<?= h($meta['edition'] ?? '') ?>">
     <input type="hidden" name="csrf" value="<?= h($csrf) ?>"><input type="hidden" name="act" value="publish"><input type="hidden" name="id" value="<?= h($edit) ?>">
     <div class="row">
       <div><label for="name">Nome <span class="hint">(solo per te, es. «Nonna Maria»)</span></label><input id="name" type="text" name="name" value="<?= h($meta['name'] ?? '') ?>"></div>
@@ -1048,6 +1049,9 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
       p.ringerLock ? field('Volume minimo', select({30: '30%', 50: '50%', 70: '70%', 80: '80%', 90: '90%', 100: '100%'}, String(p.ringVolumePercent), v => set('ringVolumePercent', +v))) : '',
       field('Avviso batteria scarica', select({0: 'Mai', 10: 'Sotto il 10%', 15: 'Sotto il 15%', 20: 'Sotto il 20%', 25: 'Sotto il 25%', 30: 'Sotto il 30%'}, String(p.batteryAlertPercent), v => set('batteryAlertPercent', +v)),
         '(avviso in Home, SMS ai numeri SOS e messaggio qui se gli avvisi sono attivi)'),
+      ...(document.getElementById('pubform').dataset.edition === 'standard'
+        ? [el('p', {class: 'msg warn'}, 'Questo telefono ha l\'edizione standard: pallini con messaggi non letti e comando SMS «#AGGIORNA» funzionano solo con l\'edizione completa.')]
+        : []),
       check('badges', 'Pallino sui riquadri', 'Mostra quante chiamate perse e quanti messaggi non letti ci sono sui riquadri delle app. Sul telefono va concesso l\'«Accesso alle notifiche».'),
       check('smsUpdateCommand', 'Comando SMS «#AGGIORNA»', 'Se uno dei numeri SOS manda al telefono l\'SMS «#AGGIORNA», il telefono applica subito l\'ultima configurazione pubblicata invece di aspettare il controllo (ogni 15 minuti).'));
   }

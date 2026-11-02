@@ -64,8 +64,19 @@ class Updater(private val context: Context) {
         }
     }
 
-    /** Scarica, verifica lo SHA-256 e avvia l'installazione. */
+    /**
+     * Edizione completa: scarica, verifica lo SHA-256 e installa (in silenzio con Device Owner).
+     * Edizione standard: niente permesso di installare APK (Play Protect lo considera sospetto),
+     * quindi apre il download nel browser e l'installazione la conferma l'utente.
+     */
     suspend fun install(info: UpdateInfo): Boolean = withContext(Dispatchers.IO) {
+        if (!BuildConfig.FULL) {
+            return@withContext runCatching {
+                context.startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(info.apkUrl)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                lastResult = "Download di ${info.versionName} avviato nel browser: al termine aprilo e conferma l'installazione."
+                true
+            }.getOrElse { lastResult = "Impossibile aprire il browser: ${it.message}"; false }
+        }
         val apk = File(context.cacheDir, "update.apk")
         try {
             val conn = (URL(info.apkUrl).openConnection() as HttpURLConnection).apply {
@@ -116,7 +127,7 @@ class Updater(private val context: Context) {
 
     /** Da chiamare in background: aggiorna da solo solo se l'installazione è silenziosa. */
     suspend fun autoUpdateIfSilent() {
-        if (!Protection(context).isDeviceOwner) return
+        if (!BuildConfig.FULL || !Protection(context).isDeviceOwner) return
         check()?.let { install(it) }
     }
 

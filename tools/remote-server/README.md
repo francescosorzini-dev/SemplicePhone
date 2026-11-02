@@ -22,7 +22,7 @@ per esempio `https://example.com/semplicephone/`. Al primo accesso crea `data/`,
 
 Il telefono controlla ogni 15 minuti, con rete. Quando non ci sono novità il server risponde
 `304` e la richiesta pesa pochi byte. Per applicare subito ci sono «Aggiorna ora» sul telefono e,
-se attivato nella scheda **Telefono**, l'SMS «#AGGIORNA» inviato da uno dei numeri SOS.
+se attivato nella scheda **Telefono** (solo edizione completa dell'app), l'SMS «#AGGIORNA» inviato da uno dei numeri SOS.
 
 ## Avvisi immediati
 

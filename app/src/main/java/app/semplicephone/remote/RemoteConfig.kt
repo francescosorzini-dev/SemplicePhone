@@ -235,7 +235,8 @@ class RemoteClient(private val context: Context) {
             .put("charging", charging)
             .put("lastResult", settings.lastResult)
             .put("reminderEvents", events)
-            .put("badgesAccess", app.semplicephone.phone.Badges.isEnabled(context))
+            .put("edition", if (BuildConfig.FULL) "completo" else "standard")
+            .apply { if (BuildConfig.FULL) put("badgesAccess", app.semplicephone.phone.Badges.isEnabled(context)) }
             .apply {
                 if (appsChanged) put("apps", JSONArray().also { a -> apps.forEach { a.put(JSONObject().put("pkg", it.target).put("label", it.label)) } })
             }

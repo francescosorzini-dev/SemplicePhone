@@ -55,7 +55,7 @@ fun HomeScreen(
 ) {
     val pages = config.pages
     val counts by Badges.counts.collectAsState()
-    val badgeCounts = if (config.phone.badges) counts else emptyMap()
+    val badgeCounts = if (config.phone.badges && app.semplicephone.BuildConfig.FULL) counts else emptyMap()
     val pagerState = rememberPagerState { pages.size.coerceAtLeast(1) }
 
     // Tasto Home premuto mentre si è già nel launcher → torna alla prima pagina.

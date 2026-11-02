@@ -23,9 +23,27 @@ android {
         val remotePubkey = (project.findProperty("semplice.remotePubkey") as String?) ?: ""
         buildConfigField("String", "REMOTE_URL", "\"$remoteUrl\"")
         buildConfigField("String", "REMOTE_PUBKEY", "\"$remotePubkey\"")
-        val updateUrl = (project.findProperty("semplice.updateUrl") as String?)
-            ?: "https://github.com/francescosorzini-dev/SemplicePhone/releases/latest/download/update.json"
-        buildConfigField("String", "UPDATE_URL", "\"$updateUrl\"")
+    }
+
+    // standard: installabile dal browser, senza i permessi che Play Protect blocca sugli APK scaricati
+    //           (ricezione SMS, lettura notifiche, installazione di APK).
+    // completo: tutte le funzioni (comando SMS, pallini, aggiornamento silenzioso), da installare via ADB.
+    flavorDimensions += "edizione"
+    val releases = "https://github.com/francescosorzini-dev/SemplicePhone/releases/latest/download"
+    productFlavors {
+        create("standard") {
+            dimension = "edizione"
+            buildConfigField("boolean", "FULL", "false")
+            val u = (project.findProperty("semplice.updateUrl") as String?) ?: "$releases/update.json"
+            buildConfigField("String", "UPDATE_URL", "\"$u\"")
+        }
+        create("completo") {
+            dimension = "edizione"
+            buildConfigField("boolean", "FULL", "true")
+            versionNameSuffix = "-completo"
+            val u = (project.findProperty("semplice.updateUrlFull") as String?) ?: "$releases/update-completo.json"
+            buildConfigField("String", "UPDATE_URL", "\"$u\"")
+        }
     }
 
     // Firma release da variabili d'ambiente (secrets GitHub); senza, l'APK release resta non firmato.

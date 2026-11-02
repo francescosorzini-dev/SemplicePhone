@@ -58,6 +58,8 @@ fun SosScreen(cfg: SosConfig, launcher: TileLauncher, contactNames: (String) -> 
     val done by rememberUpdatedState(onDone)
     var remaining by remember { mutableIntStateOf(cfg.countdownSeconds.coerceIn(3, 15)) }
     var status by remember { mutableStateOf<String?>(null) }
+    // SMS non inviabile in automatico (permesso negato o bloccato da Android): testo pronto per l'app Messaggi.
+    var manualSms by remember { mutableStateOf<String?>(null) }
     val fetcher = remember { LocationFetcher(context) }
 
     LaunchedEffect(Unit) {
@@ -80,12 +82,15 @@ fun SosScreen(cfg: SosConfig, launcher: TileLauncher, contactNames: (String) -> 
                 mapOf("smsSent" to sent, "lat" to location?.latitude, "lon" to location?.longitude),
             )
             cfg.numbers.firstOrNull()?.let { launcher.call(it) }
-            status = when {
-                sent > 0 -> "SMS inviato a $sent ${if (sent == 1) "persona" else "persone"}"
-                else -> "SMS non inviato"
+            if (sent > 0) {
+                status = "SMS inviato a $sent ${if (sent == 1) "persona" else "persone"}"
+                delay(4000)
+                done()
+            } else {
+                // La chiamata è partita; l'SMS con la posizione lo si manda con un tocco dall'app Messaggi.
+                status = "Chiamata avviata. Manda anche la posizione:"
+                manualSms = smsText
             }
-            delay(4000)
-            done()
         }
     }
 
@@ -118,6 +123,19 @@ fun SosScreen(cfg: SosConfig, launcher: TileLauncher, contactNames: (String) -> 
             Text(status!!, color = Color.White, fontSize = 26.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
         }
         Spacer(Modifier.weight(1f))
+        manualSms?.let { text ->
+            Button(
+                onClick = { SosSms.openComposer(context, cfg.numbers, text) },
+                colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Palette.Sos),
+                shape = RoundedCornerShape(24.dp),
+                modifier = Modifier.fillMaxWidth().height(110.dp),
+            ) { Text("MANDA LA POSIZIONE", fontSize = 30.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center) }
+            androidx.compose.material3.OutlinedButton(
+                onClick = onDone,
+                shape = RoundedCornerShape(20.dp),
+                modifier = Modifier.fillMaxWidth().height(72.dp),
+            ) { Text("Chiudi", fontSize = 24.sp, color = Color.White) }
+        }
         if (status == null) {
             Button(
                 onClick = onDone,

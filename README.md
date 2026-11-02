@@ -11,12 +11,77 @@ remoto, con firma Ed25519.
 
 ## Installazione su un telefono
 
-1. Scarica l'APK dall'ultima [Release](../../releases) oppure dagli artifact della CI (build debug).
-2. Installalo e tocca il banner «usa SemplicePhone come schermata Home».
-3. Apri le impostazioni con **5 tocchi rapidi sull'orologio** (o sullo sfondo della griglia) e
-   scegli il PIN.
-4. Configura tile, numeri SOS e promemoria, poi premi **Salva**. A quel punto vengono chiesti
-   solo i permessi che servono ai tile presenti.
+### Quale edizione
+
+| | **Standard** | **Completa** |
+|---|---|---|
+| Download | [SemplicePhone.apk](../../releases/latest/download/SemplicePhone.apk) | [SemplicePhone-completo.apk](../../releases/latest/download/SemplicePhone-completo.apk) |
+| Si installa | dal browser del telefono | con ADB da computer |
+| Home, SOS, promemoria, suoneria, batteria, remoto | ✅ | ✅ |
+| Pallini con messaggi non letti | — | ✅ |
+| Comando SMS «#AGGIORNA» | — | ✅ |
+| Aggiornamento automatico (silenzioso con Device Owner) | scarica dal browser | ✅ |
+
+La Completa usa tre permessi (ricezione SMS, lettura notifiche, installazione di APK) che
+Google Play Protect blocca sulle app scaricate da internet. Per questo si installa con ADB.
+Le due edizioni sono firmate con la stessa chiave: si passa dall'una all'altra installando
+sopra, senza perdere le impostazioni.
+
+### Edizione standard, passo per passo
+
+1. Dal telefono apri il link **SemplicePhone.apk** e conferma il download.
+2. **«Installare app sconosciute?»**: consenti al browser di installare app. Si fa una volta.
+3. **«Analisi dell'app consigliata»** (Play Protect): premi **Analizza l'app**. Compare a ogni
+   nuova versione, finché Google non conosce quel file.
+4. Se compare **«App dannosa bloccata»**, è un falso positivo dovuto ai permessi dell'SOS
+   (SMS, posizione, chiamate). Premi **Installa comunque**. Il codice sorgente è qui, verificabile.
+5. Apri SemplicePhone e tocca il banner «usa SemplicePhone come schermata Home».
+6. Tocca **5 volte l'orologio** (o lo sfondo della griglia) e scegli il PIN.
+7. Configura riquadri, numeri SOS e promemoria, poi premi **Salva**. Vengono chiesti solo i
+   permessi che servono.
+
+### «Per la tua sicurezza, questa impostazione non è disponibile»
+
+Sono le *impostazioni con restrizioni* di Android. Valgono per le app installate da un file
+scaricato:
+- da Android 13 bloccano l'accesso alle notifiche;
+- da Android 15 anche i permessi **SMS**, cioè l'SMS dell'SOS e l'avviso batteria.
+
+Come sbloccarle:
+1. prova una volta a concedere il permesso, così compare l'opzione;
+2. vai in **Info app** di SemplicePhone (nell'editor c'è il pulsante «Apri Info app»), tocca **⋮**
+   in alto a destra e scegli **Consenti impostazioni con restrizioni**;
+3. torna nell'editor e premi «Concedi permessi».
+
+Su alcuni telefoni (OnePlus, Oppo, Realme con OxygenOS/ColorOS recenti) il menu ⋮ non c'è.
+Allora, da computer:
+
+```
+adb shell appops set app.semplicephone ACCESS_RESTRICTED_SETTINGS allow
+```
+
+Finché il permesso SMS resta bloccato l'SOS funziona lo stesso: parte la chiamata e lo schermo
+mostra **«MANDA LA POSIZIONE»**, che apre Messaggi con destinatari, testo e posizione già pronti.
+L'avviso al portale (Telegram/email) parte comunque via internet.
+
+### Edizione completa (ADB)
+
+1. Sul telefono attiva **Opzioni sviluppatore → Debug USB**.
+2. Collega il telefono al computer e accetta l'impronta. Poi:
+
+```
+adb install -r SemplicePhone-completo.apk
+adb shell appops set app.semplicephone ACCESS_RESTRICTED_SETTINGS allow
+```
+
+Gli aggiornamenti successivi li installa l'app stessa (Gestione da remoto → Controlla
+aggiornamenti), in silenzio se è Device Owner.
+
+### Dal 2027
+
+Google estenderà all'Italia l'obbligo di installare app da sviluppatori verificati,
+registrati nell'Android Developer Console. Prima di allora il progetto andrà registrato, oppure
+si dovrà usare la procedura avanzata di Android o ADB.
 
 ### Protezione avanzata (facoltativa, Device Owner)
 
@@ -29,8 +94,8 @@ adb shell dpm set-device-owner app.semplicephone/.admin.AdminReceiver
 Così si sbloccano:
 - **Blocchi**: Home fissa, tendina bloccata, niente installazioni o disinstallazioni, niente
   ripristino di fabbrica.
-- **Permessi** concessi in automatico.
-- **Aggiornamenti** dell'app silenziosi.
+- **Permessi** concessi in automatico (non l'accesso alle notifiche).
+- **Aggiornamenti** dell'app silenziosi, solo nell'edizione completa.
 
 Ogni opzione si toglie da Impostazioni › Protezione, compreso il ruolo di Device Owner.
 

@@ -24,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.semplicephone.BuildConfig
 import app.semplicephone.model.PhoneConfig
 import app.semplicephone.remote.SmsCommand
 import app.semplicephone.ui.Palette
@@ -60,17 +61,27 @@ fun PhoneEditor(initial: PhoneConfig, hasSosNumbers: Boolean, onSave: (PhoneConf
                 fontSize = 15.sp, color = Color(0xFF4A4A4A),
             )
 
-            Toggle(
-                "Pallino sui riquadri",
-                "Mostra quante chiamate perse e quanti messaggi non letti ci sono sui riquadri delle app (Telefono, Messaggi, WhatsApp…).",
-                p.badges,
-            ) { p = p.copy(badges = it) }
+            if (BuildConfig.FULL) {
+                Toggle(
+                    "Pallino sui riquadri",
+                    "Mostra quante chiamate perse e quanti messaggi non letti ci sono sui riquadri delle app (Telefono, Messaggi, WhatsApp…).",
+                    p.badges,
+                ) { p = p.copy(badges = it) }
 
-            Toggle(
-                "Comando SMS «${SmsCommand.KEYWORD}»",
-                "Un familiare tra i numeri SOS può mandare l'SMS «${SmsCommand.KEYWORD}» per far applicare subito una configurazione pubblicata dal portale.",
-                p.smsUpdateCommand,
-            ) { p = p.copy(smsUpdateCommand = it) }
+                Toggle(
+                    "Comando SMS «${SmsCommand.KEYWORD}»",
+                    "Un familiare tra i numeri SOS può mandare l'SMS «${SmsCommand.KEYWORD}» per far applicare subito una configurazione pubblicata dal portale.",
+                    p.smsUpdateCommand,
+                ) { p = p.copy(smsUpdateCommand = it) }
+            } else {
+                SectionLabel("Solo nell'edizione completa")
+                Text(
+                    "Pallini con messaggi non letti, comando SMS «${SmsCommand.KEYWORD}» e aggiornamento automatico " +
+                        "richiedono permessi che Android blocca sulle app scaricate dal browser. Sono nell'edizione " +
+                        "completa, da installare con ADB (vedi la guida nel sito del progetto).",
+                    fontSize = 15.sp, color = Color(0xFF4A4A4A),
+                )
+            }
         }
     }
 }

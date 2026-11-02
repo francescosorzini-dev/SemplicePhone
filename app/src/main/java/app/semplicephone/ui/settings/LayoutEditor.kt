@@ -87,6 +87,7 @@ fun LayoutEditor(
     missingSpecial: List<Permissions.Special> = emptyList(),
     onOpenSpecial: (Permissions.Special) -> Unit = {},
     onExternalStart: () -> Unit = {},
+    restrictionHelp: Boolean = false,
     extraSections: @Composable () -> Unit = {},
 ) {
     val page = draft.pages.getOrNull(pageIndex) ?: return
@@ -197,6 +198,7 @@ fun LayoutEditor(
                     OutlinedButton(onClick = onRequestPermissions, modifier = Modifier.fillMaxWidth().height(52.dp)) { Text("Concedi permessi") }
                 }
             }
+            if (restrictionHelp) RestrictedSettingsHelp(onExternalStart)
             missingSpecial.forEach { sp ->
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     SectionLabel(sp.label)
@@ -351,6 +353,51 @@ private fun GridPreview(page: Page, onTile: (Tile) -> Unit, onEmpty: (Int, Int) 
                 )
             }
         }
+    }
+}
+
+/**
+ * Guida allo sblocco delle «impostazioni con restrizioni» (app installata dal browser):
+ * da Info app con il menu ⋮, oppure da PC con ADB se il produttore ha tolto il menu.
+ */
+@Composable
+private fun RestrictedSettingsHelp(onExternalStart: () -> Unit) {
+    val context = LocalContext.current
+    var copied by remember { mutableStateOf(false) }
+    Column(
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Color(0xFFFFF0DF)).padding(14.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text("Se Android risponde «Per la tua sicurezza, questa impostazione non è disponibile»", fontSize = 17.sp, fontWeight = FontWeight.Bold, color = Palette.Ink)
+        Text(
+            "SemplicePhone è stata installata da un file scaricato e Android blocca alcuni permessi " +
+                "(SMS dell'SOS, accesso alle notifiche) finché non li consenti:",
+            fontSize = 15.sp, color = Palette.Ink,
+        )
+        Text(
+            "1. Prova una volta a concedere il permesso (così compare l'opzione).\n" +
+                "2. Apri «Info app» qui sotto, tocca ⋮ in alto a destra e scegli «Consenti impostazioni con restrizioni».\n" +
+                "3. Torna qui e premi di nuovo «Concedi permessi».",
+            fontSize = 15.sp, color = Palette.Ink,
+        )
+        OutlinedButton(
+            onClick = { onExternalStart(); app.semplicephone.launch.Restrictions.openAppInfo(context) },
+            modifier = Modifier.fillMaxWidth().height(52.dp),
+        ) { Text("Apri Info app") }
+        Text("Se il menu ⋮ non c'è (alcuni telefoni OnePlus, Oppo, Realme), da un computer con ADB:", fontSize = 15.sp, color = Palette.Ink)
+        Text(
+            app.semplicephone.launch.Restrictions.ADB_ALLOW,
+            fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace, fontSize = 13.sp,
+            modifier = Modifier.fillMaxWidth().background(Color.White).padding(8.dp),
+        )
+        OutlinedButton(
+            onClick = {
+                val cm = context.getSystemService(android.content.ClipboardManager::class.java)
+                cm.setPrimaryClip(android.content.ClipData.newPlainText("adb", app.semplicephone.launch.Restrictions.ADB_ALLOW))
+                copied = true
+            },
+            modifier = Modifier.fillMaxWidth().height(48.dp),
+        ) { Text(if (copied) "Copiato" else "Copia comando") }
     }
 }
 

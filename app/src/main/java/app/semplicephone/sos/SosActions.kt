@@ -77,6 +77,18 @@ object SosSms {
         return "SOS - ${cfg.message.trim()}\n$pos"
     }
 
+    /** Apre l'app Messaggi con destinatari e testo già pronti (resta da premere «Invia»). */
+    fun openComposer(context: Context, numbers: List<String>, text: String) {
+        val to = numbers.joinToString(";") { n -> n.filter { it.isDigit() || it == '+' } }
+        runCatching {
+            context.startActivity(
+                android.content.Intent(android.content.Intent.ACTION_SENDTO, android.net.Uri.parse("smsto:$to"))
+                    .putExtra("sms_body", text)
+                    .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK),
+            )
+        }
+    }
+
     fun send(context: Context, numbers: List<String>, text: String): Int {
         if (!Permissions.granted(context, Manifest.permission.SEND_SMS)) return 0
         val sms: SmsManager = if (Build.VERSION.SDK_INT >= 31) context.getSystemService(SmsManager::class.java)

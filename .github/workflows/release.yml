@@ -55,33 +55,40 @@ jobs:
           SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
           SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
         run: |
-          ./gradlew --no-daemon testDebugUnitTest assembleRelease \
+          ./gradlew --no-daemon testStandardDebugUnitTest assembleStandardRelease assembleCompletoRelease \
             -PversionName="$VERSION" -PversionCode="${{ github.run_number }}0"
 
-      - name: APK + update.json
+      - name: APK + update.json (standard e completo)
         run: |
           set -euo pipefail
-          APK="SemplicePhone-$VERSION.apk"
-          cp app/build/outputs/apk/release/app-release.apk "$APK"
           APKSIGNER=$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -1)apksigner
-          "$APKSIGNER" verify --verbose --print-certs "$APK" > certs.txt
-          cat certs.txt
           # Deve essere firmato con la chiave di SemplicePhone (impronta del certificato release).
           EXPECTED=3871cf5b478aea297ec9aa665cebc98f7e62d9076fab62a548bac70e10f8819e
-          tr -d ': ' < certs.txt | tr 'A-F' 'a-f' | grep -q "$EXPECTED" || { echo "::error::APK non firmato con la chiave attesa"; exit 1; }
-          SHA=$(sha256sum "$APK" | cut -d' ' -f1)
-          cat > update.json <<EOF
-          {"versionCode": ${{ github.run_number }}0, "versionName": "$VERSION",
-           "apkUrl": "https://github.com/${{ github.repository }}/releases/download/$TAG/$APK",
-           "sha256": "$SHA"}
-          EOF
-          cat update.json
-          echo "APK=$APK" >> "$GITHUB_ENV"
+          for ED in standard completo; do
+            if [ "$ED" = standard ]; then APK="SemplicePhone-$VERSION.apk"; JSON=update.json; NAME="$VERSION";
+            else APK="SemplicePhone-completo-$VERSION.apk"; JSON=update-completo.json; NAME="$VERSION-completo"; fi
+            cp "app/build/outputs/apk/$ED/release/app-$ED-release.apk" "$APK"
+            "$APKSIGNER" verify --verbose --print-certs "$APK" > certs.txt
+            grep -E "Signer #1 certificate (DN|SHA-256)" certs.txt
+            tr -d ': ' < certs.txt | tr 'A-F' 'a-f' | grep -q "$EXPECTED" || { echo "::error::$APK non firmato con la chiave attesa"; exit 1; }
+            SHA=$(sha256sum "$APK" | cut -d' ' -f1)
+            printf '{"versionCode": %s, "versionName": "%s",\n "apkUrl": "https://github.com/%s/releases/download/%s/%s",\n "sha256": "%s"}\n' \
+              "${{ github.run_number }}0" "$NAME" "${{ github.repository }}" "$TAG" "$APK" "$SHA" > "$JSON"
+            cat "$JSON"
+          done
+          # Il manifest della standard non deve contenere i permessi che Play Protect blocca.
+          AAPT=$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -1)aapt2
+          "$AAPT" dump permissions "SemplicePhone-$VERSION.apk" > perms.txt; cat perms.txt
+          if grep -Eq "RECEIVE_SMS|REQUEST_INSTALL_PACKAGES|BIND_NOTIFICATION_LISTENER" perms.txt; then echo "::error::permessi bloccati nella standard"; exit 1; fi
+          "$AAPT" dump xmltree --file AndroidManifest.xml "SemplicePhone-$VERSION.apk" | grep -q BIND_NOTIFICATION_LISTENER_SERVICE && { echo "::error::listener nella standard"; exit 1; } || true
 
       - name: GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          # Copia a nome fisso: .../releases/latest/download/SemplicePhone.apk punta sempre all'ultima.
-          cp "$APK" SemplicePhone.apk
-          gh release create "$TAG" "$APK" SemplicePhone.apk update.json --target "$GITHUB_SHA" --title "SemplicePhone $TAG" --generate-notes
+          # Copie a nome fisso: .../releases/latest/download/SemplicePhone.apk punta sempre all'ultima.
+          cp "SemplicePhone-$VERSION.apk" SemplicePhone.apk
+          cp "SemplicePhone-completo-$VERSION.apk" SemplicePhone-completo.apk
+          gh release create "$TAG" "SemplicePhone-$VERSION.apk" "SemplicePhone-completo-$VERSION.apk" \
+            SemplicePhone.apk SemplicePhone-completo.apk update.json update-completo.json \
+            --target "$GITHUB_SHA" --title "SemplicePhone $TAG" --generate-notes

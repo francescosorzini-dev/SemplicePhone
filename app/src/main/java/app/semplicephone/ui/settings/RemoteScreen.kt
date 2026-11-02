@@ -151,12 +151,14 @@ fun RemoteScreen(onBack: () -> Unit) {
                     },
                     enabled = !busy,
                     modifier = Modifier.fillMaxWidth().height(52.dp),
-                ) { Text("Installa ${info.versionName}") }
+                ) { Text(if (BuildConfig.FULL) "Installa ${info.versionName}" else "Scarica ${info.versionName}") }
             }
             if (updateStatus.isNotBlank()) Text(updateStatus, fontSize = 15.sp)
             Text(
-                "Con SemplicePhone amministratore del dispositivo gli aggiornamenti si installano da soli " +
-                    "durante il controllo periodico; altrimenti Android chiede conferma.",
+                if (BuildConfig.FULL) "Con SemplicePhone amministratore del dispositivo gli aggiornamenti si installano da soli " +
+                    "durante il controllo periodico; altrimenti Android chiede conferma."
+                else "Edizione standard: l'aggiornamento si scarica dal browser e si conferma l'installazione. " +
+                    "Le impostazioni restano.",
                 fontSize = 14.sp, color = Color(0xFF4A4A4A),
             )
         }

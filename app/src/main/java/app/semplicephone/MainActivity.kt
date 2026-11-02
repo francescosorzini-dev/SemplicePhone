@@ -155,6 +155,11 @@ class MainActivity : ComponentActivity() {
                             missingSpecial = remember(d, permissionsTick) { Permissions.missingSpecial(this@MainActivity, d) },
                             onOpenSpecial = { Permissions.openSpecial(this@MainActivity, it) },
                             onExternalStart = { externalActivity = true },
+                            restrictionHelp = remember(d, permissionsTick) {
+                                app.semplicephone.launch.Restrictions.likelyRestricted(this@MainActivity) && (
+                                    Permissions.missing(this@MainActivity, d).any { app.semplicephone.launch.Restrictions.isRestrictedPermission(it.permission) } ||
+                                        Permissions.missingSpecial(this@MainActivity, d).any { it.key == "badges" })
+                            },
                             extraSections = {
                                 OutlinedButton(onClick = { screen = Screen.Phone }, modifier = Modifier.fillMaxWidth().height(52.dp)) {
                                     Text("Suoneria, batteria e pallini")

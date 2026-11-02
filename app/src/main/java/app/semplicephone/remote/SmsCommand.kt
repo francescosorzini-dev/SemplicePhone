@@ -29,7 +29,7 @@ class SmsCommandReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action != Telephony.Sms.Intents.SMS_RECEIVED_ACTION) return
         val cfg = ConfigRepository.readCurrent(context)
-        if (!cfg.phone.smsUpdateCommand || !RemoteSettings(context).enabled) return
+        if (!app.semplicephone.BuildConfig.FULL || !cfg.phone.smsUpdateCommand || !RemoteSettings(context).enabled) return
         val msgs = Telephony.Sms.Intents.getMessagesFromIntent(intent) ?: return
         val bySender = msgs.groupBy { it.originatingAddress.orEmpty() }
             .mapValues { (_, parts) -> parts.joinToString("") { it.messageBody.orEmpty() } }
