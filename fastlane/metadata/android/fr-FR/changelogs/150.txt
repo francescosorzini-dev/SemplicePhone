@@ -1,0 +1,1 @@
+- Les boutons s'agrandissent au lieu de couper les textes longs

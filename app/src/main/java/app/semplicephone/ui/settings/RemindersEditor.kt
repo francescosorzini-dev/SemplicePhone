@@ -1,5 +1,6 @@
 package app.semplicephone.ui.settings
 
+import androidx.compose.foundation.layout.heightIn
 import app.semplicephone.R
 import androidx.compose.ui.res.stringResource
 import android.content.Intent
@@ -114,7 +115,7 @@ fun RemindersEditor(
             }
             OutlinedButton(
                 onClick = { editing = Reminder(id = "r" + System.currentTimeMillis().toString(36), time = "08:00", title = context.getString(R.string.default_reminder_title)) },
-                modifier = Modifier.fillMaxWidth().height(52.dp),
+                modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
             ) { Text(stringResource(R.string.reminders_add)) }
         }
     }
@@ -173,7 +174,7 @@ private fun ReminderForm(initial: Reminder, isNew: Boolean, onDone: (Reminder) -
                 Switch(checked = r.enabled, onCheckedChange = { r = r.copy(enabled = it) })
             }
             if (!isNew) {
-                OutlinedButton(onClick = onDelete, modifier = Modifier.fillMaxWidth().height(52.dp)) {
+                OutlinedButton(onClick = onDelete, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
                     Text(stringResource(R.string.reminder_delete), color = Palette.Sos, fontWeight = FontWeight.Bold)
                 }
             }
@@ -188,7 +189,7 @@ private fun Warning(text: String, onFix: () -> Unit) {
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text(text, fontSize = 15.sp, color = Palette.Ink)
-        OutlinedButton(onClick = onFix, modifier = Modifier.height(48.dp)) { Text(stringResource(R.string.action_open_settings)) }
+        OutlinedButton(onClick = onFix, modifier = Modifier.heightIn(min = 48.dp)) { Text(stringResource(R.string.action_open_settings)) }
     }
 }
 

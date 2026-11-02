@@ -1,5 +1,6 @@
 package app.semplicephone.ui.settings
 
+import androidx.compose.foundation.layout.heightIn
 import android.content.Context
 import androidx.compose.ui.platform.LocalContext
 import app.semplicephone.R
@@ -147,7 +148,7 @@ fun TileEditor(
                 TileType.APP -> {
                     SectionLabel(stringResource(R.string.tile_app))
                     val current = apps.firstOrNull { it.target == t.target }?.label ?: t.target.ifBlank { stringResource(R.string.icon_none) }
-                    OutlinedButton(onClick = { pickApp = true }, modifier = Modifier.fillMaxWidth().height(52.dp), shape = RoundedCornerShape(10.dp)) {
+                    OutlinedButton(onClick = { pickApp = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp), shape = RoundedCornerShape(10.dp)) {
                         Text(current, fontSize = 17.sp, color = Palette.Ink)
                     }
                 }
@@ -157,7 +158,7 @@ fun TileEditor(
                             onExternalStart()
                             pickContact.launch(Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI))
                         },
-                        modifier = Modifier.fillMaxWidth().height(52.dp),
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
                         shape = RoundedCornerShape(10.dp),
                     ) { Text(stringResource(R.string.tile_pick_contact), fontSize = 17.sp, color = Palette.Ink) }
                     Field(stringResource(R.string.tile_number), t.target, KeyboardType.Phone) { t = t.copy(target = it.filter { c -> c.isDigit() || c == '+' }) }
@@ -167,7 +168,7 @@ fun TileEditor(
                 TileType.URL -> Field(stringResource(R.string.tile_url), t.target, KeyboardType.Uri) { t = t.copy(target = it.trim()) }
                 TileType.SHORTCUT -> {
                     SectionLabel(stringResource(R.string.tile_shortcut))
-                    OutlinedButton(onClick = { pickShortcut = true }, modifier = Modifier.fillMaxWidth().height(52.dp), shape = RoundedCornerShape(10.dp)) {
+                    OutlinedButton(onClick = { pickShortcut = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp), shape = RoundedCornerShape(10.dp)) {
                         Text(t.target.ifBlank { stringResource(R.string.tile_choose) }.substringAfter('/').take(40), fontSize = 17.sp, color = Palette.Ink)
                     }
                     Hint(stringResource(R.string.tile_shortcut_hint))
@@ -202,7 +203,7 @@ fun TileEditor(
             if (!isNew) {
                 OutlinedButton(
                     onClick = { confirmDelete = true },
-                    modifier = Modifier.fillMaxWidth().height(52.dp),
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
                     shape = RoundedCornerShape(12.dp),
                 ) { Text(stringResource(R.string.tile_delete), color = Palette.Sos, fontSize = 17.sp, fontWeight = FontWeight.Bold) }
             }
@@ -260,14 +261,14 @@ fun EditorHeader(title: String, onBack: () -> Unit, action: String, enabled: Boo
         Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        TextButton(onClick = onBack, modifier = Modifier.height(48.dp)) { Text(stringResource(R.string.action_back), fontSize = 17.sp, color = Palette.Ink) }
+        TextButton(onClick = onBack, modifier = Modifier.heightIn(min = 48.dp)) { Text(stringResource(R.string.action_back), fontSize = 17.sp, color = Palette.Ink) }
         Text(title, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Palette.Ink, modifier = Modifier.weight(1f).padding(start = 4.dp))
         Button(
             onClick = onAction,
             enabled = enabled,
             colors = ButtonDefaults.buttonColors(containerColor = Palette.Ink),
             shape = RoundedCornerShape(12.dp),
-            modifier = Modifier.height(48.dp),
+            modifier = Modifier.heightIn(min = 48.dp),
         ) { Text(action, fontSize = 17.sp, fontWeight = FontWeight.Bold) }
     }
 }

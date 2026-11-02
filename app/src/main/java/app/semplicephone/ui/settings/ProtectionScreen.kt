@@ -1,5 +1,6 @@
 package app.semplicephone.ui.settings
 
+import androidx.compose.foundation.layout.heightIn
 import app.semplicephone.R
 import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
@@ -64,7 +65,7 @@ fun ProtectionScreen(protection: Protection, onBack: () -> Unit) {
                         modifier = Modifier.fillMaxWidth().background(Color.White).padding(12.dp))
                 }
                 Text(stringResource(R.string.protection_after), fontSize = 15.sp)
-                OutlinedButton(onClick = { tick++ }, modifier = Modifier.fillMaxWidth().height(52.dp)) { Text(stringResource(R.string.protection_check_again)) }
+                OutlinedButton(onClick = { tick++ }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text(stringResource(R.string.protection_check_again)) }
             } else {
                 SectionLabel(stringResource(R.string.protection_is_owner))
                 Protection.Item.entries.forEach { item ->
@@ -81,7 +82,7 @@ fun ProtectionScreen(protection: Protection, onBack: () -> Unit) {
                     }
                 }
                 error?.let { Text(it, color = Palette.Sos, fontSize = 15.sp) }
-                OutlinedButton(onClick = { confirmRelease = true }, modifier = Modifier.fillMaxWidth().height(52.dp)) {
+                OutlinedButton(onClick = { confirmRelease = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
                     Text(stringResource(R.string.protection_release), color = Palette.Sos)
                 }
             }

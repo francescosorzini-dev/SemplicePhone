@@ -1,5 +1,6 @@
 package app.semplicephone
 
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.ui.res.stringResource
 import android.app.role.RoleManager
 import android.content.Intent
@@ -164,16 +165,16 @@ class MainActivity : ComponentActivity() {
                                         Permissions.missingSpecial(this@MainActivity, d).any { it.key == "badges" })
                             },
                             extraSections = {
-                                OutlinedButton(onClick = { screen = Screen.Phone }, modifier = Modifier.fillMaxWidth().height(52.dp)) {
+                                OutlinedButton(onClick = { screen = Screen.Phone }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
                                     Text(stringResource(R.string.layout_phone_settings))
                                 }
-                                OutlinedButton(onClick = { screen = Screen.Reminders }, modifier = Modifier.fillMaxWidth().height(52.dp)) {
+                                OutlinedButton(onClick = { screen = Screen.Reminders }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
                                     Text(stringResource(R.string.layout_reminders, d.reminders.size))
                                 }
-                                OutlinedButton(onClick = { screen = Screen.Remote }, modifier = Modifier.fillMaxWidth().height(52.dp)) {
+                                OutlinedButton(onClick = { screen = Screen.Remote }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
                                     Text(stringResource(R.string.layout_remote))
                                 }
-                                OutlinedButton(onClick = { screen = Screen.Protection }, modifier = Modifier.fillMaxWidth().height(52.dp)) {
+                                OutlinedButton(onClick = { screen = Screen.Protection }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
                                     Text(stringResource(R.string.layout_protection))
                                 }
                                 if (android.os.Build.VERSION.SDK_INT >= 33) {
@@ -187,7 +188,7 @@ class MainActivity : ComponentActivity() {
                                                 )
                                             }
                                         },
-                                        modifier = Modifier.fillMaxWidth().height(52.dp),
+                                        modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
                                     ) { Text(stringResource(R.string.layout_language)) }
                                     Text(stringResource(R.string.language_hint), fontSize = 14.sp, color = androidx.compose.ui.graphics.Color(0xFF4A4A4A))
                                 }

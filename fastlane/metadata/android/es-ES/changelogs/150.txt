@@ -1,0 +1,1 @@
+- Los botones crecen en lugar de cortar los textos largos

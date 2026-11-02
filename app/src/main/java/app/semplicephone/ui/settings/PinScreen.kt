@@ -1,5 +1,6 @@
 package app.semplicephone.ui.settings
 
+import androidx.compose.foundation.layout.heightIn
 import app.semplicephone.R
 import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
@@ -149,7 +150,7 @@ fun PinScreen(store: PinStore, mode: PinMode, onSuccess: () -> Unit, onCancel: (
         keys.chunked(3).forEach { row ->
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                 row.forEach { k ->
-                    val mod = Modifier.weight(1f).height(72.dp)
+                    val mod = Modifier.weight(1f).heightIn(min = 72.dp)
                     when (k) {
                         "" -> Spacer(mod)
                         "⌫" -> TextButton(
@@ -173,11 +174,11 @@ fun PinScreen(store: PinStore, mode: PinMode, onSuccess: () -> Unit, onCancel: (
             enabled = enabled && digits.length in PinStore.PIN_LENGTH,
             colors = ButtonDefaults.buttonColors(containerColor = Palette.Ink),
             shape = RoundedCornerShape(16.dp),
-            modifier = Modifier.fillMaxWidth().height(64.dp),
+            modifier = Modifier.fillMaxWidth().heightIn(min = 64.dp),
         ) { Text(stringResource(R.string.action_confirm), fontSize = 22.sp, fontWeight = FontWeight.Bold) }
 
         Spacer(Modifier.weight(1f))
-        TextButton(onClick = onCancel, modifier = Modifier.height(56.dp)) {
+        TextButton(onClick = onCancel, modifier = Modifier.heightIn(min = 56.dp)) {
             Text(stringResource(R.string.pin_exit), fontSize = 20.sp, color = Palette.Ink)
         }
     }

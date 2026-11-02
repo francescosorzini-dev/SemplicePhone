@@ -1,5 +1,6 @@
 package app.semplicephone.ui.settings
 
+import androidx.compose.foundation.layout.heightIn
 import app.semplicephone.R
 import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
@@ -113,7 +114,7 @@ fun RemoteScreen(onBack: () -> Unit) {
                     }
                 },
                 enabled = !busy && enabled,
-                modifier = Modifier.fillMaxWidth().height(52.dp),
+                modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
             ) { Text(stringResource(if (busy) R.string.remote_checking else R.string.remote_sync_now)) }
             if (lastCheck > 0) {
                 Text(
@@ -144,7 +145,7 @@ fun RemoteScreen(onBack: () -> Unit) {
                         }
                     },
                     enabled = !busy,
-                    modifier = Modifier.fillMaxWidth().height(52.dp),
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
                 ) { Text(stringResource(R.string.updates_check)) }
                 available?.let { info ->
                     OutlinedButton(
@@ -157,7 +158,7 @@ fun RemoteScreen(onBack: () -> Unit) {
                             }
                         },
                         enabled = !busy,
-                        modifier = Modifier.fillMaxWidth().height(52.dp),
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
                     ) { Text(stringResource(if (BuildConfig.FULL) R.string.updates_install else R.string.updates_download, info.versionName)) }
                 }
                 if (updateStatus.isNotBlank()) Text(updateStatus, fontSize = 15.sp)

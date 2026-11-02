@@ -1,5 +1,6 @@
 package app.semplicephone.ui.settings
 
+import androidx.compose.foundation.layout.heightIn
 import app.semplicephone.R
 import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
@@ -63,13 +64,13 @@ fun SosEditor(initial: SosConfig, onSave: (SosConfig) -> Unit, onCancel: () -> U
                         modifier = Modifier.weight(1f),
                     )
                     if (numbers.size > 1) {
-                        TextButton(onClick = { numbers = numbers.filterIndexed { j, _ -> j != i } }, modifier = Modifier.height(48.dp)) {
+                        TextButton(onClick = { numbers = numbers.filterIndexed { j, _ -> j != i } }, modifier = Modifier.heightIn(min = 48.dp)) {
                             Text(stringResource(R.string.sos_editor_remove), color = Palette.Sos)
                         }
                     }
                 }
             }
-            OutlinedButton(onClick = { numbers = numbers + "" }, enabled = numbers.size < 5, modifier = Modifier.fillMaxWidth().height(52.dp)) {
+            OutlinedButton(onClick = { numbers = numbers + "" }, enabled = numbers.size < 5, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
                 Text(stringResource(R.string.sos_editor_add))
             }
             Stepper(stringResource(R.string.sos_editor_hold), hold, 1..10, { hold = it })

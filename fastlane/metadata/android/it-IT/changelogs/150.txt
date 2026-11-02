@@ -1,0 +1,1 @@
+- I pulsanti si allungano invece di tagliare il testo (traduzioni lunghe)

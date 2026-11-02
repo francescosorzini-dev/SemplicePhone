@@ -99,7 +99,7 @@ fun <T> OptionPicker(label: String, options: List<T>, selected: T, text: (T) -> 
     var open by remember { mutableStateOf(false) }
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         SectionLabel(label)
-        OutlinedButton(onClick = { open = true }, modifier = Modifier.fillMaxWidth().height(52.dp), shape = RoundedCornerShape(10.dp)) {
+        OutlinedButton(onClick = { open = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp), shape = RoundedCornerShape(10.dp)) {
             Text(text(selected), fontSize = 17.sp, color = Palette.Ink, modifier = Modifier.weight(1f))
             Text("▾", fontSize = 17.sp, color = Palette.Ink)
         }

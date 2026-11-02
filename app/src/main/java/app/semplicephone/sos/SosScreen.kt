@@ -1,5 +1,6 @@
 package app.semplicephone.sos
 
+import androidx.compose.foundation.layout.heightIn
 import app.semplicephone.R
 import androidx.compose.ui.res.stringResource
 import android.location.Location
@@ -133,12 +134,12 @@ fun SosScreen(cfg: SosConfig, launcher: TileLauncher, contactNames: (String) -> 
                 onClick = { SosSms.openComposer(context, cfg.numbers, text) },
                 colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Palette.Sos),
                 shape = RoundedCornerShape(24.dp),
-                modifier = Modifier.fillMaxWidth().height(110.dp),
+                modifier = Modifier.fillMaxWidth().heightIn(min = 110.dp),
             ) { Text(stringResource(R.string.sos_send_location), fontSize = 30.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center) }
             androidx.compose.material3.OutlinedButton(
                 onClick = onDone,
                 shape = RoundedCornerShape(20.dp),
-                modifier = Modifier.fillMaxWidth().height(72.dp),
+                modifier = Modifier.fillMaxWidth().heightIn(min = 72.dp),
             ) { Text(stringResource(R.string.action_close), fontSize = 24.sp, color = Color.White) }
         }
         if (status == null) {
@@ -146,7 +147,7 @@ fun SosScreen(cfg: SosConfig, launcher: TileLauncher, contactNames: (String) -> 
                 onClick = onDone,
                 colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Palette.Sos),
                 shape = RoundedCornerShape(24.dp),
-                modifier = Modifier.fillMaxWidth().height(110.dp),
+                modifier = Modifier.fillMaxWidth().heightIn(min = 110.dp),
             ) { Text(stringResource(R.string.sos_cancel), fontSize = 40.sp, fontWeight = FontWeight.Bold) }
         }
     }

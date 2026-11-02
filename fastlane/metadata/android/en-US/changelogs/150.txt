@@ -1,0 +1,1 @@
+- Buttons grow instead of cutting off long text (translations)

@@ -1,5 +1,8 @@
 package app.semplicephone.ui.settings
 
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.heightIn
 import app.semplicephone.R
 import androidx.compose.ui.res.stringResource
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -134,21 +137,21 @@ fun LayoutEditor(
         ) {
             // Navigazione pagine
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(onClick = { onPageIndex(pageIndex - 1) }, enabled = pageIndex > 0, modifier = Modifier.height(48.dp)) { Text("‹") }
+                OutlinedButton(onClick = { onPageIndex(pageIndex - 1) }, enabled = pageIndex > 0, modifier = Modifier.heightIn(min = 48.dp)) { Text("‹") }
                 Text(
                     stringResource(R.string.home_page_of, pageIndex + 1, draft.pages.size),
                     fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f), textAlign = TextAlign.Center,
                 )
-                OutlinedButton(onClick = { onPageIndex(pageIndex + 1) }, enabled = pageIndex < draft.pages.size - 1, modifier = Modifier.height(48.dp)) { Text("›") }
+                OutlinedButton(onClick = { onPageIndex(pageIndex + 1) }, enabled = pageIndex < draft.pages.size - 1, modifier = Modifier.heightIn(min = 48.dp)) { Text("›") }
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(Modifier.height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedButton(
                     onClick = {
                         onDraftChange(draft.copy(pages = draft.pages + Page(cols = page.cols, rows = page.rows)))
                         onPageIndex(draft.pages.size)
                     },
                     enabled = draft.pages.size < 6,
-                    modifier = Modifier.weight(1f).height(48.dp),
+                    modifier = Modifier.weight(1f).fillMaxHeight().heightIn(min = 48.dp),
                 ) { Text(stringResource(R.string.layout_add_page)) }
                 OutlinedButton(
                     onClick = {
@@ -158,7 +161,7 @@ fun LayoutEditor(
                         }
                     },
                     enabled = draft.pages.size > 1,
-                    modifier = Modifier.weight(1f).height(48.dp),
+                    modifier = Modifier.weight(1f).fillMaxHeight().heightIn(min = 48.dp),
                 ) { Text(stringResource(R.string.layout_delete_page), color = if (draft.pages.size > 1) Palette.Sos else Color.Unspecified) }
             }
 
@@ -196,7 +199,7 @@ fun LayoutEditor(
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     SectionLabel(stringResource(R.string.layout_missing_permissions))
                     missingPermissions.map { it.why }.distinct().forEach { Text("• $it", fontSize = 15.sp, color = Palette.Ink) }
-                    OutlinedButton(onClick = onRequestPermissions, modifier = Modifier.fillMaxWidth().height(52.dp)) { Text(stringResource(R.string.layout_grant_permissions)) }
+                    OutlinedButton(onClick = onRequestPermissions, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text(stringResource(R.string.layout_grant_permissions)) }
                 }
             }
             if (restrictionHelp) RestrictedSettingsHelp(onExternalStart)
@@ -204,31 +207,31 @@ fun LayoutEditor(
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     SectionLabel(sp.label)
                     Text(stringResource(R.string.layout_special_why, sp.why), fontSize = 15.sp, color = Palette.Ink)
-                    OutlinedButton(onClick = { onExternalStart(); onOpenSpecial(sp) }, modifier = Modifier.fillMaxWidth().height(52.dp)) {
+                    OutlinedButton(onClick = { onExternalStart(); onOpenSpecial(sp) }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
                         Text(stringResource(R.string.action_open_settings))
                     }
                 }
             }
 
             SectionLabel(stringResource(R.string.layout_more_settings))
-            OutlinedButton(onClick = onEditSos, modifier = Modifier.fillMaxWidth().height(52.dp)) { Text(stringResource(R.string.layout_sos_numbers)) }
+            OutlinedButton(onClick = onEditSos, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text(stringResource(R.string.layout_sos_numbers)) }
             extraSections()
-            OutlinedButton(onClick = onChangePin, modifier = Modifier.fillMaxWidth().height(52.dp)) { Text(stringResource(R.string.layout_change_pin)) }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedButton(onClick = onChangePin, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text(stringResource(R.string.layout_change_pin)) }
+            Row(Modifier.height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedButton(
                     onClick = { onExternalStart(); exportDoc.launch("semplicephone-config.json") },
-                    modifier = Modifier.weight(1f).height(52.dp),
+                    modifier = Modifier.weight(1f).fillMaxHeight().heightIn(min = 52.dp),
                 ) { Text(stringResource(R.string.layout_export)) }
                 OutlinedButton(
                     onClick = { onExternalStart(); importDoc.launch(arrayOf("application/json", "text/plain", "application/octet-stream")) },
-                    modifier = Modifier.weight(1f).height(52.dp),
+                    modifier = Modifier.weight(1f).fillMaxHeight().heightIn(min = 52.dp),
                 ) { Text(stringResource(R.string.layout_import)) }
             }
             OutlinedButton(
                 onClick = { confirm = context.getString(R.string.layout_reset_confirm) to onResetDefaults },
-                modifier = Modifier.fillMaxWidth().height(52.dp),
+                modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
             ) { Text(stringResource(R.string.layout_reset)) }
-            TextButton(onClick = { showAbout = true }, modifier = Modifier.fillMaxWidth().height(48.dp)) {
+            TextButton(onClick = { showAbout = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
                 Text(stringResource(R.string.layout_about), color = Palette.Ink)
             }
         }
@@ -380,7 +383,7 @@ private fun RestrictedSettingsHelp(onExternalStart: () -> Unit) {
         )
         OutlinedButton(
             onClick = { onExternalStart(); app.semplicephone.launch.Restrictions.openAppInfo(context) },
-            modifier = Modifier.fillMaxWidth().height(52.dp),
+            modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
         ) { Text(stringResource(R.string.restricted_open_info)) }
         Text(stringResource(R.string.restricted_adb), fontSize = 15.sp, color = Palette.Ink)
         Text(
@@ -394,7 +397,7 @@ private fun RestrictedSettingsHelp(onExternalStart: () -> Unit) {
                 cm.setPrimaryClip(android.content.ClipData.newPlainText("adb", app.semplicephone.launch.Restrictions.ADB_ALLOW))
                 copied = true
             },
-            modifier = Modifier.fillMaxWidth().height(48.dp),
+            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
         ) { Text(stringResource(if (copied) R.string.copied else R.string.copy_command)) }
     }
 }
