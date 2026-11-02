@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.semplicephone.data.AppEntry
 import app.semplicephone.data.ConfigRepository
+import app.semplicephone.data.TileConflict
 import app.semplicephone.launch.TileLauncher
 import app.semplicephone.model.IconKind
 import app.semplicephone.model.Page
@@ -131,8 +132,8 @@ fun TileEditor(
             }
             if (conflict != null) Text(
                 when (conflict) {
-                    is ConfigRepository.Conflict.OutOfGrid -> stringResource(R.string.conflict_out_of_grid, conflict.cols, conflict.rows)
-                    is ConfigRepository.Conflict.Overlap -> stringResource(
+                    is TileConflict.OutOfGrid -> stringResource(R.string.conflict_out_of_grid, conflict.cols, conflict.rows)
+                    is TileConflict.Overlap -> stringResource(
                         R.string.conflict_overlap, conflict.other.label.ifBlank { typeLabel(context, conflict.other.type) },
                     )
                 },

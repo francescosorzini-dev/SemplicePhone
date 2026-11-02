@@ -109,12 +109,6 @@ class ConfigRepository(private val context: Context) {
             )
         }
 
-        /** Conflitto di un tile con la griglia o con un altro tile (vedi [conflict]). */
-        sealed interface Conflict {
-            data class OutOfGrid(val cols: Int, val rows: Int) : Conflict
-            data class Overlap(val other: Tile) : Conflict
-        }
-
         /** Controlli strutturali: tile dentro la griglia, nessuna sovrapposizione, id unici. */
         fun validate(cfg: LauncherConfig): List<String> {
             val out = mutableListOf<String>()
@@ -130,16 +124,16 @@ class ConfigRepository(private val context: Context) {
         }
 
         /** Problema di [tile] dentro [page] (fuori griglia o sovrapposto ad altri), null se va bene. */
-        fun conflict(page: Page, tile: Tile): Conflict? {
+        fun conflict(page: Page, tile: Tile): TileConflict? {
             if (tile.col < 0 || tile.row < 0 || tile.col + tile.w > page.cols || tile.row + tile.h > page.rows) {
-                return Conflict.OutOfGrid(page.cols, page.rows)
+                return TileConflict.OutOfGrid(page.cols, page.rows)
             }
             val other = page.tiles.firstOrNull { o ->
                 o.id != tile.id &&
                     tile.col < o.col + o.w && o.col < tile.col + tile.w &&
                     tile.row < o.row + o.h && o.row < tile.row + tile.h
             }
-            return other?.let { Conflict.Overlap(it) }
+            return other?.let { TileConflict.Overlap(it) }
         }
 
         /** Prima cella libera di [page], o null se piena. */
@@ -171,4 +165,10 @@ class ConfigRepository(private val context: Context) {
             return out
         }
     }
+}
+
+/** Conflitto di un tile con la griglia o con un altro tile (vedi [ConfigRepository.conflict]). */
+sealed interface TileConflict {
+    data class OutOfGrid(val cols: Int, val rows: Int) : TileConflict
+    data class Overlap(val other: Tile) : TileConflict
 }
