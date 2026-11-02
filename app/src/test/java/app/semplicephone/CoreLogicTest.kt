@@ -85,14 +85,14 @@ class PhoneLogicTest {
 
     @Test fun batteryAlertOncePerDischarge() {
         val p = app.semplicephone.phone.BatteryPolicy
-        org.junit.Assert.assertEquals(p.Decision(true, true), p.decide(15, false, 15, false))
-        org.junit.Assert.assertEquals(p.Decision(false, true), p.decide(12, false, 15, true))
+        org.junit.Assert.assertEquals(app.semplicephone.phone.BatteryPolicy.Decision(true, true), p.decide(15, false, 15, false))
+        org.junit.Assert.assertEquals(app.semplicephone.phone.BatteryPolicy.Decision(false, true), p.decide(12, false, 15, true))
         // risale ma sotto l'isteresi: nessun nuovo avviso, stato invariato
-        org.junit.Assert.assertEquals(p.Decision(false, true), p.decide(20, false, 15, true))
+        org.junit.Assert.assertEquals(app.semplicephone.phone.BatteryPolicy.Decision(false, true), p.decide(20, false, 15, true))
         // in carica o sopra soglia+10: si riarma
-        org.junit.Assert.assertEquals(p.Decision(false, false), p.decide(10, true, 15, true))
-        org.junit.Assert.assertEquals(p.Decision(false, false), p.decide(25, false, 15, true))
-        org.junit.Assert.assertEquals(p.Decision(false, false), p.decide(5, false, 0, false))
+        org.junit.Assert.assertEquals(app.semplicephone.phone.BatteryPolicy.Decision(false, false), p.decide(10, true, 15, true))
+        org.junit.Assert.assertEquals(app.semplicephone.phone.BatteryPolicy.Decision(false, false), p.decide(25, false, 15, true))
+        org.junit.Assert.assertEquals(app.semplicephone.phone.BatteryPolicy.Decision(false, false), p.decide(5, false, 0, false))
     }
 
     @Test fun smsCommandOnlyFromSosNumbers() {
