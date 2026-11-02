@@ -53,8 +53,8 @@ for L in it en de fr es; do
 
   # SOS: pressione prolungata, conto alla rovescia, annulla
   python3 tap.py --long 2600 --regex '^SOS'
-  shot "${L}_2_sos" 1
-  python3 tap.py "${CANCEL[$L]}"; sleep 1
+  shot "${L}_2_sos" 0
+  python3 tap.py "${CANCEL[$L]}" || adb shell input keyevent HOME; sleep 1
 
   # Promemoria a schermo intero (activity interna, avviabile da root)
   adb shell am start -W -n $P/.reminders.ReminderActivity --es id r1 >/dev/null

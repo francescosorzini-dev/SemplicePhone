@@ -27,7 +27,7 @@ cfg = {
         {'id': 'gallery', 'col': 1, 'row': 3, 'type': 'app', 'target': '@gallery', 'label': L['photos'], 'icon': sym('photo'), 'color': '#6A1B9A'},
         {'id': 'sos', 'col': 0, 'row': 4, 'w': 2, 'h': 1, 'type': 'sos', 'label': 'SOS', 'color': '#B71C1C'},
     ]}],
-    'sos': {'numbers': ['+393331234567', '+393477654321'], 'holdSeconds': 2, 'countdownSeconds': 10, 'message': L['sos_msg']},
+    'sos': {'numbers': ['+393331234567', '+393477654321'], 'holdSeconds': 2, 'countdownSeconds': 15, 'message': L['sos_msg']},
     'reminders': [{'id': 'r1', 'time': '08:00', 'days': [], 'title': L['rem'], 'detail': L['rem_detail'],
                    'snoozeMinutes': 10, 'repeatMinutes': 5, 'maxRepeats': 6, 'enabled': True}],
     'phone': {'ringerLock': False, 'ringVolumePercent': 100, 'batteryAlertPercent': 15, 'badges': False, 'smsUpdateCommand': False},
