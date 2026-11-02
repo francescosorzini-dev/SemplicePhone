@@ -102,6 +102,7 @@ jobs:
       - name: Verifica riproducibilità (come F-Droid)
         run: |
           pip install --quiet --break-system-packages apksigcopier 2>/dev/null || pip install --quiet apksigcopier
+          export PATH="$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -1):$PATH"   # apksigner
           # Copia la firma del nostro APK su quello compilato altrove: se sono identici, la verifica passa.
           apksigcopier compare --unsigned "SemplicePhone-completo-$VERSION.apk" "$RUNNER_TEMP/repro-unsigned.apk" \
             && echo "Riproducibile: F-Droid può pubblicare l'APK con la nostra firma" \
