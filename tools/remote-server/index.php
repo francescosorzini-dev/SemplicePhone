@@ -393,6 +393,18 @@ function default_config(): string {
 
 // ---------------------------------------------------------------- pannello di gestione
 $LANG = pick_lang();
+// File del repository senza testi (né incorporati né in lang/): meglio un errore chiaro che le chiavi a video.
+if (!lang_table('en')) {
+    http_response_code(500);
+    header('Content-Type: text/html; charset=utf-8');
+    $rel = SOURCE_URL . '/releases/latest/download/index.php';
+    exit('<!doctype html><meta charset="utf-8"><title>SemplicePhone</title><body style="font:16px/1.5 system-ui,sans-serif;max-width:640px;margin:40px auto;padding:0 16px">'
+        . '<h1>index.php incompleto / incomplete index.php</h1>'
+        . '<p>Questo è il file sorgente del repository: i testi delle lingue non sono inclusi. Sostituiscilo con quello della release (i dati in <code>data/</code> restano):</p>'
+        . '<p>This is the repository source file and does not include the language texts. Replace it with the release file (your <code>data/</code> folder is kept):</p>'
+        . '<p><a href="' . htmlspecialchars($rel) . '">' . htmlspecialchars($rel) . '</a></p>'
+        . '<p>Oppure copia accanto a index.php la cartella <code>lang/</code> del repository. / Or copy the repository <code>lang/</code> folder next to index.php.</p>');
+}
 session_set_cookie_params(['httponly' => true, 'samesite' => 'Strict', 'secure' => !empty($_SERVER['HTTPS'])]);
 session_start();
 $nonce = base64_encode(random_bytes(16));
