@@ -92,6 +92,7 @@ fun LayoutEditor(
     val page = draft.pages.getOrNull(pageIndex) ?: return
     val context = LocalContext.current
     var notice by remember { mutableStateOf<String?>(null) }
+    var showAbout by remember { mutableStateOf(false) }
     val exportDoc = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
         notice = runCatching {
@@ -224,7 +225,46 @@ fun LayoutEditor(
                 onClick = { confirm = "Sostituire la disposizione con quella predefinita? Le modifiche non salvate vanno perse." to onResetDefaults },
                 modifier = Modifier.fillMaxWidth().height(52.dp),
             ) { Text("Ripristina disposizione predefinita") }
+            TextButton(onClick = { showAbout = true }, modifier = Modifier.fillMaxWidth().height(48.dp)) {
+                Text("Informazioni e licenza", color = Palette.Ink)
+            }
         }
+    }
+
+    if (showAbout) {
+        AlertDialog(
+            onDismissRequest = { showAbout = false },
+            title = { Text("SemplicePhone ${app.semplicephone.BuildConfig.VERSION_NAME}") },
+            text = {
+                Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Copyright © 2026 Francesco Sorzini", fontSize = 15.sp)
+                    Text(
+                        "Software libero: puoi ridistribuirlo e modificarlo secondo la GNU General Public License " +
+                            "versione 3 o successiva. Distribuito gratuitamente e SENZA ALCUNA GARANZIA.",
+                        fontSize = 15.sp,
+                    )
+                    Text("Il pulsante SOS contatta i numeri impostati: non sostituisce il 112.", fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                    Text("Codice sorgente: github.com/francescosorzini-dev/SemplicePhone", fontSize = 15.sp)
+                    Text(
+                        "Componenti: Atkinson Hyperlegible (SIL OFL 1.1), AndroidX e Kotlin (Apache 2.0), Bouncy Castle (MIT).",
+                        fontSize = 14.sp, color = Color(0xFF4A4A4A),
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    showAbout = false
+                    onExternalStart()
+                    runCatching {
+                        context.startActivity(
+                            android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://github.com/francescosorzini-dev/SemplicePhone"))
+                                .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK),
+                        )
+                    }
+                }) { Text("Apri sorgenti") }
+            },
+            dismissButton = { TextButton(onClick = { showAbout = false }) { Text("Chiudi") } },
+        )
     }
 
     confirm?.let { (msg, action) ->

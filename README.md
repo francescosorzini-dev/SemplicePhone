@@ -96,3 +96,13 @@ validazione.
 - **Tendina e impostazioni di sistema**: bloccabili solo con Device Owner.
 - **Pallini**: richiedono l'«Accesso alle notifiche», da concedere a mano (nemmeno il Device Owner può concederlo da solo).
 - **Controllo ogni 15 minuti**: è il minimo consentito da Android; in risparmio energetico profondo (Doze) può slittare. Per applicare subito: «Aggiorna ora» o SMS «#AGGIORNA».
+
+## Licenza
+
+Software libero e gratuito, Copyright (C) 2026 Francesco Sorzini:
+- **App Android**: [GPL-3.0-or-later](LICENSE).
+- **Portale** (`tools/remote-server`): [AGPL-3.0-or-later](tools/remote-server/LICENSE).
+
+Chi lo modifica e lo ridistribuisce, o offre il portale ad altri via rete, deve pubblicare il
+codice sorgente con la stessa licenza. Componenti di terze parti e avvertenze in
+[`NOTICE.md`](NOTICE.md). Il pulsante SOS contatta i numeri impostati e non sostituisce il 112.

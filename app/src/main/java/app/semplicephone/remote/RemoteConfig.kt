@@ -85,6 +85,9 @@ class RemoteSettings(context: Context) {
     var appsHash: Int
         get() = prefs.getInt("apps_hash", 0)
         set(v) = prefs.edit().putInt("apps_hash", v).apply()
+    var appsSentAt: Long
+        get() = prefs.getLong("apps_sent_at", 0)
+        set(v) = prefs.edit().putLong("apps_sent_at", v).apply()
 
     val deviceId: String get() = stable("device_id", 10)
     val deviceSecret: String get() = stable("device_secret", 40)
@@ -217,7 +220,10 @@ class RemoteClient(private val context: Context) {
         }
         val apps = runCatching { app.semplicephone.data.AppCatalog(context).load().filterNot { it.target.startsWith("@") } }.getOrDefault(emptyList())
         val appsHash = apps.joinToString("|") { it.target + "=" + it.label }.hashCode()
-        val appsChanged = apps.isNotEmpty() && appsHash != settings.appsHash
+        // Elenco app: se cambia, a ogni controllo manuale e comunque una volta al giorno, così il
+        // portale lo riceve anche se in passato lo aveva scartato (versione vecchia, telefono rimosso).
+        val appsChanged = apps.isNotEmpty() &&
+            (force || appsHash != settings.appsHash || System.currentTimeMillis() - settings.appsSentAt > 24 * 3_600_000L)
         val due = System.currentTimeMillis() - settings.lastReport > 60 * 60_000L
         if (!force && !due && events.length() == 0 && !appsChanged) return
 
@@ -245,10 +251,21 @@ class RemoteClient(private val context: Context) {
             setRequestProperty("X-Device-Secret", settings.deviceSecret)
         }
         conn.outputStream.use { it.write(body) }
-        if (conn.responseCode in 200..299) {
+        val code = conn.responseCode
+        if (code in 200..299) {
             if (log.exists()) settings.reportOffset = log.length()
-            if (appsChanged) settings.appsHash = appsHash
+            if (appsChanged) {
+                settings.appsHash = appsHash
+                settings.appsSentAt = System.currentTimeMillis()
+            }
             settings.lastReport = System.currentTimeMillis()
+            // Il portale dice se l'elenco gli manca: si azzera così parte al prossimo report.
+            val reply = if (code == 200) runCatching { conn.inputStream.use { readLimited(it, 4096) } }.getOrNull() else null
+            if (reply != null && runCatching { JSONObject(reply).optBoolean("needApps") }.getOrDefault(false)) {
+                settings.appsHash = 0
+                settings.appsSentAt = 0
+                settings.lastReport = 0
+            }
         }
         conn.disconnect()
     }

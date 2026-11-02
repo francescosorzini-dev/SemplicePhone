@@ -11,6 +11,13 @@
  *            da soli quando arriva una richiesta).
  *
  * Dati in ./data (protetta da .htaccess). La chiave privata Ed25519 non esce mai dal server.
+ *
+ * Copyright (C) 2026 Francesco Sorzini
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ * Questo programma è software libero: puoi ridistribuirlo e/o modificarlo secondo i termini della
+ * GNU Affero General Public License, versione 3 o successiva. Senza alcuna garanzia.
+ * Chi lo offre ad altri via rete deve rendere disponibile il codice sorgente (sezione 13): se lo
+ * modifichi, aggiorna SOURCE_URL.
  */
 declare(strict_types=1);
 
@@ -19,6 +26,8 @@ if (!ini_get('date.timezone')) date_default_timezone_set('Europe/Rome');
 const PBKDF2_ITER = 60000;
 const MAX_REPORT = 262144;
 const HISTORY_KEEP = 30;
+const SOURCE_URL = 'https://github.com/francescosorzini-dev/SemplicePhone';
+const VERSION = '0.4.1';
 const TILE_TYPES = ['app', 'call', 'wa_video', 'sms', 'url', 'shortcut', 'clock', 'sos'];
 const EVENT_TITLES = [
     'sos' => '🆘 SOS attivato',
@@ -194,7 +203,9 @@ if (isset($_GET['device'])) {
         $meta['appliedSeq'] = $r['seq'] ?? null;
         write_atomic(dev_path($id, 'meta.json'), json_encode($meta));
         if ($backOnline) send_alert(EVENT_TITLES['online'], 'Il telefono si è ricollegato.', $id);
-        http_response_code(204);
+        // Il telefono rimanda l'elenco app solo se cambia: se qui manca (portale nuovo, telefono
+        // rimosso e ricollegato…) glielo si chiede esplicitamente.
+        echo json_encode(['ok' => true, 'needApps' => !is_file(dev_path($id, 'apps.json'))]);
         exit;
     }
 
@@ -703,6 +714,19 @@ details summary{cursor:pointer;font-weight:600}
   <?php endif; ?>
   </div>
 
+  <h2>App installate sul telefono</h2>
+  <div class="card">
+  <?php if (!$devApps): ?>
+    <p class="hint">Elenco non ancora ricevuto. Sul telefono (versione 0.4.1 o successiva) apri Gestione da remoto e premi «Aggiorna ora».</p>
+  <?php else: ?>
+    <details><summary><?= count($devApps) ?> app · aggiornato <?= h(ago(filemtime(dev_path($edit, 'apps.json')) ?: null)) ?></summary>
+      <table style="margin-top:8px"><tr><th>Nome</th><th>Pacchetto</th></tr>
+      <?php foreach ($devApps as $a): ?><tr><td><?= h($a['label']) ?></td><td class="hint"><?= h($a['pkg']) ?></td></tr><?php endforeach; ?>
+      </table>
+    </details>
+  <?php endif; ?>
+  </div>
+
   <h2>Promemoria: cosa è successo</h2>
   <div class="card">
   <?php if (!$events): ?><p class="hint">Ancora nessuna notizia dal telefono.</p><?php else: ?>
@@ -729,6 +753,7 @@ details summary{cursor:pointer;font-weight:600}
     document.getElementById('delform').addEventListener('submit', e => { if (!confirm('Rimuovere il telefono, il suo storico e i suoi avvisi dal pannello?')) e.preventDefault(); });
   </script>
 <?php endif; ?>
+<footer class="hint" style="margin:32px 0 8px;text-align:center">SemplicePhone <?= h(VERSION) ?> · software libero <a href="<?= h(SOURCE_URL) ?>">AGPL-3.0 — codice sorgente</a></footer>
 </main>
 
 <script nonce="<?= h($nonce) ?>">
@@ -916,7 +941,7 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
       })));
       if (!known) parts.push(field('Nome pacchetto', el('input', {type: 'text', value: t.target || '', placeholder: 'es. it.ilmeteo', onchange: e => upd('target', e.target.value.trim())}),
         DEV.length ? '(app non installata sul telefono)' : '(si trova nell\'indirizzo della pagina Play Store dopo «id=»)'));
-      if (!DEV.length) parts.push(el('p', {class: 'hint'}, 'L\'elenco delle app installate compare qui dopo il primo collegamento del telefono con la versione 0.4 o successiva.'));
+      if (!DEV.length) parts.push(el('p', {class: 'hint'}, 'L\'elenco delle app installate compare qui dopo che il telefono (versione 0.4.1 o successiva) ha premuto «Aggiorna ora».'));
     }
     if (['call', 'wa_video', 'sms'].includes(t.type)) {
       parts.push(field('Numero di telefono', el('input', {type: 'tel', value: t.target || '', placeholder: '+39 333 1234567', onchange: e => upd('target', e.target.value.replace(/[^\d+]/g, ''))})));
