@@ -1,5 +1,6 @@
 package app.semplicephone.reminders
 
+import app.semplicephone.R
 import android.app.AlarmManager
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -93,9 +94,15 @@ class ReminderScheduler(private val context: Context) {
 
         fun ensureChannel(context: Context) {
             val nm = context.getSystemService(NotificationManager::class.java)
-            if (nm.getNotificationChannel(CHANNEL) != null) return
-            val ch = NotificationChannel(CHANNEL, "Promemoria farmaci", NotificationManager.IMPORTANCE_HIGH).apply {
-                description = "Allarmi dei promemoria"
+            // Nome e descrizione si aggiornano anche se il canale esiste già (cambio di lingua).
+            nm.getNotificationChannel(CHANNEL)?.let { existing ->
+                existing.name = context.getString(R.string.reminder_channel)
+                existing.description = context.getString(R.string.reminder_channel_desc)
+                nm.createNotificationChannel(existing)
+                return
+            }
+            val ch = NotificationChannel(CHANNEL, context.getString(R.string.reminder_channel), NotificationManager.IMPORTANCE_HIGH).apply {
+                description = context.getString(R.string.reminder_channel_desc)
                 enableVibration(true)
                 vibrationPattern = longArrayOf(0, 800, 400, 800, 400, 800)
                 setBypassDnd(true)

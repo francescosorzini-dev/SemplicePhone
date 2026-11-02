@@ -1,5 +1,7 @@
 package app.semplicephone.ui.settings
 
+import app.semplicephone.R
+import androidx.compose.ui.res.stringResource
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -72,24 +74,24 @@ fun RemindersEditor(
     }
 
     Column(Modifier.fillMaxSize().background(Color(0xFFECE9E2)).windowInsetsPadding(WindowInsets.safeDrawing)) {
-        EditorHeader("Promemoria", onCancel, "Fatto") { onSave(list.sortedBy { it.time }) }
+        EditorHeader(stringResource(R.string.reminders_title), onCancel, stringResource(R.string.action_done)) { onSave(list.sortedBy { it.time }) }
         Column(
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             if (!scheduler.canScheduleExact() && Build.VERSION.SDK_INT >= 31) {
-                Warning("Gli allarmi potrebbero ritardare: consenti «Sveglie e promemoria».") {
+                Warning(stringResource(R.string.reminders_exact_warning)) {
                     onExternalStart()
                     context.startActivity(Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, Uri.parse("package:${context.packageName}")))
                 }
             }
             if (!scheduler.canFullScreen() && Build.VERSION.SDK_INT >= 34) {
-                Warning("L'allarme non può aprirsi a schermo intero: consenti le notifiche a schermo intero.") {
+                Warning(stringResource(R.string.reminders_fullscreen_warning)) {
                     onExternalStart()
                     context.startActivity(Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT, Uri.parse("package:${context.packageName}")))
                 }
             }
-            if (list.isEmpty()) Text("Nessun promemoria.", fontSize = 16.sp, color = Color(0xFF4A4A4A))
+            if (list.isEmpty()) Text(stringResource(R.string.reminders_none), fontSize = 16.sp, color = Color(0xFF4A4A4A))
             list.sortedBy { it.time }.forEach { r ->
                 Row(
                     Modifier
@@ -104,16 +106,16 @@ fun RemindersEditor(
                     Column(Modifier.weight(1f).padding(start = 14.dp)) {
                         Text(r.title, fontSize = 17.sp, fontWeight = FontWeight.Bold)
                         Text(
-                            listOfNotNull(r.detail.takeIf { it.isNotBlank() }, ReminderTime.daysSummary(r.days), if (!r.enabled) "disattivato" else null).joinToString(" · "),
+                            listOfNotNull(r.detail.takeIf { it.isNotBlank() }, daysSummary(r.days), if (!r.enabled) stringResource(R.string.reminder_disabled) else null).joinToString(" · "),
                             fontSize = 14.sp, color = Color(0xFF4A4A4A),
                         )
                     }
                 }
             }
             OutlinedButton(
-                onClick = { editing = Reminder(id = "r" + System.currentTimeMillis().toString(36), time = "08:00") },
+                onClick = { editing = Reminder(id = "r" + System.currentTimeMillis().toString(36), time = "08:00", title = context.getString(R.string.default_reminder_title)) },
                 modifier = Modifier.fillMaxWidth().height(52.dp),
-            ) { Text("+ Aggiungi promemoria") }
+            ) { Text(stringResource(R.string.reminders_add)) }
         }
     }
 }
@@ -125,20 +127,22 @@ private fun ReminderForm(initial: Reminder, isNew: Boolean, onDone: (Reminder) -
     fun setTime(h: Int, m: Int) { r = r.copy(time = "%02d:%02d".format(h, m)) }
 
     Column(Modifier.fillMaxSize().background(Color(0xFFECE9E2)).windowInsetsPadding(WindowInsets.safeDrawing)) {
-        EditorHeader(if (isNew) "Nuovo promemoria" else "Promemoria", onCancel, "OK", enabled = r.title.isNotBlank()) { onDone(r) }
+        EditorHeader(stringResource(if (isNew) R.string.reminder_new else R.string.reminders_title), onCancel, stringResource(R.string.action_ok), enabled = r.title.isNotBlank()) { onDone(r) }
         Column(
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Text(r.time, fontSize = 56.sp, fontWeight = FontWeight.Bold, color = Palette.Ink)
             Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
-                Stepper("Ora", t.hour, 0..23, { setTime(it, t.minute) }, format = { "%02d".format(it) })
-                Stepper("Minuti", t.minute / 5, 0..11, { setTime(t.hour, it * 5) }, format = { "%02d".format(it * 5) })
+                Stepper(stringResource(R.string.reminder_hour), t.hour, 0..23, { setTime(it, t.minute) }, format = { "%02d".format(it) })
+                Stepper(stringResource(R.string.reminder_minutes), t.minute / 5, 0..11, { setTime(t.hour, it * 5) }, format = { "%02d".format(it * 5) })
             }
-            SectionLabel("Giorni")
+            SectionLabel(stringResource(R.string.reminder_days))
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                listOf("L", "M", "M", "G", "V", "S", "D").forEachIndexed { i, label ->
-                    val day = i + 1
+                val locale = androidx.compose.ui.platform.LocalConfiguration.current.locales[0]
+                (1..7).forEach { day ->
+                    val label = ReminderTime.dayInitial(day, locale)
+                    val dayName = java.time.DayOfWeek.of(day).getDisplayName(java.time.format.TextStyle.FULL, locale)
                     val on = r.days.isEmpty() || day in r.days
                     Box(
                         Modifier
@@ -151,26 +155,26 @@ private fun ReminderForm(initial: Reminder, isNew: Boolean, onDone: (Reminder) -
                                 val next = if (day in current) current - day else current + day
                                 r = r.copy(days = if (next.size == 7 || next.isEmpty()) emptyList() else next.sorted())
                             }
-                            .semantics { contentDescription = "Giorno $day"; this.selected = on },
+                            .semantics { contentDescription = dayName; this.selected = on },
                         contentAlignment = Alignment.Center,
                     ) { Text(label, color = if (on) Color.White else Palette.Ink, fontWeight = FontWeight.Bold, fontSize = 17.sp) }
                 }
             }
-            Text(ReminderTime.daysSummary(r.days), fontSize = 15.sp, color = Color(0xFF4A4A4A))
-            OutlinedTextField(r.title, { r = r.copy(title = it) }, label = { Text("Titolo") }, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(r.detail, { r = r.copy(detail = it) }, label = { Text("Dettaglio (farmaco, dose)") }, modifier = Modifier.fillMaxWidth())
+            Text(daysSummary(r.days), fontSize = 15.sp, color = Color(0xFF4A4A4A))
+            OutlinedTextField(r.title, { r = r.copy(title = it) }, label = { Text(stringResource(R.string.reminder_title)) }, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(r.detail, { r = r.copy(detail = it) }, label = { Text(stringResource(R.string.reminder_detail)) }, modifier = Modifier.fillMaxWidth())
             Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
-                Stepper("Rinvio (min)", r.snoozeMinutes, 5..60, { r = r.copy(snoozeMinutes = it) })
-                Stepper("Ripeti ogni (min)", r.repeatMinutes, 1..30, { r = r.copy(repeatMinutes = it) })
+                Stepper(stringResource(R.string.reminder_snooze), r.snoozeMinutes, 5..60, { r = r.copy(snoozeMinutes = it) })
+                Stepper(stringResource(R.string.reminder_repeat), r.repeatMinutes, 1..30, { r = r.copy(repeatMinutes = it) })
             }
-            Stepper("Ripetizioni massime", r.maxRepeats, 0..20, { r = r.copy(maxRepeats = it) })
+            Stepper(stringResource(R.string.reminder_max_repeats), r.maxRepeats, 0..20, { r = r.copy(maxRepeats = it) })
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Attivo", fontSize = 17.sp, modifier = Modifier.weight(1f))
+                Text(stringResource(R.string.reminder_active), fontSize = 17.sp, modifier = Modifier.weight(1f))
                 Switch(checked = r.enabled, onCheckedChange = { r = r.copy(enabled = it) })
             }
             if (!isNew) {
                 OutlinedButton(onClick = onDelete, modifier = Modifier.fillMaxWidth().height(52.dp)) {
-                    Text("Elimina promemoria", color = Palette.Sos, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.reminder_delete), color = Palette.Sos, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -184,6 +188,12 @@ private fun Warning(text: String, onFix: () -> Unit) {
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text(text, fontSize = 15.sp, color = Palette.Ink)
-        OutlinedButton(onClick = onFix, modifier = Modifier.height(48.dp)) { Text("Apri impostazioni") }
+        OutlinedButton(onClick = onFix, modifier = Modifier.height(48.dp)) { Text(stringResource(R.string.action_open_settings)) }
     }
 }
+
+@Composable
+private fun daysSummary(days: List<Int>): String = ReminderTime.daysSummary(
+    days, stringResource(R.string.days_every), stringResource(R.string.days_weekdays),
+    androidx.compose.ui.platform.LocalConfiguration.current.locales[0],
+)

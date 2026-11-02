@@ -26,11 +26,17 @@ object ReminderTime {
         return null
     }
 
-    fun daysSummary(days: List<Int>): String {
+    /** Riassunto dei giorni: [everyDay] / [weekdays] già tradotti, gli altri abbreviati in [locale]. */
+    fun daysSummary(days: List<Int>, everyDay: String, weekdays: String, locale: java.util.Locale): String {
         val d = days.filter { it in 1..7 }.distinct().sorted()
-        if (d.isEmpty() || d.size == 7) return "Tutti i giorni"
-        if (d == listOf(1, 2, 3, 4, 5)) return "Dal lunedì al venerdì"
-        val names = listOf("lun", "mar", "mer", "gio", "ven", "sab", "dom")
-        return d.joinToString(", ") { names[it - 1] }
+        if (d.isEmpty() || d.size == 7) return everyDay
+        if (d == listOf(1, 2, 3, 4, 5)) return weekdays
+        return d.joinToString(", ") {
+            java.time.DayOfWeek.of(it).getDisplayName(java.time.format.TextStyle.SHORT, locale).trimEnd('.')
+        }
     }
+
+    /** Iniziale del giorno (1 = lunedì) nella lingua [locale]: L M M G V S D, M T W T F S S… */
+    fun dayInitial(day: Int, locale: java.util.Locale): String =
+        java.time.DayOfWeek.of(day).getDisplayName(java.time.format.TextStyle.NARROW_STANDALONE, locale).uppercase(locale)
 }

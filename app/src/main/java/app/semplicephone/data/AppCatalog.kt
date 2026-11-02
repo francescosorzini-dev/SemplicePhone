@@ -1,5 +1,6 @@
 package app.semplicephone.data
 
+import app.semplicephone.R
 import android.content.Context
 import android.content.pm.LauncherApps
 import android.os.Process
@@ -19,23 +20,25 @@ class AppCatalog(private val context: Context) {
 
     fun load(): List<AppEntry> {
         val la = context.getSystemService(LauncherApps::class.java)
-        val collator = Collator.getInstance(Locale.ITALIAN).apply { strength = Collator.PRIMARY }
+        val collator = Collator.getInstance(Locale.getDefault()).apply { strength = Collator.PRIMARY }
         val apps = la.getActivityList(null, Process.myUserHandle())
             .filter { it.componentName.packageName != context.packageName }
             .map { AppEntry(it.componentName.packageName, it.label.toString()) }
             .distinctBy { it.target }
             .sortedWith { a, b -> collator.compare(a.label, b.label) }
-        return ROLES + apps
+        return roles() + apps
     }
 
+    /** Ruoli (app predefinita del sistema), con le etichette nella lingua del telefono. */
+    fun roles(): List<AppEntry> = listOf(
+        Triple("@dialer", R.string.role_dialer, R.string.label_phone),
+        Triple("@sms", R.string.role_sms, R.string.label_messages),
+        Triple("@camera", R.string.role_camera, R.string.label_camera),
+        Triple("@gallery", R.string.role_gallery, R.string.label_photos),
+        Triple("@browser", R.string.role_browser, R.string.label_internet),
+    ).map { (t, l, d) -> AppEntry(t, context.getString(l), context.getString(d)) }
+
     companion object {
-        val ROLES = listOf(
-            AppEntry("@dialer", "Telefono (app predefinita)", "Telefono"),
-            AppEntry("@sms", "Messaggi (app predefinita)", "Messaggi"),
-            AppEntry("@camera", "Fotocamera (app predefinita)", "Fotocamera"),
-            AppEntry("@gallery", "Galleria foto (app predefinita)", "Foto"),
-            AppEntry("@browser", "Internet (app predefinita)", "Internet"),
-        )
 
         fun normalize(s: String): String =
             Normalizer.normalize(s, Normalizer.Form.NFD).replace(Regex("\\p{M}+"), "").lowercase(Locale.ROOT)

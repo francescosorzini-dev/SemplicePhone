@@ -1,5 +1,6 @@
 package app.semplicephone.update
 
+import app.semplicephone.R
 import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -55,20 +56,20 @@ class Updater(private val context: Context) {
                 connectTimeout = 15_000; readTimeout = 15_000; instanceFollowRedirects = true
             }
             if (conn.responseCode != 200) {
-                lastResult = "Nessun aggiornamento pubblicato (HTTP ${conn.responseCode})"
+                lastResult = context.getString(R.string.upd_none_published, conn.responseCode)
                 return@withContext null
             }
             val info = json.decodeFromString(UpdateInfo.serializer(), conn.inputStream.bufferedReader().use { it.readText() })
             if (info.versionCode > BuildConfig.VERSION_CODE) {
-                lastResult = "Disponibile ${info.versionName}"
+                lastResult = context.getString(R.string.upd_available, info.versionName)
                 info
             } else {
-                lastResult = "Versione aggiornata (${BuildConfig.VERSION_NAME})"
+                lastResult = context.getString(R.string.upd_up_to_date, BuildConfig.VERSION_NAME)
                 null
             }
         } catch (e: Exception) {
             Log.w(TAG, "controllo aggiornamenti fallito", e)
-            lastResult = "Controllo non riuscito: ${e.javaClass.simpleName}"
+            lastResult = context.getString(R.string.upd_check_failed, e.javaClass.simpleName)
             null
         }
     }
@@ -82,9 +83,9 @@ class Updater(private val context: Context) {
         if (!BuildConfig.FULL) {
             return@withContext runCatching {
                 context.startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(info.apkUrl)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-                lastResult = "Download di ${info.versionName} avviato nel browser: al termine aprilo e conferma l'installazione."
+                lastResult = context.getString(R.string.upd_browser_started, info.versionName)
                 true
-            }.getOrElse { lastResult = "Impossibile aprire il browser: ${it.message}"; false }
+            }.getOrElse { lastResult = context.getString(R.string.upd_browser_failed, it.message.orEmpty()); false }
         }
         val apk = File(context.cacheDir, "update.apk")
         try {
@@ -102,12 +103,12 @@ class Updater(private val context: Context) {
                         if (n < 0) break
                         md.update(buf, 0, n); out.write(buf, 0, n)
                         total += n
-                        require(total < 150L * 1024 * 1024) { "APK troppo grande" }
+                        require(total < 150L * 1024 * 1024) { context.getString(R.string.upd_too_big) }
                     }
                 }
             }
             val hash = md.digest().joinToString("") { "%02x".format(it) }
-            require(hash.equals(info.sha256.trim(), ignoreCase = true)) { "SHA-256 non corrisponde" }
+            require(hash.equals(info.sha256.trim(), ignoreCase = true)) { context.getString(R.string.upd_bad_hash) }
 
             val installer = context.packageManager.packageInstaller
             val params = PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL).apply {
@@ -123,11 +124,11 @@ class Updater(private val context: Context) {
                 )
                 s.commit(status.intentSender)
             }
-            lastResult = "Installazione di ${info.versionName} avviata"
+            lastResult = context.getString(R.string.upd_install_started, info.versionName)
             true
         } catch (e: Exception) {
             Log.w(TAG, "installazione fallita", e)
-            lastResult = "Aggiornamento non riuscito: ${e.message ?: e.javaClass.simpleName}"
+            lastResult = context.getString(R.string.upd_failed, e.message ?: e.javaClass.simpleName)
             false
         } finally {
             apk.delete()

@@ -1,5 +1,7 @@
 package app.semplicephone.ui.settings
 
+import app.semplicephone.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -40,39 +42,37 @@ fun SosEditor(initial: SosConfig, onSave: (SosConfig) -> Unit, onCancel: () -> U
     val clean = numbers.map { it.trim() }.filter { it.isNotEmpty() }
 
     Column(Modifier.fillMaxSize().background(Color(0xFFECE9E2)).windowInsetsPadding(WindowInsets.safeDrawing)) {
-        EditorHeader("SOS", onCancel, "Fatto", enabled = clean.isNotEmpty()) { onSave(initial.copy(numbers = clean, holdSeconds = hold)) }
+        EditorHeader("SOS", onCancel, stringResource(R.string.action_done), enabled = clean.isNotEmpty()) { onSave(initial.copy(numbers = clean, holdSeconds = hold)) }
         Column(
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             Text(
-                if (app.semplicephone.BuildConfig.SEND_SMS) "Il primo numero viene chiamato. Tutti riceveranno un SMS con la posizione."
-                else "Il primo numero viene chiamato. Poi lo schermo mostra «MANDA LA POSIZIONE», che apre Messaggi già pronto per tutti i numeri.",
+                stringResource(if (app.semplicephone.BuildConfig.SEND_SMS) R.string.sos_editor_sms else R.string.sos_editor_compose),
                 fontSize = 15.sp, color = Color(0xFF4A4A4A),
             )
-            Text("Usa numeri di familiari o vicini: Android non permette alle app di chiamare direttamente " +
-                "il 112 e il servizio SMS del 112 è riservato a chi è registrato.", fontSize = 15.sp, color = Color(0xFF4A4A4A))
+            Text(stringResource(R.string.sos_editor_112), fontSize = 15.sp, color = Color(0xFF4A4A4A))
             numbers.forEachIndexed { i, n ->
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     OutlinedTextField(
                         value = n,
                         onValueChange = { v -> numbers = numbers.toMutableList().also { it[i] = v.filter { c -> c.isDigit() || c == '+' } } },
-                        label = { Text(if (i == 0) "Numero da chiamare" else "Numero ${i + 1}") },
+                        label = { Text(if (i == 0) stringResource(R.string.sos_editor_first) else stringResource(R.string.sos_editor_number, i + 1)) },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                         modifier = Modifier.weight(1f),
                     )
                     if (numbers.size > 1) {
                         TextButton(onClick = { numbers = numbers.filterIndexed { j, _ -> j != i } }, modifier = Modifier.height(48.dp)) {
-                            Text("Togli", color = Palette.Sos)
+                            Text(stringResource(R.string.sos_editor_remove), color = Palette.Sos)
                         }
                     }
                 }
             }
             OutlinedButton(onClick = { numbers = numbers + "" }, enabled = numbers.size < 5, modifier = Modifier.fillMaxWidth().height(52.dp)) {
-                Text("+ Aggiungi numero")
+                Text(stringResource(R.string.sos_editor_add))
             }
-            Stepper("Secondi di pressione", hold, 1..10, { hold = it })
+            Stepper(stringResource(R.string.sos_editor_hold), hold, 1..10, { hold = it })
         }
     }
 }

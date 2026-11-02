@@ -1,5 +1,9 @@
 package app.semplicephone.ui.settings
 
+import android.content.Context
+import androidx.compose.ui.platform.LocalContext
+import app.semplicephone.R
+import androidx.compose.ui.res.stringResource
 import android.content.Intent
 import android.provider.ContactsContract
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -55,22 +59,25 @@ import app.semplicephone.ui.Symbols
 import app.semplicephone.ui.TileView
 
 private val TypeLabels = linkedMapOf(
-    TileType.APP to "Apri app",
-    TileType.CALL to "Chiama numero",
-    TileType.WA_VIDEO to "Videochiamata WhatsApp",
-    TileType.SMS to "SMS precompilato",
-    TileType.URL to "Pagina web",
-    TileType.SHORTCUT to "Scorciatoia app",
-    TileType.CLOCK to "Orologio",
-    TileType.SOS to "SOS",
+    TileType.APP to R.string.type_app,
+    TileType.CALL to R.string.type_call,
+    TileType.WA_VIDEO to R.string.type_wa_video,
+    TileType.SMS to R.string.type_sms,
+    TileType.URL to R.string.type_url,
+    TileType.SHORTCUT to R.string.type_shortcut,
+    TileType.CLOCK to R.string.label_clock,
+    TileType.SOS to 0,
 )
 
+private fun typeLabel(context: Context, type: TileType): String =
+    TypeLabels.getValue(type).let { if (it == 0) "SOS" else context.getString(it) }
+
 private val IconLabels = linkedMapOf(
-    IconKind.AUTO to "Automatica",
-    IconKind.APP to "Icona dell'app",
-    IconKind.SYMBOL to "Simbolo",
-    IconKind.PHOTO to "Foto contatto",
-    IconKind.NONE to "Nessuna",
+    IconKind.AUTO to R.string.icon_auto,
+    IconKind.APP to R.string.icon_app,
+    IconKind.SYMBOL to R.string.icon_symbol,
+    IconKind.PHOTO to R.string.icon_photo,
+    IconKind.NONE to R.string.icon_none,
 )
 
 /**
@@ -91,6 +98,7 @@ fun TileEditor(
     onCancel: () -> Unit,
     onExternalStart: () -> Unit = {},
 ) {
+    val context = LocalContext.current
     var t by remember { mutableStateOf(initial) }
     var pickApp by remember { mutableStateOf(false) }
     var pickShortcut by remember { mutableStateOf(false) }
@@ -98,7 +106,7 @@ fun TileEditor(
     val conflict = ConfigRepository.conflict(page, t)
     val pickContact = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { res ->
         val picked = res.data?.data?.let { launcher.contacts.readPicked(it) } ?: return@rememberLauncherForActivityResult
-        val keepLabel = t.label.isNotBlank() && t.label != defaultLabel(t.type)
+        val keepLabel = t.label.isNotBlank() && t.label != defaultLabel(context, t.type)
         t = t.copy(
             target = picked.number,
             label = if (keepLabel) t.label else picked.name,
@@ -110,7 +118,7 @@ fun TileEditor(
     }
 
     Column(Modifier.fillMaxSize().background(Color(0xFFECE9E2)).windowInsetsPadding(WindowInsets.safeDrawing)) {
-        EditorHeader(if (isNew) "Nuovo tile" else "Modifica tile", onCancel, "Salva", enabled = conflict == null) { onSave(t) }
+        EditorHeader(stringResource(if (isNew) R.string.tile_new else R.string.tile_edit), onCancel, stringResource(R.string.action_save), enabled = conflict == null) { onSave(t) }
 
         Column(
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 8.dp),
@@ -121,16 +129,23 @@ fun TileEditor(
                 TileView(t, sos, launcher, Modifier.matchParentSize())
                 Box(Modifier.matchParentSize().pointerInput(Unit) { detectTapGestures { } })
             }
-            if (conflict != null) Text(conflict, color = Palette.Sos, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            if (conflict != null) Text(
+                when (conflict) {
+                    is ConfigRepository.Conflict.OutOfGrid -> stringResource(R.string.conflict_out_of_grid, conflict.cols, conflict.rows)
+                    is ConfigRepository.Conflict.Overlap -> stringResource(
+                        R.string.conflict_overlap, conflict.other.label.ifBlank { typeLabel(context, conflict.other.type) },
+                    )
+                },
+                color = Palette.Sos, fontSize = 16.sp, fontWeight = FontWeight.Bold)
 
-            OptionPicker("Azione", TypeLabels.keys.toList(), t.type, { TypeLabels.getValue(it) }) { type ->
-                t = t.copy(type = type, label = if (t.label.isBlank()) defaultLabel(type) else t.label)
+            OptionPicker(stringResource(R.string.tile_action), TypeLabels.keys.toList(), t.type, { typeLabel(context, it) }) { type ->
+                t = t.copy(type = type, label = if (t.label.isBlank()) defaultLabel(context, type) else t.label)
             }
 
             when (t.type) {
                 TileType.APP -> {
-                    SectionLabel("App")
-                    val current = apps.firstOrNull { it.target == t.target }?.label ?: t.target.ifBlank { "Nessuna" }
+                    SectionLabel(stringResource(R.string.tile_app))
+                    val current = apps.firstOrNull { it.target == t.target }?.label ?: t.target.ifBlank { stringResource(R.string.icon_none) }
                     OutlinedButton(onClick = { pickApp = true }, modifier = Modifier.fillMaxWidth().height(52.dp), shape = RoundedCornerShape(10.dp)) {
                         Text(current, fontSize = 17.sp, color = Palette.Ink)
                     }
@@ -143,44 +158,44 @@ fun TileEditor(
                         },
                         modifier = Modifier.fillMaxWidth().height(52.dp),
                         shape = RoundedCornerShape(10.dp),
-                    ) { Text("Scegli dalla rubrica", fontSize = 17.sp, color = Palette.Ink) }
-                    Field("Numero di telefono", t.target, KeyboardType.Phone) { t = t.copy(target = it.filter { c -> c.isDigit() || c == '+' }) }
-                    if (t.type == TileType.WA_VIDEO) Hint("Il numero deve essere salvato in rubrica con WhatsApp attivo.")
-                    if (t.type == TileType.SMS) Field("Testo del messaggio", t.body) { t = t.copy(body = it) }
+                    ) { Text(stringResource(R.string.tile_pick_contact), fontSize = 17.sp, color = Palette.Ink) }
+                    Field(stringResource(R.string.tile_number), t.target, KeyboardType.Phone) { t = t.copy(target = it.filter { c -> c.isDigit() || c == '+' }) }
+                    if (t.type == TileType.WA_VIDEO) Hint(stringResource(R.string.tile_wa_hint))
+                    if (t.type == TileType.SMS) Field(stringResource(R.string.tile_sms_text), t.body) { t = t.copy(body = it) }
                 }
-                TileType.URL -> Field("Indirizzo (https://…)", t.target, KeyboardType.Uri) { t = t.copy(target = it.trim()) }
+                TileType.URL -> Field(stringResource(R.string.tile_url), t.target, KeyboardType.Uri) { t = t.copy(target = it.trim()) }
                 TileType.SHORTCUT -> {
-                    SectionLabel("Scorciatoia")
+                    SectionLabel(stringResource(R.string.tile_shortcut))
                     OutlinedButton(onClick = { pickShortcut = true }, modifier = Modifier.fillMaxWidth().height(52.dp), shape = RoundedCornerShape(10.dp)) {
-                        Text(t.target.ifBlank { "Scegli…" }.substringAfter('/').take(40), fontSize = 17.sp, color = Palette.Ink)
+                        Text(t.target.ifBlank { stringResource(R.string.tile_choose) }.substringAfter('/').take(40), fontSize = 17.sp, color = Palette.Ink)
                     }
-                    Hint("Le scorciatoie sono azioni dirette delle app (es. una chat WhatsApp, una destinazione in Maps).")
+                    Hint(stringResource(R.string.tile_shortcut_hint))
                 }
-                TileType.CLOCK -> Hint("Mostra ora e data. 5 tocchi rapidi aprono le impostazioni.")
-                TileType.SOS -> Hint("Numeri e durata della pressione si impostano nella sezione SOS.")
+                TileType.CLOCK -> Hint(stringResource(R.string.tile_clock_hint))
+                TileType.SOS -> Hint(stringResource(R.string.tile_sos_hint))
             }
 
-            if (t.type != TileType.CLOCK) Field("Testo sul tile", t.label) { t = t.copy(label = it) }
+            if (t.type != TileType.CLOCK) Field(stringResource(R.string.tile_label), t.label) { t = t.copy(label = it) }
 
             if (t.type != TileType.CLOCK && t.type != TileType.SOS) {
-                OptionPicker("Icona", IconLabels.keys.toList(), t.icon.kind, { IconLabels.getValue(it) }) { k ->
+                OptionPicker(stringResource(R.string.tile_icon), IconLabels.keys.toList(), t.icon.kind, { context.getString(IconLabels.getValue(it)) }) { k ->
                     t = t.copy(icon = TileIcon(k, if (k == IconKind.SYMBOL) t.icon.ref.ifBlank { Symbols.defaultFor(t.type) } else ""))
                 }
                 if (t.icon.kind == IconKind.SYMBOL) SymbolGrid(t.icon.ref) { t = t.copy(icon = TileIcon(IconKind.SYMBOL, it)) }
-                if (t.icon.kind == IconKind.PHOTO) Hint("Usa la foto del contatto in rubrica; senza foto mostra le iniziali.")
+                if (t.icon.kind == IconKind.PHOTO) Hint(stringResource(R.string.tile_photo_hint))
             }
 
-            SectionLabel("Colore")
+            SectionLabel(stringResource(R.string.tile_color))
             ColorSwatches(t.color) { t = t.copy(color = it) }
 
-            SectionLabel("Dimensione e posizione")
+            SectionLabel(stringResource(R.string.tile_size_position))
             Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
-                Stepper("Larghezza", t.w, 1..page.cols, { t = t.copy(w = it) })
-                Stepper("Altezza", t.h, 1..page.rows, { t = t.copy(h = it) })
+                Stepper(stringResource(R.string.tile_width), t.w, 1..page.cols, { t = t.copy(w = it) })
+                Stepper(stringResource(R.string.tile_height), t.h, 1..page.rows, { t = t.copy(h = it) })
             }
             Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
-                Stepper("Colonna", t.col + 1, 1..page.cols, { t = t.copy(col = it - 1) })
-                Stepper("Riga", t.row + 1, 1..page.rows, { t = t.copy(row = it - 1) })
+                Stepper(stringResource(R.string.tile_column), t.col + 1, 1..page.cols, { t = t.copy(col = it - 1) })
+                Stepper(stringResource(R.string.tile_row), t.row + 1, 1..page.rows, { t = t.copy(row = it - 1) })
             }
 
             if (!isNew) {
@@ -188,7 +203,7 @@ fun TileEditor(
                     onClick = { confirmDelete = true },
                     modifier = Modifier.fillMaxWidth().height(52.dp),
                     shape = RoundedCornerShape(12.dp),
-                ) { Text("Elimina tile", color = Palette.Sos, fontSize = 17.sp, fontWeight = FontWeight.Bold) }
+                ) { Text(stringResource(R.string.tile_delete), color = Palette.Sos, fontSize = 17.sp, fontWeight = FontWeight.Bold) }
             }
         }
     }
@@ -196,7 +211,7 @@ fun TileEditor(
     if (pickApp) {
         AppPickerDialog(apps, launcher, onDismiss = { pickApp = false }, onPick = { app ->
             val oldDefault = apps.firstOrNull { it.target == t.target }?.defaultLabel
-            val keepLabel = t.label.isNotBlank() && t.label != oldDefault && t.label != defaultLabel(TileType.APP)
+            val keepLabel = t.label.isNotBlank() && t.label != oldDefault && t.label != defaultLabel(context, TileType.APP)
             t = t.copy(target = app.target, label = if (keepLabel) t.label else app.defaultLabel)
             pickApp = false
         })
@@ -204,7 +219,7 @@ fun TileEditor(
 
     if (pickShortcut) {
         ShortcutPickerDialog(launcher, onDismiss = { pickShortcut = false }) { sc ->
-            val keepLabel = t.label.isNotBlank() && t.label != defaultLabel(TileType.SHORTCUT)
+            val keepLabel = t.label.isNotBlank() && t.label != defaultLabel(context, TileType.SHORTCUT)
             t = t.copy(target = sc.target, label = if (keepLabel) t.label else sc.label)
             pickShortcut = false
         }
@@ -214,26 +229,26 @@ fun TileEditor(
         val lastSos = t.type == TileType.SOS && sosCountElsewhere == 0
         AlertDialog(
             onDismissRequest = { confirmDelete = false },
-            title = { Text(if (lastSos) "Togliere l'ultimo SOS?" else "Eliminare il tile?") },
+            title = { Text(stringResource(if (lastSos) R.string.tile_delete_last_sos else R.string.tile_delete_confirm)) },
             text = {
                 Text(
-                    if (lastSos) "Dopo l'eliminazione non ci sarà più nessun pulsante SOS nella schermata Home."
-                    else "«${t.label.ifBlank { TypeLabels.getValue(t.type) }}» verrà tolto dalla Home.",
+                    if (lastSos) stringResource(R.string.tile_delete_last_sos_text)
+                    else stringResource(R.string.tile_delete_text, t.label.ifBlank { typeLabel(context, t.type) }),
                 )
             },
-            confirmButton = { TextButton(onClick = { confirmDelete = false; onDelete() }) { Text("Elimina", color = Palette.Sos) } },
-            dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text("Annulla") } },
+            confirmButton = { TextButton(onClick = { confirmDelete = false; onDelete() }) { Text(stringResource(R.string.action_delete), color = Palette.Sos) } },
+            dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text(stringResource(R.string.action_cancel)) } },
         )
     }
 }
 
-fun defaultLabel(type: TileType): String = when (type) {
-    TileType.APP -> "App"
-    TileType.CALL -> "Chiama"
-    TileType.WA_VIDEO -> "Videochiamata"
-    TileType.SMS -> "Messaggio"
-    TileType.URL -> "Internet"
-    TileType.SHORTCUT -> "Scorciatoia"
+fun defaultLabel(context: Context, type: TileType): String = when (type) {
+    TileType.APP -> context.getString(R.string.label_app)
+    TileType.CALL -> context.getString(R.string.label_call)
+    TileType.WA_VIDEO -> context.getString(R.string.label_video)
+    TileType.SMS -> context.getString(R.string.label_message)
+    TileType.URL -> context.getString(R.string.label_internet)
+    TileType.SHORTCUT -> context.getString(R.string.label_shortcut)
     TileType.CLOCK -> ""
     TileType.SOS -> "SOS"
 }
@@ -244,7 +259,7 @@ fun EditorHeader(title: String, onBack: () -> Unit, action: String, enabled: Boo
         Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        TextButton(onClick = onBack, modifier = Modifier.height(48.dp)) { Text("‹ Indietro", fontSize = 17.sp, color = Palette.Ink) }
+        TextButton(onClick = onBack, modifier = Modifier.height(48.dp)) { Text(stringResource(R.string.action_back), fontSize = 17.sp, color = Palette.Ink) }
         Text(title, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Palette.Ink, modifier = Modifier.weight(1f).padding(start = 4.dp))
         Button(
             onClick = onAction,

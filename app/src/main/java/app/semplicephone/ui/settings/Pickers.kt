@@ -1,5 +1,7 @@
 package app.semplicephone.ui.settings
 
+import app.semplicephone.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -50,9 +52,9 @@ import app.semplicephone.ui.parseColor
 
 /** Palette ad alto contrasto: ogni colore regge testo bianco o nero a 4.5:1. */
 val TilePalette = listOf(
-    "#1F4FA8" to "Blu", "#0B6E4F" to "Verde", "#6A1B9A" to "Viola", "#1A1A1A" to "Nero",
-    "#B71C1C" to "Rosso", "#A84300" to "Arancio", "#00695C" to "Petrolio", "#FFFFFF" to "Bianco",
-    "#FFF3C4" to "Giallo chiaro",
+    "#1F4FA8" to R.string.color_blue, "#0B6E4F" to R.string.color_green, "#6A1B9A" to R.string.color_purple,
+    "#1A1A1A" to R.string.color_black, "#B71C1C" to R.string.color_red, "#A84300" to R.string.color_orange,
+    "#00695C" to R.string.color_teal, "#FFFFFF" to R.string.color_white, "#FFF3C4" to R.string.color_light_yellow,
 )
 
 @Composable
@@ -69,20 +71,22 @@ fun Stepper(
     modifier: Modifier = Modifier,
     format: (Int) -> String = { "$it" },
 ) {
+    val less = stringResource(R.string.stepper_less, label)
+    val more = stringResource(R.string.stepper_more, label)
     Column(modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(label, fontSize = 15.sp, color = Palette.Ink)
         Row(verticalAlignment = Alignment.CenterVertically) {
             OutlinedButton(
                 onClick = { onChange(value - 1) },
                 enabled = value > range.first,
-                modifier = Modifier.size(48.dp).semantics { contentDescription = "$label meno" },
+                modifier = Modifier.size(48.dp).semantics { contentDescription = less },
                 contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp),
             ) { Text("−", fontSize = 22.sp) }
             Text(format(value), fontSize = 20.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 12.dp))
             OutlinedButton(
                 onClick = { onChange(value + 1) },
                 enabled = value < range.last,
-                modifier = Modifier.size(48.dp).semantics { contentDescription = "$label più" },
+                modifier = Modifier.size(48.dp).semantics { contentDescription = more },
                 contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp),
             ) { Text("+", fontSize = 22.sp) }
         }
@@ -119,7 +123,7 @@ fun <T> OptionPicker(label: String, options: List<T>, selected: T, text: (T) -> 
                     }
                 }
             },
-            confirmButton = { TextButton(onClick = { open = false }) { Text("Chiudi") } },
+            confirmButton = { TextButton(onClick = { open = false }) { Text(stringResource(R.string.action_close)) } },
         )
     }
 }
@@ -129,7 +133,8 @@ fun ColorSwatches(selected: String, onSelect: (String) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         TilePalette.chunked(5).forEach { row ->
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                row.forEach { (hex, name) ->
+                row.forEach { (hex, nameRes) ->
+                    val name = stringResource(nameRes)
                     val isSel = hex.equals(selected, ignoreCase = true)
                     Box(
                         Modifier
@@ -182,14 +187,14 @@ fun AppPickerDialog(apps: List<AppEntry>, launcher: TileLauncher, onPick: (AppEn
     val iconPx = with(LocalDensity.current) { 40.dp.roundToPx() }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Scegli app") },
+        title = { Text(stringResource(R.string.pick_app)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
                     value = query,
                     onValueChange = { query = it },
                     singleLine = true,
-                    label = { Text("Cerca") },
+                    label = { Text(stringResource(R.string.search)) },
                     modifier = Modifier.fillMaxWidth(),
                 )
                 LazyColumn(Modifier.heightIn(max = 420.dp)) {
@@ -209,7 +214,7 @@ fun AppPickerDialog(apps: List<AppEntry>, launcher: TileLauncher, onPick: (AppEn
                 }
             }
         },
-        confirmButton = { TextButton(onClick = onDismiss) { Text("Annulla") } },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
     )
 }
 
@@ -225,15 +230,15 @@ fun ShortcutPickerDialog(launcher: TileLauncher, onDismiss: () -> Unit, onPick: 
     val iconPx = with(LocalDensity.current) { 36.dp.roundToPx() }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Scegli scorciatoia") },
+        title = { Text(stringResource(R.string.pick_shortcut)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 when {
-                    !canUse -> Text("Disponibile solo con SemplicePhone impostato come schermata Home.")
-                    all == null -> Text("Caricamento…")
-                    all!!.isEmpty() -> Text("Nessuna app installata offre scorciatoie.")
+                    !canUse -> Text(stringResource(R.string.shortcut_need_home))
+                    all == null -> Text(stringResource(R.string.loading))
+                    all!!.isEmpty() -> Text(stringResource(R.string.shortcut_none))
                     else -> {
-                        OutlinedTextField(query, { query = it }, singleLine = true, label = { Text("Cerca") }, modifier = Modifier.fillMaxWidth())
+                        OutlinedTextField(query, { query = it }, singleLine = true, label = { Text(stringResource(R.string.search)) }, modifier = Modifier.fillMaxWidth())
                         val shown = all!!.filter { AppCatalog.matches(query, it.label) || AppCatalog.matches(query, it.appLabel) }
                         LazyColumn(Modifier.heightIn(max = 420.dp)) {
                             items(shown, key = { it.target }) { sc ->
@@ -252,6 +257,6 @@ fun ShortcutPickerDialog(launcher: TileLauncher, onDismiss: () -> Unit, onPick: 
                 }
             }
         },
-        confirmButton = { TextButton(onClick = onDismiss) { Text("Annulla") } },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
     )
 }

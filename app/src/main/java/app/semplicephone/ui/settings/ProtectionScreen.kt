@@ -1,5 +1,7 @@
 package app.semplicephone.ui.settings
 
+import app.semplicephone.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -42,38 +44,35 @@ fun ProtectionScreen(protection: Protection, onBack: () -> Unit) {
     val isOwner = remember(tick) { protection.isDeviceOwner }
 
     Column(Modifier.fillMaxSize().background(Color(0xFFECE9E2)).windowInsetsPadding(WindowInsets.safeDrawing)) {
-        EditorHeader("Protezione", onBack, "Fatto") { onBack() }
+        EditorHeader(stringResource(R.string.protection_title), onBack, stringResource(R.string.action_done)) { onBack() }
         Column(
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             Text(
-                "Sempre attivo: niente trascinamenti né disinstallazioni dalla Home, tasto Indietro disattivato, " +
-                    "doppio tocco ignorato, impostazioni protette da PIN.",
+                stringResource(R.string.protection_always),
                 fontSize = 15.sp, color = Color(0xFF4A4A4A),
             )
             if (!isOwner) {
-                SectionLabel("Protezione avanzata (Device Owner)")
+                SectionLabel(stringResource(R.string.protection_advanced))
                 Text(
-                    "Per bloccare tendina, installazioni e ripristino serve impostare SemplicePhone come " +
-                        "amministratore del dispositivo. Si fa una volta, da computer, su un telefono appena " +
-                        "ripristinato e senza account Google aggiunti:",
+                    stringResource(R.string.protection_how),
                     fontSize = 15.sp,
                 )
                 SelectionContainer {
                     Text(Protection.ADB_COMMAND, fontFamily = FontFamily.Monospace, fontSize = 14.sp,
                         modifier = Modifier.fillMaxWidth().background(Color.White).padding(12.dp))
                 }
-                Text("Dopo il comando gli account si possono aggiungere normalmente.", fontSize = 15.sp)
-                OutlinedButton(onClick = { tick++ }, modifier = Modifier.fillMaxWidth().height(52.dp)) { Text("Verifica di nuovo") }
+                Text(stringResource(R.string.protection_after), fontSize = 15.sp)
+                OutlinedButton(onClick = { tick++ }, modifier = Modifier.fillMaxWidth().height(52.dp)) { Text(stringResource(R.string.protection_check_again)) }
             } else {
-                SectionLabel("SemplicePhone è amministratore del dispositivo")
+                SectionLabel(stringResource(R.string.protection_is_owner))
                 Protection.Item.entries.forEach { item ->
                     val on = remember(tick, item) { protection.isOn(item) }
                     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
                         Column(Modifier.weight(1f)) {
-                            Text(item.label, fontSize = 17.sp, color = Palette.Ink)
-                            if (item.detail.isNotBlank()) Text(item.detail, fontSize = 14.sp, color = Color(0xFF4A4A4A))
+                            Text(stringResource(item.label), fontSize = 17.sp, color = Palette.Ink)
+                            if (item.detail != 0) Text(stringResource(item.detail), fontSize = 14.sp, color = Color(0xFF4A4A4A))
                         }
                         Switch(checked = on, onCheckedChange = {
                             runCatching { protection.set(item, it) }.onFailure { e -> error = e.message }
@@ -83,7 +82,7 @@ fun ProtectionScreen(protection: Protection, onBack: () -> Unit) {
                 }
                 error?.let { Text(it, color = Palette.Sos, fontSize = 15.sp) }
                 OutlinedButton(onClick = { confirmRelease = true }, modifier = Modifier.fillMaxWidth().height(52.dp)) {
-                    Text("Rimuovi Device Owner", color = Palette.Sos)
+                    Text(stringResource(R.string.protection_release), color = Palette.Sos)
                 }
             }
         }
@@ -92,16 +91,16 @@ fun ProtectionScreen(protection: Protection, onBack: () -> Unit) {
     if (confirmRelease) {
         AlertDialog(
             onDismissRequest = { confirmRelease = false },
-            title = { Text("Rimuovere il Device Owner?") },
-            text = { Text("Tutte le protezioni avanzate vengono tolte. Per riattivarle servirà ripristinare il telefono e rifare il comando adb.") },
+            title = { Text(stringResource(R.string.protection_release_confirm)) },
+            text = { Text(stringResource(R.string.protection_release_text)) },
             confirmButton = {
                 TextButton(onClick = {
                     confirmRelease = false
                     runCatching { protection.releaseDeviceOwner() }.onFailure { e -> error = e.message }
                     tick++
-                }) { Text("Rimuovi", color = Palette.Sos) }
+                }) { Text(stringResource(R.string.protection_remove), color = Palette.Sos) }
             },
-            dismissButton = { TextButton(onClick = { confirmRelease = false }) { Text("Annulla") } },
+            dismissButton = { TextButton(onClick = { confirmRelease = false }) { Text(stringResource(R.string.action_cancel)) } },
         )
     }
 }

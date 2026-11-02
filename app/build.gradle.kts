@@ -95,6 +95,11 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
+    // Lingue dell'app: Android 13+ mostra «Lingua dell'app» nelle impostazioni di sistema.
+    androidResources {
+        generateLocaleConfig = true
+    }
+
     buildFeatures {
         compose = true
         buildConfig = true

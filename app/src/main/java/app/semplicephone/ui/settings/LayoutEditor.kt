@@ -1,5 +1,7 @@
 package app.semplicephone.ui.settings
 
+import app.semplicephone.R
+import androidx.compose.ui.res.stringResource
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -100,8 +102,8 @@ fun LayoutEditor(
             context.contentResolver.openOutputStream(uri, "wt")!!.use {
                 it.write(ConfigRepository.json.encodeToString(LauncherConfig.serializer(), draft).toByteArray())
             }
-            "Configurazione esportata."
-        }.getOrElse { "Esportazione non riuscita: ${it.message}" }
+            context.getString(R.string.layout_exported)
+        }.getOrElse { context.getString(R.string.layout_export_failed, it.message.orEmpty()) }
     }
     val importDoc = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
@@ -109,10 +111,10 @@ fun LayoutEditor(
             context.contentResolver.openInputStream(uri)!!.use { it.readBytes().toString(Charsets.UTF_8) }
         }.getOrNull()
         val cfg = text?.let { ConfigRepository.parse(it, "importata") }
-        notice = if (cfg == null) "File non valido: nessuna modifica." else {
+        notice = if (cfg == null) context.getString(R.string.layout_import_invalid) else {
             onDraftChange(cfg)
             onPageIndex(0)
-            "Configurazione importata: controlla e premi Salva."
+            context.getString(R.string.layout_imported)
         }
     }
     val problems = remember(draft) { ConfigRepository.validate(draft) }
@@ -122,8 +124,8 @@ fun LayoutEditor(
     fun updatePage(p: Page) = onDraftChange(draft.copy(pages = draft.pages.toMutableList().also { it[pageIndex] = p }))
 
     Column(Modifier.fillMaxSize().background(Color(0xFFECE9E2)).windowInsetsPadding(WindowInsets.safeDrawing)) {
-        EditorHeader("Disposizione", onExit, "Salva", enabled = problems.isEmpty()) {
-            if (noSos) confirm = "Nessuna pagina contiene il pulsante SOS. Salvare comunque?" to onSave else onSave()
+        EditorHeader(stringResource(R.string.layout_title), onExit, stringResource(R.string.action_save), enabled = problems.isEmpty()) {
+            if (noSos) confirm = context.getString(R.string.layout_no_sos_confirm) to onSave else onSave()
         }
 
         Column(
@@ -134,7 +136,7 @@ fun LayoutEditor(
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedButton(onClick = { onPageIndex(pageIndex - 1) }, enabled = pageIndex > 0, modifier = Modifier.height(48.dp)) { Text("‹") }
                 Text(
-                    "Pagina ${pageIndex + 1} di ${draft.pages.size}",
+                    stringResource(R.string.home_page_of, pageIndex + 1, draft.pages.size),
                     fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f), textAlign = TextAlign.Center,
                 )
                 OutlinedButton(onClick = { onPageIndex(pageIndex + 1) }, enabled = pageIndex < draft.pages.size - 1, modifier = Modifier.height(48.dp)) { Text("›") }
@@ -147,22 +149,22 @@ fun LayoutEditor(
                     },
                     enabled = draft.pages.size < 6,
                     modifier = Modifier.weight(1f).height(48.dp),
-                ) { Text("+ Pagina") }
+                ) { Text(stringResource(R.string.layout_add_page)) }
                 OutlinedButton(
                     onClick = {
-                        confirm = "Eliminare la pagina ${pageIndex + 1} con i suoi ${page.tiles.size} tile?" to {
+                        confirm = context.getString(R.string.layout_delete_page_confirm, pageIndex + 1, page.tiles.size) to {
                             onDraftChange(draft.copy(pages = draft.pages.filterIndexed { i, _ -> i != pageIndex }))
                             onPageIndex((pageIndex - 1).coerceAtLeast(0))
                         }
                     },
                     enabled = draft.pages.size > 1,
                     modifier = Modifier.weight(1f).height(48.dp),
-                ) { Text("Elimina pagina", color = if (draft.pages.size > 1) Palette.Sos else Color.Unspecified) }
+                ) { Text(stringResource(R.string.layout_delete_page), color = if (draft.pages.size > 1) Palette.Sos else Color.Unspecified) }
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
-                Stepper("Colonne", page.cols, 1..4, { updatePage(page.copy(cols = it)) })
-                Stepper("Righe", page.rows, 1..8, { updatePage(page.copy(rows = it)) })
+                Stepper(stringResource(R.string.layout_columns), page.cols, 1..4, { updatePage(page.copy(cols = it)) })
+                Stepper(stringResource(R.string.layout_rows), page.rows, 1..8, { updatePage(page.copy(rows = it)) })
             }
 
             GridPreview(
@@ -172,63 +174,62 @@ fun LayoutEditor(
                 onMove = { moved -> updatePage(page.copy(tiles = page.tiles.map { t -> moved.firstOrNull { it.id == t.id } ?: t })) },
             )
             Text(
-                "Tocca un tile per modificarlo, una casella vuota per aggiungerne uno. " +
-                    "Tieni premuto un tile e trascinalo per spostarlo (sopra un tile uguale li scambia).",
+                stringResource(R.string.layout_hint),
                 fontSize = 15.sp, color = Color(0xFF4A4A4A),
             )
             notice?.let { Text(it, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Palette.Ink) }
 
             if (problems.isNotEmpty()) {
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text("Da sistemare prima di salvare:", color = Palette.Sos, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text(stringResource(R.string.layout_problems), color = Palette.Sos, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                     problems.forEach { Text("• $it", color = Palette.Sos, fontSize = 15.sp) }
                 }
             }
-            if (noSos) Text("Attenzione: nessun pulsante SOS nella Home.", color = Palette.Sos, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            if (noSos) Text(stringResource(R.string.layout_no_sos), color = Palette.Sos, fontWeight = FontWeight.Bold, fontSize = 16.sp)
             if (!noSos && draft.sos.numbers.isEmpty()) {
-                Text("Il pulsante SOS non ha numeri: impostali in «Numeri SOS» (familiari, non il 112).",
+                Text(stringResource(R.string.layout_sos_no_numbers),
                     color = Palette.Sos, fontWeight = FontWeight.Bold, fontSize = 16.sp)
             }
-            if (error != null) Text("Salvataggio non riuscito: $error", color = Palette.Sos, fontSize = 15.sp)
+            if (error != null) Text(stringResource(R.string.layout_save_failed, error), color = Palette.Sos, fontSize = 15.sp)
 
             if (missingPermissions.isNotEmpty()) {
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    SectionLabel("Permessi mancanti")
+                    SectionLabel(stringResource(R.string.layout_missing_permissions))
                     missingPermissions.map { it.why }.distinct().forEach { Text("• $it", fontSize = 15.sp, color = Palette.Ink) }
-                    OutlinedButton(onClick = onRequestPermissions, modifier = Modifier.fillMaxWidth().height(52.dp)) { Text("Concedi permessi") }
+                    OutlinedButton(onClick = onRequestPermissions, modifier = Modifier.fillMaxWidth().height(52.dp)) { Text(stringResource(R.string.layout_grant_permissions)) }
                 }
             }
             if (restrictionHelp) RestrictedSettingsHelp(onExternalStart)
             missingSpecial.forEach { sp ->
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     SectionLabel(sp.label)
-                    Text("Serve per: ${sp.why}. Nella pagina che si apre attiva SemplicePhone.", fontSize = 15.sp, color = Palette.Ink)
+                    Text(stringResource(R.string.layout_special_why, sp.why), fontSize = 15.sp, color = Palette.Ink)
                     OutlinedButton(onClick = { onExternalStart(); onOpenSpecial(sp) }, modifier = Modifier.fillMaxWidth().height(52.dp)) {
-                        Text("Apri impostazioni")
+                        Text(stringResource(R.string.action_open_settings))
                     }
                 }
             }
 
-            SectionLabel("Altre impostazioni")
-            OutlinedButton(onClick = onEditSos, modifier = Modifier.fillMaxWidth().height(52.dp)) { Text("Numeri SOS") }
+            SectionLabel(stringResource(R.string.layout_more_settings))
+            OutlinedButton(onClick = onEditSos, modifier = Modifier.fillMaxWidth().height(52.dp)) { Text(stringResource(R.string.layout_sos_numbers)) }
             extraSections()
-            OutlinedButton(onClick = onChangePin, modifier = Modifier.fillMaxWidth().height(52.dp)) { Text("Cambia PIN") }
+            OutlinedButton(onClick = onChangePin, modifier = Modifier.fillMaxWidth().height(52.dp)) { Text(stringResource(R.string.layout_change_pin)) }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedButton(
                     onClick = { onExternalStart(); exportDoc.launch("semplicephone-config.json") },
                     modifier = Modifier.weight(1f).height(52.dp),
-                ) { Text("Esporta su file") }
+                ) { Text(stringResource(R.string.layout_export)) }
                 OutlinedButton(
                     onClick = { onExternalStart(); importDoc.launch(arrayOf("application/json", "text/plain", "application/octet-stream")) },
                     modifier = Modifier.weight(1f).height(52.dp),
-                ) { Text("Importa da file") }
+                ) { Text(stringResource(R.string.layout_import)) }
             }
             OutlinedButton(
-                onClick = { confirm = "Sostituire la disposizione con quella predefinita? Le modifiche non salvate vanno perse." to onResetDefaults },
+                onClick = { confirm = context.getString(R.string.layout_reset_confirm) to onResetDefaults },
                 modifier = Modifier.fillMaxWidth().height(52.dp),
-            ) { Text("Ripristina disposizione predefinita") }
+            ) { Text(stringResource(R.string.layout_reset)) }
             TextButton(onClick = { showAbout = true }, modifier = Modifier.fillMaxWidth().height(48.dp)) {
-                Text("Informazioni e licenza", color = Palette.Ink)
+                Text(stringResource(R.string.layout_about), color = Palette.Ink)
             }
         }
     }
@@ -241,14 +242,13 @@ fun LayoutEditor(
                 Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text("Copyright © 2026 Francesco Sorzini", fontSize = 15.sp)
                     Text(
-                        "Software libero: puoi ridistribuirlo e modificarlo secondo la GNU General Public License " +
-                            "versione 3 o successiva. Distribuito gratuitamente e SENZA ALCUNA GARANZIA.",
+                        stringResource(R.string.about_license),
                         fontSize = 15.sp,
                     )
-                    Text("Il pulsante SOS contatta i numeri impostati: non sostituisce il 112.", fontSize = 15.sp, fontWeight = FontWeight.Bold)
-                    Text("Codice sorgente: github.com/francescosorzini-dev/SemplicePhone", fontSize = 15.sp)
+                    Text(stringResource(R.string.about_sos), fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.about_source, "github.com/francescosorzini-dev/SemplicePhone"), fontSize = 15.sp)
                     Text(
-                        "Componenti: Atkinson Hyperlegible (SIL OFL 1.1), AndroidX e Kotlin (Apache 2.0), Bouncy Castle (MIT).",
+                        stringResource(R.string.about_components),
                         fontSize = 14.sp, color = Color(0xFF4A4A4A),
                     )
                 }
@@ -263,9 +263,9 @@ fun LayoutEditor(
                                 .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK),
                         )
                     }
-                }) { Text("Apri sorgenti") }
+                }) { Text(stringResource(R.string.about_open_source)) }
             },
-            dismissButton = { TextButton(onClick = { showAbout = false }) { Text("Chiudi") } },
+            dismissButton = { TextButton(onClick = { showAbout = false }) { Text(stringResource(R.string.action_close)) } },
         )
     }
 
@@ -273,8 +273,8 @@ fun LayoutEditor(
         AlertDialog(
             onDismissRequest = { confirm = null },
             text = { Text(msg, fontSize = 17.sp) },
-            confirmButton = { TextButton(onClick = { confirm = null; action() }) { Text("Conferma") } },
-            dismissButton = { TextButton(onClick = { confirm = null }) { Text("Annulla") } },
+            confirmButton = { TextButton(onClick = { confirm = null; action() }) { Text(stringResource(R.string.action_confirm)) } },
+            dismissButton = { TextButton(onClick = { confirm = null }) { Text(stringResource(R.string.action_cancel)) } },
         )
     }
 }
@@ -285,6 +285,7 @@ private fun GridPreview(page: Page, onTile: (Tile) -> Unit, onEmpty: (Int, Int) 
     var dragging by remember { mutableStateOf<String?>(null) }
     var drag by remember { mutableStateOf(Offset.Zero) }
     val density = LocalDensity.current
+    val context = LocalContext.current
     BoxWithConstraints(Modifier.fillMaxWidth().aspectRatio(0.62f)) {
         val cellW = (maxWidth - Gap * (page.cols - 1)) / page.cols
         val cellH = (maxHeight - Gap * (page.rows - 1)) / page.rows
@@ -305,7 +306,7 @@ private fun GridPreview(page: Page, onTile: (Tile) -> Unit, onEmpty: (Int, Int) 
                         .clip(RoundedCornerShape(10.dp))
                         .border(2.dp, Color(0xFF8A8A8A), RoundedCornerShape(10.dp))
                         .clickable { onEmpty(c, r) }
-                        .semantics { contentDescription = "Casella vuota colonna ${c + 1} riga ${r + 1}, aggiungi tile" },
+                        .semantics { contentDescription = context.getString(R.string.layout_empty_cell, c + 1, r + 1) },
                     contentAlignment = Alignment.Center,
                 ) { Text("+", fontSize = 26.sp, color = Color(0xFF4A4A4A)) }
             }
@@ -343,7 +344,7 @@ private fun GridPreview(page: Page, onTile: (Tile) -> Unit, onEmpty: (Int, Int) 
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
-                    previewLabel(t),
+                    previewLabel(context, t),
                     color = fg,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
@@ -368,23 +369,20 @@ private fun RestrictedSettingsHelp(onExternalStart: () -> Unit) {
         Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Color(0xFFFFF0DF)).padding(14.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Text("Se Android risponde «Per la tua sicurezza, questa impostazione non è disponibile»", fontSize = 17.sp, fontWeight = FontWeight.Bold, color = Palette.Ink)
+        Text(stringResource(R.string.restricted_title), fontSize = 17.sp, fontWeight = FontWeight.Bold, color = Palette.Ink)
         Text(
-            "SemplicePhone è stata installata da un file scaricato e Android blocca alcuni permessi " +
-                "(SMS dell'SOS, accesso alle notifiche) finché non li consenti:",
+            stringResource(R.string.restricted_text),
             fontSize = 15.sp, color = Palette.Ink,
         )
         Text(
-            "1. Prova una volta a concedere il permesso (così compare l'opzione).\n" +
-                "2. Apri «Info app» qui sotto, tocca ⋮ in alto a destra e scegli «Consenti impostazioni con restrizioni».\n" +
-                "3. Torna qui e premi di nuovo «Concedi permessi».",
+            stringResource(R.string.restricted_steps),
             fontSize = 15.sp, color = Palette.Ink,
         )
         OutlinedButton(
             onClick = { onExternalStart(); app.semplicephone.launch.Restrictions.openAppInfo(context) },
             modifier = Modifier.fillMaxWidth().height(52.dp),
-        ) { Text("Apri Info app") }
-        Text("Se il menu ⋮ non c'è (alcuni telefoni OnePlus, Oppo, Realme), da un computer con ADB:", fontSize = 15.sp, color = Palette.Ink)
+        ) { Text(stringResource(R.string.restricted_open_info)) }
+        Text(stringResource(R.string.restricted_adb), fontSize = 15.sp, color = Palette.Ink)
         Text(
             app.semplicephone.launch.Restrictions.ADB_ALLOW,
             fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace, fontSize = 13.sp,
@@ -397,7 +395,7 @@ private fun RestrictedSettingsHelp(onExternalStart: () -> Unit) {
                 copied = true
             },
             modifier = Modifier.fillMaxWidth().height(48.dp),
-        ) { Text(if (copied) "Copiato" else "Copia comando") }
+        ) { Text(stringResource(if (copied) R.string.copied else R.string.copy_command)) }
     }
 }
 
@@ -417,8 +415,8 @@ internal fun movedTiles(page: Page, t: Tile, col: Int, row: Int): List<Tile>? {
     return listOf(moved, other.copy(col = t.col, row = t.row))
 }
 
-private fun previewLabel(t: Tile): String = when (t.type) {
-    TileType.CLOCK -> "Orologio"
+private fun previewLabel(context: android.content.Context, t: Tile): String = when (t.type) {
+    TileType.CLOCK -> context.getString(R.string.label_clock)
     TileType.SOS -> t.label.ifBlank { "SOS" }
-    else -> t.label.ifBlank { defaultLabel(t.type) }
+    else -> t.label.ifBlank { defaultLabel(context, t.type) }
 }

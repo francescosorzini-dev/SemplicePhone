@@ -1,5 +1,6 @@
 package app.semplicephone
 
+import androidx.compose.ui.res.stringResource
 import android.app.role.RoleManager
 import android.content.Intent
 import android.os.Bundle
@@ -40,6 +41,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import app.semplicephone.ui.HomeScreen
 import app.semplicephone.ui.SempliceTheme
 import app.semplicephone.ui.settings.LayoutEditor
@@ -89,7 +91,7 @@ class MainActivity : ComponentActivity() {
     private var draft by mutableStateOf<LauncherConfig?>(null)
     private var editPage by mutableIntStateOf(0)
     private var saveError by mutableStateOf<String?>(null)
-    private var apps by mutableStateOf<List<AppEntry>>(AppCatalog.ROLES)
+    private var apps by mutableStateOf<List<AppEntry>>(emptyList())
 
     private val requestHomeRole =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { refreshHomeRole() }
@@ -108,6 +110,7 @@ class MainActivity : ComponentActivity() {
         launcher = TileLauncher(this, contacts, onSos = ::onSosRequested)
         pins = PinStore(applicationContext)
         catalog = AppCatalog(applicationContext)
+        apps = catalog.roles()
         lifecycleScope.launch {
             repo.load()
             // Riallinea gli allarmi a ogni avvio (es. dopo un aggiornamento o un restore).
@@ -162,16 +165,31 @@ class MainActivity : ComponentActivity() {
                             },
                             extraSections = {
                                 OutlinedButton(onClick = { screen = Screen.Phone }, modifier = Modifier.fillMaxWidth().height(52.dp)) {
-                                    Text("Suoneria, batteria e pallini")
+                                    Text(stringResource(R.string.layout_phone_settings))
                                 }
                                 OutlinedButton(onClick = { screen = Screen.Reminders }, modifier = Modifier.fillMaxWidth().height(52.dp)) {
-                                    Text("Promemoria farmaci (${d.reminders.size})")
+                                    Text(stringResource(R.string.layout_reminders, d.reminders.size))
                                 }
                                 OutlinedButton(onClick = { screen = Screen.Remote }, modifier = Modifier.fillMaxWidth().height(52.dp)) {
-                                    Text("Gestione da remoto")
+                                    Text(stringResource(R.string.layout_remote))
                                 }
                                 OutlinedButton(onClick = { screen = Screen.Protection }, modifier = Modifier.fillMaxWidth().height(52.dp)) {
-                                    Text("Protezione del telefono")
+                                    Text(stringResource(R.string.layout_protection))
+                                }
+                                if (android.os.Build.VERSION.SDK_INT >= 33) {
+                                    // Lingua solo per SemplicePhone (pagina di sistema «Lingua dell'app»).
+                                    OutlinedButton(
+                                        onClick = {
+                                            externalActivity = true
+                                            runCatching {
+                                                startActivity(
+                                                    android.content.Intent(android.provider.Settings.ACTION_APP_LOCALE_SETTINGS, android.net.Uri.parse("package:$packageName")),
+                                                )
+                                            }
+                                        },
+                                        modifier = Modifier.fillMaxWidth().height(52.dp),
+                                    ) { Text(stringResource(R.string.layout_language)) }
+                                    Text(stringResource(R.string.language_hint), fontSize = 14.sp, color = androidx.compose.ui.graphics.Color(0xFF4A4A4A))
                                 }
                             },
                         )
@@ -299,7 +317,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun askPermissions(cfg: LauncherConfig) {
-        protection.grantRuntimePermissions(Permissions.required(cfg).map { it.permission })
+        protection.grantRuntimePermissions(Permissions.required(this, cfg).map { it.permission })
         val missing = Permissions.missing(this, cfg).map { it.permission }.distinct()
         if (missing.isNotEmpty()) {
             externalActivity = true
@@ -317,7 +335,7 @@ class MainActivity : ComponentActivity() {
         row = row,
         type = TileType.APP,
         target = "@dialer",
-        label = "Telefono",
+        label = getString(R.string.label_phone),
         icon = TileIcon(IconKind.AUTO),
         color = "#1F4FA8",
     )

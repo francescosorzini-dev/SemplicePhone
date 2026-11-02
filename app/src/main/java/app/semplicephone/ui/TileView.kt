@@ -1,5 +1,7 @@
 package app.semplicephone.ui
 
+import app.semplicephone.R
+import androidx.compose.ui.res.stringResource
 import android.widget.Toast
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
@@ -99,6 +101,7 @@ private fun ActionTile(tile: Tile, sos: SosConfig, launcher: TileLauncher, modif
     val bg = parseColor(tile.color).let { if (available) it else it.copy(alpha = 0.35f) }
     val fg = contentColorFor(parseColor(tile.color))
     val wide = tile.w > tile.h
+    val badgeDesc = stringResource(R.string.tile_badge_desc, badge)
 
     Box(
         modifier
@@ -106,7 +109,7 @@ private fun ActionTile(tile: Tile, sos: SosConfig, launcher: TileLauncher, modif
             .background(bg)
             .border(if (bg.isLight()) 2.dp else 0.dp, Palette.Ink, TileShape)
             .clickable(role = Role.Button, onClickLabel = tile.label) { launcher.launch(tile, sos) }
-            .semantics { if (badge > 0) stateDescription = "$badge da vedere" },
+            .semantics { if (badge > 0) stateDescription = badgeDesc },
         contentAlignment = Alignment.Center,
     ) {
         BoxWithConstraints(Modifier.fillMaxSize().padding(12.dp), contentAlignment = Alignment.Center) {
@@ -238,8 +241,11 @@ private fun ClockTile(tile: Tile, modifier: Modifier, onSecretTap: () -> Unit) {
     val bg = parseColor(tile.color)
     val fg = contentColorFor(bg)
     val time = now.format(DateTimeFormatter.ofPattern("HH:mm"))
-    val date = now.format(DateTimeFormatter.ofPattern("EEEE d MMMM", Locale.ITALIAN))
-        .replaceFirstChar { it.titlecase(Locale.ITALIAN) }
+    // Formato del giorno nella lingua dell'app (es. «Lunedì 2 novembre», «Monday, November 2»).
+    val locale = androidx.compose.ui.platform.LocalConfiguration.current.locales[0]
+    val pattern = android.text.format.DateFormat.getBestDateTimePattern(locale, "EEEEdMMMM")
+    val date = now.format(DateTimeFormatter.ofPattern(pattern, locale)).replaceFirstChar { it.titlecase(locale) }
+    val clockDesc = stringResource(R.string.clock_desc, time, date)
 
     BoxWithConstraints(
         modifier
@@ -247,7 +253,7 @@ private fun ClockTile(tile: Tile, modifier: Modifier, onSecretTap: () -> Unit) {
             .background(bg)
             .border(if (bg.isLight()) 2.dp else 0.dp, Palette.Ink, TileShape)
             .secretTaps(taps) { secretTap() }
-            .semantics { contentDescription = "Sono le $time, $date" },
+            .semantics { contentDescription = clockDesc },
         contentAlignment = Alignment.Center,
     ) {
         val timeSize = minOf(maxHeight * 0.5f, maxWidth * 0.28f)
@@ -271,6 +277,8 @@ private fun SosTile(tile: Tile, sos: SosConfig, launcher: TileLauncher, modifier
     val holdMs = sos.holdSeconds.coerceIn(1, 10) * 1000
     val bg = parseColor(tile.color)
     val fg = contentColorFor(bg)
+    val sosDesc = stringResource(R.string.sos_tile_desc, tile.label.ifBlank { "SOS" }, sos.holdSeconds)
+    val holdToast = stringResource(R.string.sos_hold_toast)
 
     Box(
         modifier
@@ -278,7 +286,7 @@ private fun SosTile(tile: Tile, sos: SosConfig, launcher: TileLauncher, modifier
             .background(bg)
             .semantics {
                 role = Role.Button
-                contentDescription = "${tile.label.ifBlank { "SOS" }}: tieni premuto ${sos.holdSeconds} secondi"
+                contentDescription = sosDesc
             }
             .pointerInput(holdMs) {
                 detectTapGestures(
@@ -292,7 +300,7 @@ private fun SosTile(tile: Tile, sos: SosConfig, launcher: TileLauncher, modifier
                         if (job.isActive) {
                             job.cancel()
                             if (released) {
-                                Toast.makeText(context, "Tieni premuto per chiamare aiuto", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, holdToast, Toast.LENGTH_SHORT).show()
                             }
                         }
                         scope.launch { progress.snapTo(0f) }
@@ -309,7 +317,7 @@ private fun SosTile(tile: Tile, sos: SosConfig, launcher: TileLauncher, modifier
             Spacer(Modifier.width(12.dp))
             Column {
                 Text(tile.label.ifBlank { "SOS" }, color = fg, fontSize = 32.dp.fixedSp(), fontWeight = FontWeight.Bold)
-                Text("tieni premuto", color = fg, fontSize = 18.dp.fixedSp())
+                Text(stringResource(R.string.sos_hold), color = fg, fontSize = 18.dp.fixedSp())
             }
         }
     }

@@ -1,5 +1,7 @@
 package app.semplicephone.ui.settings
 
+import app.semplicephone.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -26,66 +28,64 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.semplicephone.BuildConfig
 import app.semplicephone.model.PhoneConfig
-import app.semplicephone.remote.SmsCommand
 import app.semplicephone.ui.Palette
 
 /** Suoneria protetta, avviso batteria, pallini e comando SMS (si applica con Salva). */
 @Composable
 fun PhoneEditor(initial: PhoneConfig, hasSosNumbers: Boolean, onSave: (PhoneConfig) -> Unit, onCancel: () -> Unit) {
     var p by remember { mutableStateOf(initial) }
+    val never = stringResource(R.string.phone_never)
+    val keyword = stringResource(R.string.sms_keyword)
 
     Column(Modifier.fillMaxSize().background(Color(0xFFECE9E2)).windowInsetsPadding(WindowInsets.safeDrawing)) {
-        EditorHeader("Suoneria e avvisi", onCancel, "Fatto") { onSave(p) }
+        EditorHeader(stringResource(R.string.phone_title), onCancel, stringResource(R.string.action_done)) { onSave(p) }
         Column(
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Toggle(
-                "Suoneria protetta",
-                "Se il telefono viene messo in silenzioso o il volume si abbassa, torna al livello scelto. Vale anche per le sveglie dei promemoria.",
+                stringResource(R.string.phone_ringer_lock),
+                stringResource(R.string.phone_ringer_lock_detail),
                 p.ringerLock,
             ) { p = p.copy(ringerLock = it) }
             if (p.ringerLock) {
-                Stepper("Volume minimo", p.ringVolumePercent / 10, 3..10, { p = p.copy(ringVolumePercent = it * 10) }, format = { "${it * 10}%" })
+                Stepper(stringResource(R.string.phone_min_volume), p.ringVolumePercent / 10, 3..10, { p = p.copy(ringVolumePercent = it * 10) }, format = { "${it * 10}%" })
             }
 
-            SectionLabel("Batteria scarica")
+            SectionLabel(stringResource(R.string.phone_battery))
             Stepper(
-                "Avvisa sotto il", p.batteryAlertPercent / 5, 0..6,
+                stringResource(R.string.phone_battery_below), p.batteryAlertPercent / 5, 0..6,
                 { p = p.copy(batteryAlertPercent = it * 5) },
-                format = { if (it == 0) "mai" else "${it * 5}%" },
+                format = { if (it == 0) never else "${it * 5}%" },
             )
             Text(
                 when {
-                    !BuildConfig.SEND_SMS -> "Compare un avviso in Home. Con la gestione da remoto arriva anche un messaggio al portale."
-                    hasSosNumbers -> "Compare un avviso in Home e parte un SMS ai numeri SOS (una volta per ogni scarica)."
-                    else -> "Compare un avviso in Home. Per l'SMS ai familiari imposta prima i numeri SOS."
+                    !BuildConfig.SEND_SMS -> stringResource(R.string.phone_battery_play)
+                    hasSosNumbers -> stringResource(R.string.phone_battery_sms)
+                    else -> stringResource(R.string.phone_battery_no_numbers)
                 },
                 fontSize = 15.sp, color = Color(0xFF4A4A4A),
             )
 
             if (BuildConfig.FULL) {
                 Toggle(
-                    "Pallino sui riquadri",
-                    "Mostra quante chiamate perse e quanti messaggi non letti ci sono sui riquadri delle app (Telefono, Messaggi, WhatsApp…).",
+                    stringResource(R.string.phone_badges),
+                    stringResource(R.string.phone_badges_detail),
                     p.badges,
                 ) { p = p.copy(badges = it) }
 
                 Toggle(
-                    "Comando SMS «${SmsCommand.KEYWORD}»",
-                    "Un familiare tra i numeri SOS può mandare l'SMS «${SmsCommand.KEYWORD}» per far applicare subito una configurazione pubblicata dal portale.",
+                    stringResource(R.string.phone_sms_command, keyword),
+                    stringResource(R.string.phone_sms_command_detail, keyword),
                     p.smsUpdateCommand,
                 ) { p = p.copy(smsUpdateCommand = it) }
             } else {
-                SectionLabel("Solo nell'edizione completa")
+                SectionLabel(stringResource(R.string.phone_full_only))
                 Text(
-                    if (BuildConfig.EDITION == "play")
-                        "Pallini con messaggi non letti, comando SMS «${SmsCommand.KEYWORD}» e SMS automatici non sono " +
-                            "nella versione di Google Play. Ci sono nell'edizione completa (F-Droid o sito del progetto)."
-                    else
-                        "Pallini con messaggi non letti, comando SMS «${SmsCommand.KEYWORD}» e aggiornamento automatico " +
-                        "richiedono permessi che Android blocca sulle app scaricate dal browser. Sono nell'edizione " +
-                        "completa, da installare con ADB (vedi la guida nel sito del progetto).",
+                    stringResource(
+                        if (BuildConfig.EDITION == "play") R.string.phone_full_only_play else R.string.phone_full_only_standard,
+                        keyword,
+                    ),
                     fontSize = 15.sp, color = Color(0xFF4A4A4A),
                 )
             }

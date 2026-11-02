@@ -30,11 +30,11 @@ class CoreLogicTest {
 
     @Test fun overlapAndOutOfGridAreRejected() {
         val overlap = LauncherConfig(pages = listOf(Page(2, 3, listOf(tile("a", 0, 0, 2, 1), tile("b", 1, 0)))))
-        assertTrue(ConfigRepository.validate(overlap).any { "sovrapposto" in it })
+        assertTrue(ConfigRepository.validate(overlap).any { "overlaps" in it })
         val out = LauncherConfig(pages = listOf(Page(2, 3, listOf(tile("a", 1, 0, 2, 1)))))
-        assertTrue(ConfigRepository.validate(out).any { "fuori griglia" in it })
+        assertTrue(ConfigRepository.validate(out).any { "outside the grid" in it })
         val dup = LauncherConfig(pages = listOf(Page(2, 3, listOf(tile("a", 0, 0))), Page(2, 3, listOf(tile("a", 0, 0)))))
-        assertTrue(ConfigRepository.validate(dup).any { "duplicato" in it })
+        assertTrue(ConfigRepository.validate(dup).any { "duplicate" in it })
     }
 
     @Test fun conflictAndFreeCell() {
@@ -124,5 +124,54 @@ class StoreDetectionTest {
         // APK dal browser o via ADB: nessuno store, l'app si aggiorna da sola
         org.junit.Assert.assertNull(app.semplicephone.update.Updater.storeName(null))
         org.junit.Assert.assertNull(app.semplicephone.update.Updater.storeName("com.google.android.packageinstaller"))
+    }
+}
+
+class I18nTest {
+    @Test fun smsKeywordInEveryLanguage() {
+        val c = app.semplicephone.remote.SmsCommand
+        val sos = listOf("+39 333 1234567")
+        listOf("#AGGIORNA", "#update", "#Aktualisieren", "#ACTUALISER", "#actualizar").forEach {
+            assertTrue(it, c.matches(it, "3331234567", sos))
+        }
+    }
+
+    @Test fun daysFollowLocale() {
+        assertEquals("ogni giorno", ReminderTime.daysSummary(emptyList(), "ogni giorno", "feriali", java.util.Locale.ITALIAN))
+        assertEquals("feriali", ReminderTime.daysSummary(listOf(1, 2, 3, 4, 5), "ogni giorno", "feriali", java.util.Locale.ITALIAN))
+        assertEquals("Mon, Sat", ReminderTime.daysSummary(listOf(6, 1), "", "", java.util.Locale.ENGLISH))
+        assertEquals("L", ReminderTime.dayInitial(1, java.util.Locale.ITALIAN))
+        assertEquals("G", ReminderTime.dayInitial(4, java.util.Locale.ITALIAN))
+        assertEquals("T", ReminderTime.dayInitial(4, java.util.Locale.ENGLISH))
+    }
+
+    /** Ogni lingua ha le stesse chiavi e gli stessi segnaposto della lingua di riserva (inglese). */
+    @Test fun translationsMatchBase() {
+        val res = java.io.File("src/main/res")
+        val fmt = Regex("%(\\d+\\$)?[sd]")
+        fun read(f: java.io.File): Map<String, List<String>> {
+            val doc = javax.xml.parsers.DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(f)
+            val out = mutableMapOf<String, List<String>>()
+            val strings = doc.getElementsByTagName("string")
+            for (i in 0 until strings.length) {
+                val e = strings.item(i) as org.w3c.dom.Element
+                if (e.getAttribute("translatable") == "false") continue
+                out[e.getAttribute("name")] = fmt.findAll(e.textContent).map { it.value }.sorted().toList()
+            }
+            val plurals = doc.getElementsByTagName("plurals")
+            for (i in 0 until plurals.length) {
+                val e = plurals.item(i) as org.w3c.dom.Element
+                out["plurals:" + e.getAttribute("name")] = fmt.findAll(e.textContent).map { it.value }.distinct().sorted().toList()
+            }
+            return out
+        }
+        val base = read(java.io.File(res, "values/strings.xml"))
+        val langs = res.listFiles { f -> f.name.startsWith("values-") && java.io.File(f, "strings.xml").exists() }!!
+        assertTrue("almeno l'italiano", langs.any { it.name == "values-it" })
+        langs.forEach { dir ->
+            val t = read(java.io.File(dir, "strings.xml"))
+            assertEquals("${dir.name}: chiavi", base.keys.sorted(), t.keys.sorted())
+            base.forEach { (k, v) -> assertEquals("${dir.name}: segnaposto di $k", v, t[k]) }
+        }
     }
 }

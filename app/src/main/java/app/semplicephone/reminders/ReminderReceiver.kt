@@ -40,7 +40,7 @@ class ReminderReceiver : BroadcastReceiver() {
             ReminderLog.append(context, id, "non_confermato")
             app.semplicephone.remote.RemoteEvents.enqueue(
                 context, "reminder_missed",
-                "Promemoria delle ${r.time} non confermato: ${r.title}${if (r.detail.isNotBlank()) " (${r.detail})" else ""}",
+                context.getString(R.string.reminder_missed_event, r.time, r.title + if (r.detail.isNotBlank()) " (${r.detail})" else ""),
                 mapOf("reminder" to r.id),
             )
         }
@@ -87,15 +87,15 @@ class ReminderReceiver : BroadcastReceiver() {
             val n = NotificationCompat.Builder(context, ReminderScheduler.CHANNEL)
                 .setSmallIcon(R.drawable.ic_launcher_foreground)
                 .setContentTitle(r.title)
-                .setContentText(r.detail.ifBlank { "Ore ${r.time}" })
+                .setContentText(r.detail.ifBlank { context.getString(R.string.reminder_at, r.time) })
                 .setCategory(NotificationCompat.CATEGORY_ALARM)
                 .setPriority(NotificationCompat.PRIORITY_MAX)
                 .setOngoing(true)
                 .setAutoCancel(false)
                 .setFullScreenIntent(full, true)
                 .setContentIntent(full)
-                .addAction(0, "Preso", action(ACTION_TAKEN, 1))
-                .addAction(0, "Tra ${r.snoozeMinutes} minuti", action(ACTION_SNOOZE, 2))
+                .addAction(0, context.getString(R.string.reminder_taken), action(ACTION_TAKEN, 1))
+                .addAction(0, context.resources.getQuantityString(R.plurals.reminder_snooze_short, r.snoozeMinutes, r.snoozeMinutes), action(ACTION_SNOOZE, 2))
                 .build()
             runCatching { context.getSystemService(NotificationManager::class.java).notify(nid, n) }
         }

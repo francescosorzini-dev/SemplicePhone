@@ -1,5 +1,6 @@
 package app.semplicephone.reminders
 
+import androidx.compose.ui.res.stringResource
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -65,12 +66,12 @@ class ReminderActivity : ComponentActivity() {
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1B6E34)),
                         shape = RoundedCornerShape(24.dp),
                         modifier = Modifier.fillMaxWidth().height(120.dp),
-                    ) { Text("PRESO", fontSize = 44.sp, fontWeight = FontWeight.Bold) }
+                    ) { Text(stringResource(R.string.reminder_taken_big), fontSize = 44.sp, fontWeight = FontWeight.Bold) }
                     OutlinedButton(
                         onClick = { ReminderReceiver.snooze(this@ReminderActivity, id); finish() },
                         shape = RoundedCornerShape(20.dp),
                         modifier = Modifier.fillMaxWidth().height(72.dp),
-                    ) { Text("Ricordamelo tra ${r.snoozeMinutes} minuti", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Palette.Ink) }
+                    ) { Text(androidx.compose.ui.res.pluralStringResource(R.plurals.reminder_snooze_long, r.snoozeMinutes, r.snoozeMinutes), fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Palette.Ink) }
                 }
             }
         }

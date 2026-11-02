@@ -1,5 +1,6 @@
 package app.semplicephone.launch
 
+import app.semplicephone.R
 import android.Manifest
 import android.app.NotificationManager
 import android.content.Context
@@ -25,44 +26,45 @@ object Permissions {
     /** Accessi speciali che non sono permessi runtime: si concedono da una pagina di sistema. */
     data class Special(val key: String, val label: String, val why: String, val settingsAction: String)
 
-    fun required(cfg: LauncherConfig): List<Need> {
+    fun required(context: Context, cfg: LauncherConfig): List<Need> {
+        fun s(id: Int, vararg a: Any) = context.getString(id, *a)
         val tiles = cfg.pages.flatMap { it.tiles }
         val out = linkedMapOf<String, String>()
-        if (tiles.any { it.type == TileType.CALL }) out[Manifest.permission.CALL_PHONE] = "chiamare direttamente dai tile"
+        if (tiles.any { it.type == TileType.CALL }) out[Manifest.permission.CALL_PHONE] = s(R.string.perm_call_tiles)
         if (tiles.any { it.type == TileType.WA_VIDEO || it.icon.kind == IconKind.PHOTO ||
                 ((it.type == TileType.CALL || it.type == TileType.SMS) && it.icon.kind == IconKind.AUTO) }
-        ) out[Manifest.permission.READ_CONTACTS] = "foto dei contatti e videochiamate WhatsApp"
+        ) out[Manifest.permission.READ_CONTACTS] = s(R.string.perm_contacts)
         if (tiles.any { it.type == TileType.SOS }) {
-            out.putIfAbsent(Manifest.permission.CALL_PHONE, "chiamata SOS")
-            if (BuildConfig.SEND_SMS) out[Manifest.permission.SEND_SMS] = "SMS di emergenza"
-            out[Manifest.permission.ACCESS_FINE_LOCATION] = "posizione nel messaggio di emergenza"
-            out[Manifest.permission.ACCESS_COARSE_LOCATION] = "posizione nel messaggio di emergenza"
+            out.putIfAbsent(Manifest.permission.CALL_PHONE, s(R.string.perm_sos_call))
+            if (BuildConfig.SEND_SMS) out[Manifest.permission.SEND_SMS] = s(R.string.perm_sos_sms)
+            out[Manifest.permission.ACCESS_FINE_LOCATION] = s(R.string.perm_sos_location)
+            out[Manifest.permission.ACCESS_COARSE_LOCATION] = s(R.string.perm_sos_location)
         }
         if (BuildConfig.SEND_SMS && cfg.phone.batteryAlertPercent > 0 && cfg.sos.numbers.isNotEmpty()) {
-            out.putIfAbsent(Manifest.permission.SEND_SMS, "SMS ai familiari con batteria scarica")
+            out.putIfAbsent(Manifest.permission.SEND_SMS, s(R.string.perm_battery_sms))
         }
-        if (cfg.phone.smsUpdateCommand && BuildConfig.FULL) out[Manifest.permission.RECEIVE_SMS] = "comando SMS «#AGGIORNA» dai familiari"
+        if (cfg.phone.smsUpdateCommand && BuildConfig.FULL) out[Manifest.permission.RECEIVE_SMS] = s(R.string.perm_sms_command, s(R.string.sms_keyword))
         if (cfg.reminders.isNotEmpty() && Build.VERSION.SDK_INT >= 33) {
-            out[Manifest.permission.POST_NOTIFICATIONS] = "promemoria farmaci"
+            out[Manifest.permission.POST_NOTIFICATIONS] = s(R.string.perm_reminders)
         }
         return out.map { (p, w) -> Need(p, w) }
     }
 
     fun missing(context: Context, cfg: LauncherConfig): List<Need> =
-        required(cfg).filter { !granted(context, it.permission) }
+        required(context, cfg).filter { !granted(context, it.permission) }
 
-    fun requiredSpecial(cfg: LauncherConfig): List<Special> = buildList {
+    fun requiredSpecial(context: Context, cfg: LauncherConfig): List<Special> = buildList {
         if (cfg.phone.badges && BuildConfig.FULL) add(
-            Special("badges", "Accesso alle notifiche", "pallino con chiamate perse e messaggi sui riquadri",
+            Special("badges", context.getString(R.string.special_badges), context.getString(R.string.special_badges_why),
                 Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS),
         )
         if (cfg.phone.ringerLock) add(
-            Special("dnd", "Accesso a «Non disturbare»", "togliere il silenzioso se viene attivato per errore",
+            Special("dnd", context.getString(R.string.special_dnd), context.getString(R.string.special_dnd_why),
                 Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS),
         )
     }
 
-    fun missingSpecial(context: Context, cfg: LauncherConfig): List<Special> = requiredSpecial(cfg).filter {
+    fun missingSpecial(context: Context, cfg: LauncherConfig): List<Special> = requiredSpecial(context, cfg).filter {
         when (it.key) {
             "badges" -> !Badges.isEnabled(context)
             "dnd" -> !context.getSystemService(NotificationManager::class.java).isNotificationPolicyAccessGranted

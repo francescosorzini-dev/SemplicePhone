@@ -1,5 +1,6 @@
 package app.semplicephone.remote
 
+import app.semplicephone.R
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
@@ -73,6 +74,10 @@ class RemoteSettings(context: Context) {
     var lastResult: String
         get() = prefs.getString("last_result", "").orEmpty()
         set(v) = prefs.edit().putString("last_result", v).apply()
+    /** Esito dell'ultimo controllo: configurazione applicata o già aggiornata. */
+    var lastOk: Boolean
+        get() = prefs.getBoolean("last_ok", false)
+        set(v) = prefs.edit().putBoolean("last_ok", v).apply()
     var reportOffset: Long
         get() = prefs.getLong("report_offset", 0)
         set(v) = prefs.edit().putLong("report_offset", v).apply()
@@ -129,25 +134,31 @@ class RemoteClient(private val context: Context) {
      * Scarica, verifica e applica. Restituisce un esito leggibile, salvato anche in lastResult.
      * [force]: controllo manuale («Aggiorna ora», SMS) che ignora l'ETag e invia sempre il report.
      */
-    suspend fun sync(force: Boolean = false): String = withContext(Dispatchers.IO) {
+    /** Esito leggibile (nella lingua del telefono); [ok] = applicata o già aggiornata, [error] = da ritentare. */
+    data class SyncResult(val text: String, val ok: Boolean = false, val error: Boolean = false)
+
+    private fun r(id: Int, vararg args: Any, ok: Boolean = false) = SyncResult(context.getString(id, *args), ok)
+
+    suspend fun sync(force: Boolean = false): SyncResult = withContext(Dispatchers.IO) {
         val result = try {
             syncInternal(force)
         } catch (e: Exception) {
             Log.w(TAG, "sync fallita", e)
-            "Errore: ${e.javaClass.simpleName}${e.message?.let { " – $it" } ?: ""}"
+            SyncResult(context.getString(R.string.remote_r_error, e.javaClass.simpleName + (e.message?.let { " – $it" } ?: "")), error = true)
         }
         settings.lastCheck = System.currentTimeMillis()
-        settings.lastResult = result
+        settings.lastResult = result.text
+        settings.lastOk = result.ok
         runCatching { report(force) }.onFailure { Log.w(TAG, "report fallito", it) }
         runCatching { RemoteEvents.flush(context) }
         result
     }
 
-    private suspend fun syncInternal(force: Boolean): String {
-        if (!settings.enabled) return "Disattivata"
+    private suspend fun syncInternal(force: Boolean): SyncResult {
+        if (!settings.enabled) return r(R.string.remote_r_disabled)
         val url = settings.resolvedUrl()
-        if (!url.startsWith("https://")) return "Indirizzo non valido (serve https)"
-        if (settings.publicKey.isBlank()) return "Chiave pubblica mancante"
+        if (!url.startsWith("https://")) return r(R.string.remote_r_bad_url)
+        if (settings.publicKey.isBlank()) return r(R.string.remote_r_no_key)
 
         val conn = (URL(url).openConnection() as HttpURLConnection).apply {
             connectTimeout = 15_000
@@ -158,37 +169,37 @@ class RemoteClient(private val context: Context) {
             if (!force && settings.etag.isNotBlank()) setRequestProperty("If-None-Match", settings.etag)
         }
         val code = conn.responseCode
-        if (code == 304) return "Già aggiornata (versione ${settings.lastSeq})"
-        if (code == 404) return "Nessuna configurazione pubblicata per ${settings.deviceId}"
-        if (code != 200) return "Server: HTTP $code"
+        if (code == 304) return r(R.string.remote_r_up_to_date, settings.lastSeq, ok = true)
+        if (code == 404) return r(R.string.remote_r_not_found, settings.deviceId)
+        if (code != 200) return SyncResult(context.getString(R.string.remote_r_http, code), error = code >= 500)
         val body = conn.inputStream.use { readLimited(it, MAX_BYTES) }
         val etag = conn.getHeaderField("ETag").orEmpty()
 
         val env = json.decodeFromString(Envelope.serializer(), body)
         val payloadBytes = Base64.decode(env.payload, Base64.DEFAULT)
-        if (!Signature.verify(settings.publicKey, payloadBytes, env.sig)) return "Firma NON valida: configurazione rifiutata"
+        if (!Signature.verify(settings.publicKey, payloadBytes, env.sig)) return r(R.string.remote_r_bad_sig)
 
         val p = json.decodeFromString(RemotePayload.serializer(), payloadBytes.toString(Charsets.UTF_8))
-        if (p.device != "*" && p.device != settings.deviceId) return "Configurazione destinata a un altro dispositivo"
+        if (p.device != "*" && p.device != settings.deviceId) return r(R.string.remote_r_other_device)
         if (p.seq <= settings.lastSeq) {
             settings.etag = etag
-            return "Già aggiornata (versione ${settings.lastSeq})"
+            return r(R.string.remote_r_up_to_date, settings.lastSeq, ok = true)
         }
 
         p.config?.let { cfg ->
             val problems = ConfigRepository.validate(cfg)
-            if (problems.isNotEmpty()) return "Configurazione non valida: ${problems.first()}"
+            if (problems.isNotEmpty()) return r(R.string.remote_r_invalid, problems.first())
             ConfigRepository.get(context).save(cfg)
             ReminderScheduler(context).scheduleAll(cfg)
             app.semplicephone.admin.Protection(context)
-                .grantRuntimePermissions(app.semplicephone.launch.Permissions.required(cfg).map { n -> n.permission })
+                .grantRuntimePermissions(app.semplicephone.launch.Permissions.required(context, cfg).map { n -> n.permission })
             app.semplicephone.launch.ShortcutPins.sync(context, cfg)
             app.semplicephone.phone.PhoneGuard.checkAll(context)
         }
         p.pinHash?.let { PinStore(context).setEncoded(it) }
         settings.lastSeq = p.seq
         settings.etag = etag
-        return "Applicata versione ${p.seq}"
+        return r(R.string.remote_r_applied, p.seq, ok = true)
     }
 
     /**
@@ -328,6 +339,6 @@ class RemoteWorker(context: Context, params: WorkerParameters) : CoroutineWorker
             prefs.edit().putLong("last_auto", System.currentTimeMillis()).apply()
             runCatching { app.semplicephone.update.Updater(applicationContext).autoUpdateIfSilent() }
         }
-        return if (res.startsWith("Errore")) Result.retry() else Result.success()
+        return if (res.error) Result.retry() else Result.success()
     }
 }

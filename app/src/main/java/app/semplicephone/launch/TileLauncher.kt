@@ -1,5 +1,6 @@
 package app.semplicephone.launch
 
+import app.semplicephone.R
 import android.Manifest
 import android.content.ActivityNotFoundException
 import android.content.Context
@@ -44,7 +45,7 @@ class TileLauncher(private val context: Context, val contacts: Contacts, private
                 )
                 TileType.URL -> start(Intent(Intent.ACTION_VIEW, Uri.parse(tile.target)))
                 TileType.SHORTCUT -> startShortcut(tile)
-                TileType.SOS -> if (sos.numbers.isEmpty()) toast("Nessun numero SOS configurato") else onSos()
+                TileType.SOS -> if (sos.numbers.isEmpty()) toast(context.getString(R.string.launch_no_sos_numbers)) else onSos()
                 TileType.WA_VIDEO -> whatsAppVideo(tile)
                 TileType.CLOCK -> Unit
             }
@@ -58,21 +59,21 @@ class TileLauncher(private val context: Context, val contacts: Contacts, private
 
     /** Chiamata diretta se c'è CALL_PHONE, altrimenti dialer col numero già composto. */
     fun call(number: String) {
-        if (number.isBlank()) return toast("Numero non impostato")
+        if (number.isBlank()) return toast(context.getString(R.string.launch_no_number))
         val uri = Uri.parse("tel:${Uri.encode(number)}")
         val action = if (Permissions.granted(context, Manifest.permission.CALL_PHONE)) Intent.ACTION_CALL else Intent.ACTION_DIAL
         start(Intent(action, uri))
     }
 
     private fun whatsAppVideo(tile: Tile) {
-        if (tile.target.isBlank()) return toast("Numero non impostato")
-        if (pm.getLaunchIntentForPackage(Contacts.WHATSAPP) == null) return toast("WhatsApp non è installato")
+        if (tile.target.isBlank()) return toast(context.getString(R.string.launch_no_number))
+        if (pm.getLaunchIntentForPackage(Contacts.WHATSAPP) == null) return toast(context.getString(R.string.launch_no_whatsapp))
         val intent = contacts.whatsAppVideoIntent(tile.target)
         if (intent != null) {
             start(intent)
         } else {
             // Contatto non in rubrica o senza WhatsApp: apre almeno la chat.
-            toast("Apro la chat WhatsApp")
+            toast(context.getString(R.string.launch_whatsapp_chat))
             start(Intent(Intent.ACTION_VIEW, Uri.parse("https://wa.me/${tile.target.filter(Char::isDigit)}")).setPackage(Contacts.WHATSAPP))
         }
     }
@@ -120,7 +121,7 @@ class TileLauncher(private val context: Context, val contacts: Contacts, private
             ?: return notAvailable(tile)
         // Consentito solo se SemplicePhone è il launcher predefinito.
         val la = context.getSystemService(LauncherApps::class.java)
-        if (!la.hasShortcutHostPermission()) return toast("Imposta SemplicePhone come Home")
+        if (!la.hasShortcutHostPermission()) return toast(context.getString(R.string.launch_set_home))
         la.startShortcut(pkg, id, null, null, Process.myUserHandle())
     }
 
@@ -128,7 +129,7 @@ class TileLauncher(private val context: Context, val contacts: Contacts, private
         context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
     }
 
-    private fun notAvailable(tile: Tile) = toast("${tile.label.ifBlank { "Funzione" }} non disponibile")
+    private fun notAvailable(tile: Tile) = toast(context.getString(R.string.launch_unavailable, tile.label.ifBlank { context.getString(R.string.label_feature) }))
 
     private fun toast(msg: String) = Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
 

@@ -1,5 +1,7 @@
 package app.semplicephone.ui
 
+import app.semplicephone.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -118,8 +120,9 @@ private fun PageGrid(
 
 @Composable
 private fun PageDots(count: Int, current: Int) {
+    val desc = stringResource(R.string.home_page_of, current + 1, count)
     Row(
-        Modifier.fillMaxWidth().semantics { contentDescription = "Pagina ${current + 1} di $count" },
+        Modifier.fillMaxWidth().semantics { contentDescription = desc },
         horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
     ) {
         repeat(count) { i ->
@@ -147,7 +150,7 @@ private fun BatteryBanner(level: Int) {
             .semantics(mergeDescendants = true) {},
     ) {
         Text(
-            "Batteria quasi scarica ($level%): metti il telefono in carica",
+            stringResource(R.string.home_battery_low, level),
             color = Color.White,
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
@@ -166,7 +169,7 @@ private fun SetHomeBanner(onClick: () -> Unit) {
             .padding(16.dp),
     ) {
         Text(
-            "Tocca qui per usare SemplicePhone come schermata Home",
+            stringResource(R.string.home_set_default),
             color = Color.White,
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,

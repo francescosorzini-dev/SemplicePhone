@@ -8,13 +8,15 @@ import app.semplicephone.data.ConfigRepository
 
 /** Regola pura (testabile): «#AGGIORNA» in testa al messaggio, mittente tra i numeri SOS. */
 object SmsCommand {
-    const val KEYWORD = "#AGGIORNA"
+    /** Accettate tutte, qualunque sia la lingua del telefono: chi scrive può non saperla. */
+    val KEYWORDS = listOf("#AGGIORNA", "#UPDATE", "#AKTUALISIEREN", "#ACTUALISER", "#ACTUALIZAR")
 
     /** Confronto sulle ultime 9 cifre: «+39 333…» e «333…» sono lo stesso numero. */
     fun normalize(number: String): String = number.filter(Char::isDigit).takeLast(9)
 
     fun matches(body: String, sender: String, allowed: List<String>): Boolean {
-        if (!body.trim().uppercase().startsWith(KEYWORD)) return false
+        val text = body.trim().uppercase()
+        if (KEYWORDS.none { text.startsWith(it) }) return false
         val s = normalize(sender)
         if (s.length < 6) return false
         return allowed.any { normalize(it) == s }

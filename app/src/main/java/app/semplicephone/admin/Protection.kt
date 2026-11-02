@@ -1,5 +1,6 @@
 package app.semplicephone.admin
 
+import app.semplicephone.R
 import android.app.admin.DevicePolicyManager
 import android.content.ComponentName
 import android.content.Context
@@ -14,14 +15,14 @@ import app.semplicephone.MainActivity
  */
 class Protection(private val context: Context) {
 
-    enum class Item(val label: String, val detail: String) {
-        PIN_HOME("Fissa SemplicePhone come Home", "Il tasto Home non chiede più quale launcher usare"),
-        BLOCK_UNINSTALL_SELF("Impedisci di disinstallare SemplicePhone", ""),
-        STATUS_BAR("Blocca la tendina delle notifiche", "La barra resta visibile (ora, batteria) ma non si apre"),
-        NO_UNINSTALL_APPS("Impedisci di disinstallare app", ""),
-        NO_INSTALL_APPS("Impedisci di installare app", "Anche dal Play Store"),
-        NO_CONFIG_WIFI("Blocca modifiche Wi-Fi", ""),
-        NO_FACTORY_RESET("Impedisci il ripristino dati di fabbrica", "Dalle impostazioni di sistema"),
+    enum class Item(val label: Int, val detail: Int = 0) {
+        PIN_HOME(R.string.prot_pin_home, R.string.prot_pin_home_detail),
+        BLOCK_UNINSTALL_SELF(R.string.prot_block_uninstall_self),
+        STATUS_BAR(R.string.prot_status_bar, R.string.prot_status_bar_detail),
+        NO_UNINSTALL_APPS(R.string.prot_no_uninstall),
+        NO_INSTALL_APPS(R.string.prot_no_install, R.string.prot_no_install_detail),
+        NO_CONFIG_WIFI(R.string.prot_no_wifi),
+        NO_FACTORY_RESET(R.string.prot_no_reset, R.string.prot_no_reset_detail),
     }
 
     private val dpm = context.getSystemService(DevicePolicyManager::class.java)

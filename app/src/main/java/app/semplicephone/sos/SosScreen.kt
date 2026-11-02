@@ -1,5 +1,7 @@
 package app.semplicephone.sos
 
+import app.semplicephone.R
+import androidx.compose.ui.res.stringResource
 import android.location.Location
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -69,13 +71,13 @@ fun SosScreen(cfg: SosConfig, launcher: TileLauncher, contactNames: (String) -> 
                 delay(1000)
                 remaining--
             }
-            status = "Invio in corso…"
+            status = context.getString(R.string.sos_sending)
             // Al massimo 3 s oltre il conto alla rovescia per il fix, poi l'ultima posizione nota.
             val location: Location? = withContext(Dispatchers.Default) {
                 kotlinx.coroutines.withTimeoutOrNull(3000) { fix.await() } ?: fetcher.lastKnown()
             }
             fix.cancel()
-            val smsText = SosSms.text(cfg, location)
+            val smsText = SosSms.text(context, cfg, location)
             val sent = withContext(Dispatchers.IO) { SosSms.send(context, cfg.numbers, smsText) }
             app.semplicephone.remote.RemoteEvents.enqueue(
                 context, "sos", smsText,
@@ -83,12 +85,12 @@ fun SosScreen(cfg: SosConfig, launcher: TileLauncher, contactNames: (String) -> 
             )
             cfg.numbers.firstOrNull()?.let { launcher.call(it) }
             if (sent > 0) {
-                status = "SMS inviato a $sent ${if (sent == 1) "persona" else "persone"}"
+                status = context.resources.getQuantityString(R.plurals.sos_sms_sent, sent, sent)
                 delay(4000)
                 done()
             } else {
                 // La chiamata è partita; l'SMS con la posizione lo si manda con un tocco dall'app Messaggi.
-                status = "Chiamata avviata. Manda anche la posizione:"
+                status = context.getString(R.string.sos_call_started)
                 manualSms = smsText
             }
         }
@@ -105,18 +107,20 @@ fun SosScreen(cfg: SosConfig, launcher: TileLauncher, contactNames: (String) -> 
         verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {
         Spacer(Modifier.height(24.dp))
-        Text("Chiamata di emergenza", color = Color.White, fontSize = 34.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+        Text(stringResource(R.string.sos_title), color = Color.White, fontSize = 34.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
         if (status == null) {
-            Text("parte tra", color = Color.White, fontSize = 24.sp)
+            Text(stringResource(R.string.sos_starts_in), color = Color.White, fontSize = 24.sp)
             Box(
                 Modifier.size(220.dp).border(10.dp, Color.White, CircleShape).semantics { liveRegion = LiveRegionMode.Assertive },
                 contentAlignment = Alignment.Center,
             ) { Text("$remaining", color = Color.White, fontSize = 130.sp, fontWeight = FontWeight.Bold) }
-            Text("Chiamo ${contactNames(first)}", color = Color.White, fontSize = 22.sp, textAlign = TextAlign.Center)
+            Text(stringResource(R.string.sos_calling, contactNames(first)), color = Color.White, fontSize = 22.sp, textAlign = TextAlign.Center)
             if (cfg.numbers.isNotEmpty()) {
                 Text(
-                    (if (app.semplicephone.BuildConfig.SEND_SMS) "Invio SMS con la posizione a " else "Poi un tocco manda la posizione a ") +
+                    stringResource(
+                        if (app.semplicephone.BuildConfig.SEND_SMS) R.string.sos_will_sms else R.string.sos_will_compose,
                         cfg.numbers.joinToString(", ") { contactNames(it) },
+                    ),
                     color = Color.White, fontSize = 20.sp, textAlign = TextAlign.Center,
                 )
             }
@@ -130,12 +134,12 @@ fun SosScreen(cfg: SosConfig, launcher: TileLauncher, contactNames: (String) -> 
                 colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Palette.Sos),
                 shape = RoundedCornerShape(24.dp),
                 modifier = Modifier.fillMaxWidth().height(110.dp),
-            ) { Text("MANDA LA POSIZIONE", fontSize = 30.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center) }
+            ) { Text(stringResource(R.string.sos_send_location), fontSize = 30.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center) }
             androidx.compose.material3.OutlinedButton(
                 onClick = onDone,
                 shape = RoundedCornerShape(20.dp),
                 modifier = Modifier.fillMaxWidth().height(72.dp),
-            ) { Text("Chiudi", fontSize = 24.sp, color = Color.White) }
+            ) { Text(stringResource(R.string.action_close), fontSize = 24.sp, color = Color.White) }
         }
         if (status == null) {
             Button(
@@ -143,7 +147,7 @@ fun SosScreen(cfg: SosConfig, launcher: TileLauncher, contactNames: (String) -> 
                 colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Palette.Sos),
                 shape = RoundedCornerShape(24.dp),
                 modifier = Modifier.fillMaxWidth().height(110.dp),
-            ) { Text("ANNULLA", fontSize = 40.sp, fontWeight = FontWeight.Bold) }
+            ) { Text(stringResource(R.string.sos_cancel), fontSize = 40.sp, fontWeight = FontWeight.Bold) }
         }
     }
 }

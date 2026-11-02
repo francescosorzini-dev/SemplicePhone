@@ -1,5 +1,6 @@
 package app.semplicephone.data
 
+import app.semplicephone.R
 import android.content.Context
 import android.util.Log
 import app.semplicephone.model.LauncherConfig
@@ -28,10 +29,10 @@ class ConfigRepository(private val context: Context) {
 
     suspend fun load() = withContext(Dispatchers.IO) {
         val local = file.takeIf { it.exists() }?.let { parseOrNull(it.readText(), "locale") }
-        val cfg = local ?: parseOrNull(
-            context.assets.open(DEFAULT_ASSET).bufferedReader().use { it.readText() },
-            "default",
-        ) ?: LauncherConfig()
+        val cfg = local ?: localizeDefault(
+            context,
+            parseOrNull(context.assets.open(DEFAULT_ASSET).bufferedReader().use { it.readText() }, "default") ?: LauncherConfig(),
+        )
         _config.value = cfg
     }
 
@@ -47,8 +48,10 @@ class ConfigRepository(private val context: Context) {
 
     /** Config predefinita degli asset (per "Ripristina predefiniti" nell'editor). */
     suspend fun defaultConfig(): LauncherConfig = withContext(Dispatchers.IO) {
-        parseOrNull(context.assets.open(DEFAULT_ASSET).bufferedReader().use { it.readText() }, "default")
-            ?: LauncherConfig()
+        localizeDefault(
+            context,
+            parseOrNull(context.assets.open(DEFAULT_ASSET).bufferedReader().use { it.readText() }, "default") ?: LauncherConfig(),
+        )
     }
 
     private fun parseOrNull(text: String, origin: String): LauncherConfig? = parse(text, origin)
@@ -88,35 +91,55 @@ class ConfigRepository(private val context: Context) {
         fun readCurrent(context: Context): LauncherConfig {
             val f = File(context.filesDir, CONFIG_FILE)
             return f.takeIf { it.exists() }?.let { parse(it.readText(), "locale") }
-                ?: parse(context.assets.open(DEFAULT_ASSET).bufferedReader().use { it.readText() }, "default")
-                ?: LauncherConfig()
+                ?: localizeDefault(
+                    context,
+                    parse(context.assets.open(DEFAULT_ASSET).bufferedReader().use { it.readText() }, "default") ?: LauncherConfig(),
+                )
+        }
+
+        /** Config predefinita con etichette e messaggio SOS nella lingua del telefono. */
+        fun localizeDefault(context: Context, cfg: LauncherConfig): LauncherConfig {
+            val labels = mapOf(
+                "dialer" to R.string.label_phone, "sms" to R.string.label_messages, "camera" to R.string.label_camera,
+                "gallery" to R.string.label_photos, "browser" to R.string.label_internet,
+            )
+            return cfg.copy(
+                pages = cfg.pages.map { p -> p.copy(tiles = p.tiles.map { t -> labels[t.id]?.let { t.copy(label = context.getString(it)) } ?: t }) },
+                sos = cfg.sos.copy(message = context.getString(R.string.default_sos_message)),
+            )
+        }
+
+        /** Conflitto di un tile con la griglia o con un altro tile (vedi [conflict]). */
+        sealed interface Conflict {
+            data class OutOfGrid(val cols: Int, val rows: Int) : Conflict
+            data class Overlap(val other: Tile) : Conflict
         }
 
         /** Controlli strutturali: tile dentro la griglia, nessuna sovrapposizione, id unici. */
         fun validate(cfg: LauncherConfig): List<String> {
             val out = mutableListOf<String>()
-            if (cfg.pages.isEmpty()) out += "nessuna pagina"
+            if (cfg.pages.isEmpty()) out += "no pages"
             val ids = cfg.pages.flatMap { p -> p.tiles.map(Tile::id) }
-            ids.groupingBy { it }.eachCount().filter { it.value > 1 }.keys.forEach { out += "id duplicato $it" }
+            ids.groupingBy { it }.eachCount().filter { it.value > 1 }.keys.forEach { out += "duplicate id $it" }
             cfg.pages.forEachIndexed { pi, page -> out += validatePage(pi, page) }
             cfg.reminders.forEach { r ->
-                if (ReminderTime.parse(r.time) == null) out += "promemoria «${r.title}»: orario non valido"
+                if (ReminderTime.parse(r.time) == null) out += "reminder \"${r.title}\": invalid time"
             }
-            cfg.reminders.groupingBy { it.id }.eachCount().filter { it.value > 1 }.keys.forEach { out += "promemoria duplicato $it" }
+            cfg.reminders.groupingBy { it.id }.eachCount().filter { it.value > 1 }.keys.forEach { out += "duplicate reminder $it" }
             return out
         }
 
         /** Problema di [tile] dentro [page] (fuori griglia o sovrapposto ad altri), null se va bene. */
-        fun conflict(page: Page, tile: Tile): String? {
+        fun conflict(page: Page, tile: Tile): Conflict? {
             if (tile.col < 0 || tile.row < 0 || tile.col + tile.w > page.cols || tile.row + tile.h > page.rows) {
-                return "Il tile esce dalla griglia (${page.cols} colonne × ${page.rows} righe)"
+                return Conflict.OutOfGrid(page.cols, page.rows)
             }
             val other = page.tiles.firstOrNull { o ->
                 o.id != tile.id &&
                     tile.col < o.col + o.w && o.col < tile.col + tile.w &&
                     tile.row < o.row + o.h && o.row < tile.row + tile.h
             }
-            return other?.let { "Si sovrappone a «${it.label.ifBlank { it.type.name.lowercase() }}»" }
+            return other?.let { Conflict.Overlap(it) }
         }
 
         /** Prima cella libera di [page], o null se piena. */
@@ -130,18 +153,18 @@ class ConfigRepository(private val context: Context) {
 
         private fun validatePage(pi: Int, page: Page): List<String> {
             val out = mutableListOf<String>()
-            if (page.cols !in 1..4 || page.rows !in 1..8) out += "pagina $pi: griglia ${page.cols}x${page.rows} fuori limiti"
+            if (page.cols !in 1..4 || page.rows !in 1..8) out += "page ${pi + 1}: grid ${page.cols}x${page.rows} out of range"
             val occupied = Array(page.rows.coerceAtLeast(0)) { arrayOfNulls<String>(page.cols.coerceAtLeast(0)) }
             for (t in page.tiles) {
                 if (t.w < 1 || t.h < 1 || t.col < 0 || t.row < 0 ||
                     t.col + t.w > page.cols || t.row + t.h > page.rows
                 ) {
-                    out += "pagina $pi: tile ${t.id} fuori griglia"
+                    out += "page ${pi + 1}: tile ${t.id} outside the grid"
                     continue
                 }
                 for (r in t.row until t.row + t.h) for (c in t.col until t.col + t.w) {
                     val prev = occupied[r][c]
-                    if (prev != null) out += "pagina $pi: ${t.id} sovrapposto a $prev"
+                    if (prev != null) out += "page ${pi + 1}: ${t.id} overlaps $prev"
                     occupied[r][c] = t.id
                 }
             }

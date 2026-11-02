@@ -1,5 +1,7 @@
 package app.semplicephone.ui.settings
 
+import app.semplicephone.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -56,7 +58,7 @@ fun PinScreen(store: PinStore, mode: PinMode, onSuccess: () -> Unit, onCancel: (
     val scope = rememberCoroutineScope()
     var digits by remember { mutableStateOf("") }
     var firstEntry by remember { mutableStateOf<String?>(null) }
-    var message by remember { mutableStateOf<String?>(null) }
+    var message by remember { mutableStateOf<Int?>(null) }
     var busy by remember { mutableStateOf(false) }
     var lockMs by remember { mutableLongStateOf(store.lockRemainingMs()) }
 
@@ -68,15 +70,15 @@ fun PinScreen(store: PinStore, mode: PinMode, onSuccess: () -> Unit, onCancel: (
     }
 
     val title = when {
-        mode == PinMode.ENTER -> "Impostazioni"
-        firstEntry == null -> "Scegli un PIN"
-        else -> "Ripeti il PIN"
+        mode == PinMode.ENTER -> stringResource(R.string.pin_settings)
+        firstEntry == null -> stringResource(R.string.pin_choose)
+        else -> stringResource(R.string.pin_repeat)
     }
     val subtitle = when {
-        lockMs > 0 -> "Troppi tentativi. Riprova tra ${(lockMs + 999) / 1000} s"
-        message != null -> message!!
-        mode == PinMode.ENTER -> "Riservato a familiare o tecnico"
-        else -> "Da ${PinStore.PIN_LENGTH.first} a ${PinStore.PIN_LENGTH.last} cifre"
+        lockMs > 0 -> stringResource(R.string.pin_locked, ((lockMs + 999) / 1000).toInt())
+        message != null -> stringResource(message!!)
+        mode == PinMode.ENTER -> stringResource(R.string.pin_reserved)
+        else -> stringResource(R.string.pin_length, PinStore.PIN_LENGTH.first, PinStore.PIN_LENGTH.last)
     }
 
     fun submit() {
@@ -87,7 +89,7 @@ fun PinScreen(store: PinStore, mode: PinMode, onSuccess: () -> Unit, onCancel: (
                 PinMode.ENTER -> {
                     if (store.check(digits)) onSuccess()
                     else {
-                        message = "PIN errato"
+                        message = R.string.pin_wrong
                         lockMs = store.lockRemainingMs()
                     }
                 }
@@ -101,7 +103,7 @@ fun PinScreen(store: PinStore, mode: PinMode, onSuccess: () -> Unit, onCancel: (
                         onSuccess()
                     } else {
                         firstEntry = null
-                        message = "I due PIN non coincidono, ricomincia"
+                        message = R.string.pin_mismatch
                     }
                 }
             }
@@ -123,11 +125,13 @@ fun PinScreen(store: PinStore, mode: PinMode, onSuccess: () -> Unit, onCancel: (
         Text(title, fontSize = 28.sp, fontWeight = FontWeight.Bold, color = Palette.Ink)
         Text(subtitle, fontSize = 18.sp, color = Color(0xFF4A4A4A), textAlign = TextAlign.Center)
 
+        val digitsDesc = stringResource(R.string.pin_digits_entered, digits.length)
+        val deleteDesc = stringResource(R.string.pin_delete)
         Row(
             horizontalArrangement = Arrangement.spacedBy(14.dp),
             modifier = Modifier
                 .padding(vertical = 8.dp)
-                .semantics { contentDescription = "${digits.length} cifre inserite" },
+                .semantics { contentDescription = digitsDesc },
         ) {
             val shown = maxOf(PinStore.PIN_LENGTH.first, digits.length)
             repeat(shown) { i ->
@@ -151,7 +155,7 @@ fun PinScreen(store: PinStore, mode: PinMode, onSuccess: () -> Unit, onCancel: (
                         "⌫" -> TextButton(
                             onClick = { digits = digits.dropLast(1) },
                             enabled = enabled,
-                            modifier = mod.semantics { contentDescription = "Cancella" },
+                            modifier = mod.semantics { contentDescription = deleteDesc },
                         ) { Text("⌫", fontSize = 28.sp, color = Palette.Ink) }
                         else -> OutlinedButton(
                             onClick = { if (digits.length < PinStore.PIN_LENGTH.last) digits += k },
@@ -170,11 +174,11 @@ fun PinScreen(store: PinStore, mode: PinMode, onSuccess: () -> Unit, onCancel: (
             colors = ButtonDefaults.buttonColors(containerColor = Palette.Ink),
             shape = RoundedCornerShape(16.dp),
             modifier = Modifier.fillMaxWidth().height(64.dp),
-        ) { Text("Conferma", fontSize = 22.sp, fontWeight = FontWeight.Bold) }
+        ) { Text(stringResource(R.string.action_confirm), fontSize = 22.sp, fontWeight = FontWeight.Bold) }
 
         Spacer(Modifier.weight(1f))
         TextButton(onClick = onCancel, modifier = Modifier.height(56.dp)) {
-            Text("Esci", fontSize = 20.sp, color = Palette.Ink)
+            Text(stringResource(R.string.pin_exit), fontSize = 20.sp, color = Palette.Ink)
         }
     }
 }

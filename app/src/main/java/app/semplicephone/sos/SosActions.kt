@@ -1,5 +1,6 @@
 package app.semplicephone.sos
 
+import app.semplicephone.R
 import android.Manifest
 import android.content.Context
 import android.location.Location
@@ -66,13 +67,14 @@ class LocationFetcher(private val context: Context) {
 /** Invio degli SMS SOS. Restituisce quanti numeri sono stati raggiunti dall'invio. */
 object SosSms {
 
-    fun text(cfg: SosConfig, location: Location?): String {
-        val pos = if (location == null) "Posizione non disponibile."
+    fun text(context: Context, cfg: SosConfig, location: Location?): String {
+        val pos = if (location == null) context.getString(R.string.sms_no_location)
         else {
-            val time = DateTimeFormatter.ofPattern("HH:mm", Locale.ITALIAN)
+            val time = DateTimeFormatter.ofPattern("HH:mm", Locale.ROOT)
                 .format(Instant.ofEpochMilli(location.time).atZone(ZoneId.systemDefault()))
-            val acc = if (location.hasAccuracy()) " (±${location.accuracy.toInt()} m, ore $time)" else " (ore $time)"
-            "Posizione: https://maps.google.com/?q=%.6f,%.6f".format(Locale.ROOT, location.latitude, location.longitude) + acc
+            val acc = if (location.hasAccuracy()) context.getString(R.string.sms_location_acc, location.accuracy.toInt(), time)
+                else context.getString(R.string.sms_location_time, time)
+            context.getString(R.string.sms_location, "https://maps.google.com/?q=%.6f,%.6f".format(Locale.ROOT, location.latitude, location.longitude)) + acc
         }
         return "SOS - ${cfg.message.trim()}\n$pos"
     }

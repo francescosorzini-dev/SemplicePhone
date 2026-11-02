@@ -22,14 +22,14 @@ class PinStore(context: Context) {
     fun isSet(): Boolean = prefs.getString(KEY_HASH, null) != null
 
     suspend fun set(pin: String) {
-        require(pin.length in PIN_LENGTH && pin.all(Char::isDigit)) { "PIN non valido" }
+        require(pin.length in PIN_LENGTH && pin.all(Char::isDigit)) { "invalid PIN" }
         val encoded = encode(pin)
         prefs.edit().putString(KEY_HASH, encoded).putInt(KEY_FAILS, 0).putLong(KEY_LOCK_UNTIL, 0).apply()
     }
 
     /** Usato da M6: imposta un hash già calcolato altrove, dopo averne verificato il formato. */
     fun setEncoded(encoded: String) {
-        require(parse(encoded) != null) { "hash PIN non valido" }
+        require(parse(encoded) != null) { "invalid PIN hash" }
         prefs.edit().putString(KEY_HASH, encoded).apply()
     }
 

@@ -1,5 +1,6 @@
 package app.semplicephone.phone
 
+import app.semplicephone.R
 import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
@@ -82,7 +83,7 @@ object PhoneGuard {
         val d = BatteryPolicy.decide(level, charging, cfg.phone.batteryAlertPercent, was)
         if (d.alerted != was) prefs.edit().putBoolean("battery_alerted", d.alerted).apply()
         if (d.sendAlert) {
-            val text = "Il telefono ha la batteria al $level%: andrebbe messo in carica."
+            val text = context.getString(R.string.battery_sms, level)
             if (cfg.sos.numbers.isNotEmpty()) SosSms.send(context, cfg.sos.numbers, text)
             RemoteEvents.enqueue(context, "battery", text, mapOf("level" to level))
         }
