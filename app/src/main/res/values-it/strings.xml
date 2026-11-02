@@ -188,6 +188,10 @@
     <string name="tile_photo_fill_hint">La foto del contatto riempie tutto il riquadro, con il nome sotto.</string>
     <string name="phone_fresh_start">App sempre dall\'inizio</string>
     <string name="phone_fresh_start_detail">Ogni volta che si tocca un riquadro, l\'app si apre dalla schermata iniziale (elenco delle chat, dei messaggi…) e non dall\'ultima pagina rimasta aperta.</string>
+    <string name="tile_open">Apertura dell\'app</string>
+    <string name="open_default">Come impostato nel telefono</string>
+    <string name="open_fresh">Sempre dalla schermata iniziale</string>
+    <string name="open_resume">Riprendi da dove era rimasta</string>
     <string name="color_blue">Blu</string>
     <string name="color_green">Verde</string>
     <string name="color_purple">Viola</string>

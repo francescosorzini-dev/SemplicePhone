@@ -188,6 +188,10 @@
     <string name="tile_photo_fill_hint">La foto del contacto llena todo el mosaico, con el nombre debajo.</string>
     <string name="phone_fresh_start">Apps siempre desde el principio</string>
     <string name="phone_fresh_start_detail">Cada vez que se toca un mosaico, la app se abre en su pantalla inicial (lista de chats, de mensajes…) y no en la última página que quedó abierta.</string>
+    <string name="tile_open">Apertura de la app</string>
+    <string name="open_default">Como en el ajuste del teléfono</string>
+    <string name="open_fresh">Siempre desde la pantalla inicial</string>
+    <string name="open_resume">Seguir donde se quedó</string>
     <string name="color_blue">Azul</string>
     <string name="color_green">Verde</string>
     <string name="color_purple">Morado</string>

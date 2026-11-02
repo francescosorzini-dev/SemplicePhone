@@ -188,6 +188,10 @@
     <string name="tile_photo_fill_hint">La photo du contact remplit toute la tuile, avec le nom en dessous.</string>
     <string name="phone_fresh_start">Applis toujours depuis le début</string>
     <string name="phone_fresh_start_detail">À chaque appui sur une tuile, l\'appli s\'ouvre sur son écran d\'accueil (liste des discussions, des messages…) et non sur la dernière page restée ouverte.</string>
+    <string name="tile_open">Ouverture de l\'appli</string>
+    <string name="open_default">Comme réglé pour le téléphone</string>
+    <string name="open_fresh">Toujours depuis l\'écran d\'accueil</string>
+    <string name="open_resume">Reprendre là où elle était</string>
     <string name="color_blue">Bleu</string>
     <string name="color_green">Vert</string>
     <string name="color_purple">Violet</string>

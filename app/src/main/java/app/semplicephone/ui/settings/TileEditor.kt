@@ -151,6 +151,16 @@ fun TileEditor(
                     OutlinedButton(onClick = { pickApp = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp), shape = RoundedCornerShape(10.dp)) {
                         Text(current, fontSize = 17.sp, color = Palette.Ink)
                     }
+                    val openLabels = mapOf(
+                        app.semplicephone.model.OPEN_DEFAULT to R.string.open_default,
+                        app.semplicephone.model.OPEN_FRESH to R.string.open_fresh,
+                        app.semplicephone.model.OPEN_RESUME to R.string.open_resume,
+                    )
+                    OptionPicker(
+                        stringResource(R.string.tile_open), openLabels.keys.toList(),
+                        t.open.takeIf { it in openLabels } ?: app.semplicephone.model.OPEN_DEFAULT,
+                        { context.getString(openLabels.getValue(it)) },
+                    ) { t = t.copy(open = it) }
                 }
                 TileType.CALL, TileType.WA_VIDEO, TileType.SMS -> {
                     OutlinedButton(

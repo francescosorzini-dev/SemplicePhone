@@ -80,7 +80,16 @@ data class Tile(
     val color: String = "#1F4FA8",
     /** Solo per SMS: testo precompilato. */
     val body: String = "",
+    /**
+     * Solo per APP: «default» segue l'impostazione del telefono (PhoneConfig.freshStart),
+     * «fresh» riparte sempre dalla schermata iniziale, «resume» riprende dall'ultima pagina.
+     */
+    val open: String = OPEN_DEFAULT,
 )
+
+const val OPEN_DEFAULT = "default"
+const val OPEN_FRESH = "fresh"
+const val OPEN_RESUME = "resume"
 
 @Serializable
 enum class TileType {

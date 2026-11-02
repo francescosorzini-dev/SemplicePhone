@@ -313,5 +313,9 @@
  "fresh_start": "App sempre dall'inizio",
  "fresh_start_hint": "Toccando un riquadro, l'app si apre dalla schermata iniziale (elenco chat, messaggi…) e non dall'ultima pagina rimasta aperta.",
  "photo_fill": "Foto grande (tutto il riquadro)",
- "photo_fill_hint": "Se il contatto ha una foto in rubrica, riempie il riquadro con il nome sotto."
+ "photo_fill_hint": "Se il contatto ha una foto in rubrica, riempie il riquadro con il nome sotto.",
+ "tile_open": "Apertura dell'app",
+ "open_default": "Come impostato nel telefono",
+ "open_fresh": "Sempre dalla schermata iniziale",
+ "open_resume": "Riprendi da dove era rimasta"
 }

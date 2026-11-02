@@ -1,0 +1,1 @@
+- App opening chosen per tile: as the phone, always from the first screen, or resume where it was

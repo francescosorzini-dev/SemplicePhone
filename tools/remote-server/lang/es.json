@@ -313,5 +313,9 @@
  "fresh_start": "Apps siempre desde el principio",
  "fresh_start_hint": "Al tocar un mosaico, la app se abre en su pantalla inicial (chats, mensajes…) y no en la última página que quedó abierta.",
  "photo_fill": "Foto grande (todo el mosaico)",
- "photo_fill_hint": "Si el contacto tiene foto, llena el mosaico con el nombre debajo."
+ "photo_fill_hint": "Si el contacto tiene foto, llena el mosaico con el nombre debajo.",
+ "tile_open": "Apertura de la app",
+ "open_default": "Como en el ajuste del teléfono",
+ "open_fresh": "Siempre desde la pantalla inicial",
+ "open_resume": "Seguir donde se quedó"
 }

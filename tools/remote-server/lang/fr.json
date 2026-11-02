@@ -313,5 +313,9 @@
  "fresh_start": "Applis toujours depuis le début",
  "fresh_start_hint": "En touchant une tuile, l'appli s'ouvre sur son écran d'accueil (discussions, messages…) et non sur la dernière page restée ouverte.",
  "photo_fill": "Grande photo (toute la tuile)",
- "photo_fill_hint": "Si le contact a une photo, elle remplit la tuile avec le nom en dessous."
+ "photo_fill_hint": "Si le contact a une photo, elle remplit la tuile avec le nom en dessous.",
+ "tile_open": "Ouverture de l'appli",
+ "open_default": "Comme réglé pour le téléphone",
+ "open_fresh": "Toujours depuis l'écran d'accueil",
+ "open_resume": "Reprendre là où elle était"
 }

@@ -313,5 +313,9 @@
  "fresh_start": "Apps always from the start",
  "fresh_start_hint": "Tapping a tile opens the app on its first screen (chats, messages list…) instead of the last page left open.",
  "photo_fill": "Big photo (whole tile)",
- "photo_fill_hint": "If the contact has a photo, it fills the tile with the name below."
+ "photo_fill_hint": "If the contact has a photo, it fills the tile with the name below.",
+ "tile_open": "Opening the app",
+ "open_default": "As set for the phone",
+ "open_fresh": "Always from the first screen",
+ "open_resume": "Resume where it was left"
 }

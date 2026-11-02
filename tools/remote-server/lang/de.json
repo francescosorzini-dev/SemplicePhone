@@ -313,5 +313,9 @@
  "fresh_start": "Apps immer von vorn",
  "fresh_start_hint": "Beim Tippen auf eine Kachel öffnet sich die App auf ihrem Startbildschirm (Chats, Nachrichtenliste…) statt auf der zuletzt offenen Seite.",
  "photo_fill": "Großes Foto (ganze Kachel)",
- "photo_fill_hint": "Hat der Kontakt ein Foto, füllt es die Kachel, der Name steht darunter."
+ "photo_fill_hint": "Hat der Kontakt ein Foto, füllt es die Kachel, der Name steht darunter.",
+ "tile_open": "App öffnen",
+ "open_default": "Wie im Telefon eingestellt",
+ "open_fresh": "Immer vom Startbildschirm",
+ "open_resume": "Dort fortsetzen, wo sie war"
 }

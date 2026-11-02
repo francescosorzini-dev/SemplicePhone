@@ -1011,6 +1011,8 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
       if (!known) parts.push(field(T('package_name'), el('input', {type: 'text', value: t.target || '', placeholder: T('pkg_placeholder'), onchange: e => upd('target', e.target.value.trim())}),
         DEV.length ? T('app_not_installed') : T('pkg_where')));
       if (!DEV.length) parts.push(el('p', {class: 'hint'}, T('apps_list_hint')));
+      parts.push(field(T('tile_open'), select({default: T('open_default'), fresh: T('open_fresh'), resume: T('open_resume')}, t.open || 'default',
+        v => { if (v === 'default') delete t.open; else t.open = v; changed(); render(); })));
     }
     if (['call', 'wa_video', 'sms'].includes(t.type)) {
       parts.push(field(T('phone_number'), el('input', {type: 'tel', value: t.target || '', placeholder: T('phone_placeholder'), onchange: e => upd('target', e.target.value.replace(/[^\d+]/g, ''))})));

@@ -1,0 +1,1 @@
+- App-Öffnung pro Kachel wählbar: wie das Telefon, immer vom Startbildschirm oder dort fortsetzen, wo sie war

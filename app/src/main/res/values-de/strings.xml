@@ -188,6 +188,10 @@
     <string name="tile_photo_fill_hint">Das Kontaktfoto füllt die ganze Kachel, der Name steht darunter.</string>
     <string name="phone_fresh_start">Apps immer von vorn</string>
     <string name="phone_fresh_start_detail">Bei jedem Tippen auf eine Kachel öffnet sich die App auf ihrem Startbildschirm (Liste der Chats, Nachrichten…) statt auf der zuletzt offenen Seite.</string>
+    <string name="tile_open">App öffnen</string>
+    <string name="open_default">Wie im Telefon eingestellt</string>
+    <string name="open_fresh">Immer vom Startbildschirm</string>
+    <string name="open_resume">Dort fortsetzen, wo sie war</string>
     <string name="color_blue">Blau</string>
     <string name="color_green">Grün</string>
     <string name="color_purple">Violett</string>

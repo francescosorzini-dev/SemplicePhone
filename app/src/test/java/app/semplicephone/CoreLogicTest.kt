@@ -187,3 +187,14 @@ class CompatibilityTest {
         assertFalse(cfg.pages[0].tiles[0].icon.fill)
     }
 }
+
+class OpenModeTest {
+    @Test fun tileChoiceWinsOverPhone() {
+        val t = Tile(id = "a", col = 0, row = 0, type = TileType.APP)
+        val f = app.semplicephone.launch::tileFreshStart
+        assertTrue(f(t, true)); assertFalse(f(t, false))
+        assertTrue(f(t.copy(open = "fresh"), false))
+        assertFalse(f(t.copy(open = "resume"), true))
+        assertTrue(f(t.copy(open = "valore-futuro"), true))
+    }
+}
