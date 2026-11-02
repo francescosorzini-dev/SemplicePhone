@@ -29,6 +29,8 @@ data class PhoneConfig(
     val badges: Boolean = true,
     /** Un SMS «#AGGIORNA» da un numero SOS fa scaricare subito la configurazione remota. */
     val smsUpdateCommand: Boolean = false,
+    /** Le app si aprono sempre dalla schermata iniziale (chat, messaggi…), non dall'ultima pagina vista. */
+    val freshStart: Boolean = true,
 )
 
 /** Promemoria (farmaci o altro) a orario fisso, con ripetizione finché non viene confermato. */
@@ -97,6 +99,11 @@ data class TileIcon(
     val kind: IconKind = IconKind.AUTO,
     /** SYMBOL: nome simbolo (vedi Symbols); PHOTO: "contact:<id>" (da M2). */
     val ref: String = "",
+    /**
+     * Foto del contatto grande quanto il riquadro, con il nome sopra. Campo a parte (non un nuovo
+     * IconKind) così le versioni precedenti dell'app lo ignorano invece di scartare la config.
+     */
+    val fill: Boolean = false,
 )
 
 @Serializable

@@ -309,5 +309,9 @@
  "badges": "Pastilles sur les tuiles",
  "badges_hint": "Affiche le nombre d'appels manqués et de messages non lus sur les tuiles des applis. L'« Accès aux notifications » doit être accordé sur le téléphone.",
  "sms_command": "Commande SMS « #ACTUALISER »",
- "sms_command_hint": "Si l'un des numéros SOS envoie le SMS « #ACTUALISER » au téléphone, celui-ci applique tout de suite la dernière configuration publiée au lieu d'attendre le contrôle (toutes les 15 minutes)."
+ "sms_command_hint": "Si l'un des numéros SOS envoie le SMS « #ACTUALISER » au téléphone, celui-ci applique tout de suite la dernière configuration publiée au lieu d'attendre le contrôle (toutes les 15 minutes).",
+ "fresh_start": "Applis toujours depuis le début",
+ "fresh_start_hint": "En touchant une tuile, l'appli s'ouvre sur son écran d'accueil (discussions, messages…) et non sur la dernière page restée ouverte.",
+ "photo_fill": "Grande photo (toute la tuile)",
+ "photo_fill_hint": "Si le contact a une photo, elle remplit la tuile avec le nom en dessous."
 }

@@ -377,7 +377,7 @@ const DEFAULT_CONFIG = <<<'JSON'
   ],
   "sos": { "numbers": [], "holdSeconds": 3, "countdownSeconds": 5, "message": "Ho bisogno di aiuto." },
   "reminders": [],
-  "phone": { "ringerLock": false, "ringVolumePercent": 100, "batteryAlertPercent": 15, "badges": true, "smsUpdateCommand": false }
+  "phone": { "ringerLock": false, "ringVolumePercent": 100, "batteryAlertPercent": 15, "badges": true, "smsUpdateCommand": false, "freshStart": true }
 }
 JSON;
 
@@ -868,7 +868,7 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
   cfg.pages = cfg.pages || [{cols: 2, rows: 5, tiles: []}];
   cfg.sos = cfg.sos || {numbers: [], holdSeconds: 3, countdownSeconds: 5, message: T('def_sos_message')};
   cfg.reminders = cfg.reminders || [];
-  cfg.phone = Object.assign({ringerLock: false, ringVolumePercent: 100, batteryAlertPercent: 15, badges: true, smsUpdateCommand: false}, cfg.phone || {});
+  cfg.phone = Object.assign({ringerLock: false, ringVolumePercent: 100, batteryAlertPercent: 15, badges: true, smsUpdateCommand: false, freshStart: true}, cfg.phone || {});
   if (dirty) document.getElementById('dirty').textContent = T('unpublished');
 
   // -------- utilità
@@ -1025,7 +1025,10 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
       parts.push(field(T('icon'), select(ICONS, t.icon.kind || 'auto', v => { t.icon = {kind: v, ref: v === 'symbol' ? (t.icon.ref && SYMBOLS[t.icon.ref] ? t.icon.ref : 'phone') : (v === 'photo' || v === 'auto' ? (t.icon.ref || '').startsWith('contact:') ? t.icon.ref : '' : '')}; changed(); render(); })));
       if (t.icon.kind === 'symbol') parts.push(field(T('symbol'), select(SYMBOLS, t.icon.ref || 'phone', v => { t.icon.ref = v; changed(); render(); })));
       if (t.icon.kind === 'photo' || (t.icon.kind === 'auto' && ['call', 'wa_video', 'sms'].includes(t.type)))
-        parts.push(el('p', {class: 'hint'}, T('photo_hint')));
+        parts.push(el('p', {class: 'hint'}, T('photo_hint')),
+          el('label', {style: 'font-weight:400'}, el('input', {type: 'checkbox', checked: !!t.icon.fill,
+            onchange: e => { t.icon.fill = e.target.checked; if (!t.icon.fill) delete t.icon.fill; changed(); render(); }}), ' ' + T('photo_fill')),
+          el('div', {class: 'hint'}, T('photo_fill_hint')));
     }
 
     parts.push(el('label', {}, T('color')), el('div', {class: 'swatches'}, PALETTE.map(([hex, nm]) =>
@@ -1113,6 +1116,7 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
       el('label', {style: 'font-weight:600'}, el('input', {type: 'checkbox', checked: !!p[k], onchange: e => set(k, e.target.checked)}), ' ' + label),
       el('div', {class: 'hint'}, hint));
     box.replaceChildren(
+      check('freshStart', T('fresh_start'), T('fresh_start_hint')),
       check('ringerLock', T('ringer_lock'), T('ringer_lock_hint')),
       p.ringerLock ? field(T('min_volume'), select({30: '30%', 50: '50%', 70: '70%', 80: '80%', 90: '90%', 100: '100%'}, String(p.ringVolumePercent), v => set('ringVolumePercent', +v))) : '',
       field(T('battery_alert'), select(Object.assign({0: T('never_cap')}, ...[10, 15, 20, 25, 30].map(n => ({[n]: T('below_pct', n)}))), String(p.batteryAlertPercent), v => set('batteryAlertPercent', +v)),

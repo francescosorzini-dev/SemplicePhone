@@ -37,6 +37,11 @@ class TileLauncher(private val context: Context, val contacts: Contacts, private
             when (tile.type) {
                 TileType.APP -> {
                     val intent = appIntent(tile.target) ?: return notAvailable(tile)
+                    // CLEAR_TASK chiude le pagine lasciate aperte nell'app: si riparte sempre dall'elenco
+                    // (chat di WhatsApp, conversazioni di Messaggi…), non dall'ultima schermata vista.
+                    if (app.semplicephone.data.ConfigRepository.get(context).config.value.phone.freshStart) {
+                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                    }
                     start(intent)
                 }
                 TileType.CALL -> call(tile.target)

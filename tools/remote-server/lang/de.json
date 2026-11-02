@@ -309,5 +309,9 @@
  "badges": "Zähler auf den Kacheln",
  "badges_hint": "Zeigt auf den App-Kacheln, wie viele Anrufe verpasst und Nachrichten ungelesen sind. Am Telefon muss der „Zugriff auf Benachrichtigungen“ erteilt werden.",
  "sms_command": "SMS-Befehl „#AKTUALISIEREN“",
- "sms_command_hint": "Sendet eine der SOS-Nummern die SMS „#AKTUALISIEREN“ an das Telefon, übernimmt es sofort die zuletzt veröffentlichte Konfiguration, statt auf die Prüfung (alle 15 Minuten) zu warten."
+ "sms_command_hint": "Sendet eine der SOS-Nummern die SMS „#AKTUALISIEREN“ an das Telefon, übernimmt es sofort die zuletzt veröffentlichte Konfiguration, statt auf die Prüfung (alle 15 Minuten) zu warten.",
+ "fresh_start": "Apps immer von vorn",
+ "fresh_start_hint": "Beim Tippen auf eine Kachel öffnet sich die App auf ihrem Startbildschirm (Chats, Nachrichtenliste…) statt auf der zuletzt offenen Seite.",
+ "photo_fill": "Großes Foto (ganze Kachel)",
+ "photo_fill_hint": "Hat der Kontakt ein Foto, füllt es die Kachel, der Name steht darunter."
 }

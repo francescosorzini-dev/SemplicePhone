@@ -112,6 +112,17 @@ private fun ActionTile(tile: Tile, sos: SosConfig, launcher: TileLauncher, modif
             .semantics { if (badge > 0) stateDescription = badgeDesc },
         contentAlignment = Alignment.Center,
     ) {
+        val fullPhoto = tile.icon.fill &&
+            (tile.icon.kind == IconKind.PHOTO || (tile.icon.kind == IconKind.AUTO && tile.type in PersonTypes))
+        if (fullPhoto) FullPhoto(tile, launcher) { StandardContent(tile, launcher, fg, wide) }
+        else StandardContent(tile, launcher, fg, wide)
+        if (badge > 0) Badge(badge, Modifier.align(Alignment.TopEnd).padding(6.dp))
+    }
+}
+
+/** Icona (o foto piccola) e nome, centrati nel riquadro. */
+@Composable
+private fun StandardContent(tile: Tile, launcher: TileLauncher, fg: Color, wide: Boolean) {
         BoxWithConstraints(Modifier.fillMaxSize().padding(12.dp), contentAlignment = Alignment.Center) {
             val iconSize = (minOf(maxWidth, maxHeight) * if (wide) 0.62f else 0.42f).coerceAtMost(96.dp)
             val textSize = (if (wide) 30.dp else 22.dp).fixedSp()
@@ -127,7 +138,34 @@ private fun ActionTile(tile: Tile, sos: SosConfig, launcher: TileLauncher, modif
                 }
             }
         }
-        if (badge > 0) Badge(badge, Modifier.align(Alignment.TopEnd).padding(6.dp))
+}
+
+/**
+ * Foto del contatto a tutto riquadro, con il nome in basso su una sfumatura scura (leggibile su
+ * qualsiasi foto). Senza foto in rubrica si torna al contenuto normale.
+ */
+@Composable
+private fun FullPhoto(tile: Tile, launcher: TileLauncher, fallback: @Composable () -> Unit) {
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        val px = with(LocalDensity.current) { maxOf(maxWidth, maxHeight).roundToPx() }
+        val photo by produceState<ImageBitmap?>(null, tile.icon.ref, tile.target, px) {
+            value = withContext(Dispatchers.IO) { launcher.contacts.photo(tile.icon.ref, tile.target, px)?.asImageBitmap() }
+        }
+        val p = photo
+        if (p == null) fallback()
+        else Image(p, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+        if (p != null && tile.label.isNotBlank()) {
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.BottomCenter)
+                    .background(androidx.compose.ui.graphics.Brush.verticalGradient(listOf(Color.Transparent, Color(0xD9000000))))
+                    .padding(start = 10.dp, end = 10.dp, top = 28.dp, bottom = 10.dp),
+            ) {
+                val size = (if (tile.w > tile.h) 30.dp else 24.dp).fixedSp()
+                TileLabel(tile.label, Color.White, size, TextAlign.Center, Modifier.fillMaxWidth())
+            }
+        }
     }
 }
 

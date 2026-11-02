@@ -184,6 +184,10 @@
     <string name="tile_delete_text">«%1$s» verrà tolto dalla Home.</string>
     <string name="conflict_out_of_grid">Il tile esce dalla griglia (%1$d colonne × %2$d righe)</string>
     <string name="conflict_overlap">Si sovrappone a «%1$s»</string>
+    <string name="tile_photo_fill">Foto grande</string>
+    <string name="tile_photo_fill_hint">La foto del contatto riempie tutto il riquadro, con il nome sotto.</string>
+    <string name="phone_fresh_start">App sempre dall\'inizio</string>
+    <string name="phone_fresh_start_detail">Ogni volta che si tocca un riquadro, l\'app si apre dalla schermata iniziale (elenco delle chat, dei messaggi…) e non dall\'ultima pagina rimasta aperta.</string>
     <string name="color_blue">Blu</string>
     <string name="color_green">Verde</string>
     <string name="color_purple">Viola</string>

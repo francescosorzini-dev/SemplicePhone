@@ -309,5 +309,9 @@
  "badges": "Contador en los mosaicos",
  "badges_hint": "Muestra cuántas llamadas perdidas y mensajes sin leer hay en los mosaicos de las apps. En el teléfono hay que conceder el «Acceso a las notificaciones».",
  "sms_command": "Comando SMS «#ACTUALIZAR»",
- "sms_command_hint": "Si uno de los números SOS envía al teléfono el SMS «#ACTUALIZAR», el teléfono aplica al momento la última configuración publicada en lugar de esperar a la comprobación (cada 15 minutos)."
+ "sms_command_hint": "Si uno de los números SOS envía al teléfono el SMS «#ACTUALIZAR», el teléfono aplica al momento la última configuración publicada en lugar de esperar a la comprobación (cada 15 minutos).",
+ "fresh_start": "Apps siempre desde el principio",
+ "fresh_start_hint": "Al tocar un mosaico, la app se abre en su pantalla inicial (chats, mensajes…) y no en la última página que quedó abierta.",
+ "photo_fill": "Foto grande (todo el mosaico)",
+ "photo_fill_hint": "Si el contacto tiene foto, llena el mosaico con el nombre debajo."
 }

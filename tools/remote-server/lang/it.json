@@ -309,5 +309,9 @@
  "badges": "Pallino sui riquadri",
  "badges_hint": "Mostra quante chiamate perse e quanti messaggi non letti ci sono sui riquadri delle app. Sul telefono va concesso l'«Accesso alle notifiche».",
  "sms_command": "Comando SMS «#AGGIORNA»",
- "sms_command_hint": "Se uno dei numeri SOS manda al telefono l'SMS «#AGGIORNA», il telefono applica subito l'ultima configurazione pubblicata invece di aspettare il controllo (ogni 15 minuti)."
+ "sms_command_hint": "Se uno dei numeri SOS manda al telefono l'SMS «#AGGIORNA», il telefono applica subito l'ultima configurazione pubblicata invece di aspettare il controllo (ogni 15 minuti).",
+ "fresh_start": "App sempre dall'inizio",
+ "fresh_start_hint": "Toccando un riquadro, l'app si apre dalla schermata iniziale (elenco chat, messaggi…) e non dall'ultima pagina rimasta aperta.",
+ "photo_fill": "Foto grande (tutto il riquadro)",
+ "photo_fill_hint": "Se il contatto ha una foto in rubrica, riempie il riquadro con il nome sotto."
 }

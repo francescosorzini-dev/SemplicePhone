@@ -185,6 +185,10 @@
     <string name="tile_delete_text">\"%1$s\" will be removed from the Home screen.</string>
     <string name="conflict_out_of_grid">The tile goes outside the grid (%1$d columns × %2$d rows)</string>
     <string name="conflict_overlap">Overlaps \"%1$s\"</string>
+    <string name="tile_photo_fill">Big photo</string>
+    <string name="tile_photo_fill_hint">The contact photo fills the whole tile, with the name below.</string>
+    <string name="phone_fresh_start">Apps always from the start</string>
+    <string name="phone_fresh_start_detail">Each time a tile is tapped, the app opens on its first screen (list of chats, messages…) instead of the last page left open.</string>
     <string name="color_blue">Blue</string>
     <string name="color_green">Green</string>
     <string name="color_purple">Purple</string>

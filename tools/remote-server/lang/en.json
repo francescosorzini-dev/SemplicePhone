@@ -309,5 +309,9 @@
  "badges": "Badges on tiles",
  "badges_hint": "Shows how many missed calls and unread messages there are on app tiles. \"Notification access\" must be granted on the phone.",
  "sms_command": "\"#UPDATE\" SMS command",
- "sms_command_hint": "If one of the SOS numbers sends the SMS \"#UPDATE\" to the phone, it applies the latest published configuration right away instead of waiting for the check (every 15 minutes)."
+ "sms_command_hint": "If one of the SOS numbers sends the SMS \"#UPDATE\" to the phone, it applies the latest published configuration right away instead of waiting for the check (every 15 minutes).",
+ "fresh_start": "Apps always from the start",
+ "fresh_start_hint": "Tapping a tile opens the app on its first screen (chats, messages list…) instead of the last page left open.",
+ "photo_fill": "Big photo (whole tile)",
+ "photo_fill_hint": "If the contact has a photo, it fills the tile with the name below."
 }

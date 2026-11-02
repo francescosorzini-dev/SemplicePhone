@@ -1,0 +1,2 @@
+- Le app si aprono sempre dalla schermata iniziale (elenco chat, messaggi…), disattivabile
+- Foto del contatto grande quanto il riquadro, con il nome sotto

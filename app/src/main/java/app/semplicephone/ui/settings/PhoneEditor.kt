@@ -52,6 +52,12 @@ fun PhoneEditor(initial: PhoneConfig, hasSosNumbers: Boolean, onSave: (PhoneConf
                 Stepper(stringResource(R.string.phone_min_volume), p.ringVolumePercent / 10, 3..10, { p = p.copy(ringVolumePercent = it * 10) }, format = { "${it * 10}%" })
             }
 
+            Toggle(
+                stringResource(R.string.phone_fresh_start),
+                stringResource(R.string.phone_fresh_start_detail),
+                p.freshStart,
+            ) { p = p.copy(freshStart = it) }
+
             SectionLabel(stringResource(R.string.phone_battery))
             Stepper(
                 stringResource(R.string.phone_battery_below), p.batteryAlertPercent / 5, 0..6,
@@ -94,7 +100,7 @@ fun PhoneEditor(initial: PhoneConfig, hasSosNumbers: Boolean, onSave: (PhoneConf
 }
 
 @Composable
-private fun Toggle(title: String, detail: String, checked: Boolean, onChange: (Boolean) -> Unit) {
+internal fun Toggle(title: String, detail: String, checked: Boolean, onChange: (Boolean) -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.weight(1f).padding(end = 12.dp)) {
             Text(title, fontSize = 18.sp, color = Palette.Ink)

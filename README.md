@@ -121,7 +121,8 @@ Ogni opzione si toglie da Impostazioni › Protezione, compreso il ruolo di Devi
 |---|---|
 | **Home** | griglia per pagine (1–4 colonne × 1–8 righe), tile w×h, swipe tra pagine, tasto Home → pagina 1 |
 | **Tile** | `app` (package o ruoli `@dialer @sms @camera @gallery @browser`), `call`, `wa_video`, `sms`, `url`, `shortcut`, `clock`, `sos` |
-| **Contatti** | scelta dalla rubrica, foto in cerchio (o iniziali), chiamata diretta con `CALL_PHONE` |
+| **Contatti** | scelta dalla rubrica, foto in cerchio (o iniziali) oppure a tutto riquadro, chiamata diretta con `CALL_PHONE` |
+| **App dall'inizio** | toccando un riquadro l'app riparte dalla sua schermata iniziale (elenco chat, messaggi…), non dall'ultima pagina vista; disattivabile |
 | **SOS** | pressione prolungata → conto alla rovescia annullabile → SMS con posizione a tutti i numeri → chiamata al primo |
 | **Pallini** | chiamate perse e messaggi non letti sui riquadri delle app (accesso alle notifiche) |
 | **Suoneria protetta** | silenzioso e volume basso tornano al livello scelto, anche per le sveglie |

@@ -184,6 +184,10 @@
     <string name="tile_delete_text">«%1$s» se quitará de la pantalla de inicio.</string>
     <string name="conflict_out_of_grid">El mosaico se sale de la cuadrícula (%1$d columnas × %2$d filas)</string>
     <string name="conflict_overlap">Se superpone a «%1$s»</string>
+    <string name="tile_photo_fill">Foto grande</string>
+    <string name="tile_photo_fill_hint">La foto del contacto llena todo el mosaico, con el nombre debajo.</string>
+    <string name="phone_fresh_start">Apps siempre desde el principio</string>
+    <string name="phone_fresh_start_detail">Cada vez que se toca un mosaico, la app se abre en su pantalla inicial (lista de chats, de mensajes…) y no en la última página que quedó abierta.</string>
     <string name="color_blue">Azul</string>
     <string name="color_green">Verde</string>
     <string name="color_purple">Morado</string>

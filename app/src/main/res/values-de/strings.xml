@@ -184,6 +184,10 @@
     <string name="tile_delete_text">„%1$s“ wird vom Startbildschirm entfernt.</string>
     <string name="conflict_out_of_grid">Die Kachel ragt über das Raster hinaus (%1$d Spalten × %2$d Zeilen)</string>
     <string name="conflict_overlap">Überlappt „%1$s“</string>
+    <string name="tile_photo_fill">Großes Foto</string>
+    <string name="tile_photo_fill_hint">Das Kontaktfoto füllt die ganze Kachel, der Name steht darunter.</string>
+    <string name="phone_fresh_start">Apps immer von vorn</string>
+    <string name="phone_fresh_start_detail">Bei jedem Tippen auf eine Kachel öffnet sich die App auf ihrem Startbildschirm (Liste der Chats, Nachrichten…) statt auf der zuletzt offenen Seite.</string>
     <string name="color_blue">Blau</string>
     <string name="color_green">Grün</string>
     <string name="color_purple">Violett</string>

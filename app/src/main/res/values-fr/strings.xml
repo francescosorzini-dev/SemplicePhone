@@ -184,6 +184,10 @@
     <string name="tile_delete_text">« %1$s » sera retiré de l\'écran d\'accueil.</string>
     <string name="conflict_out_of_grid">La tuile dépasse de la grille (%1$d colonnes × %2$d lignes)</string>
     <string name="conflict_overlap">Chevauche « %1$s »</string>
+    <string name="tile_photo_fill">Grande photo</string>
+    <string name="tile_photo_fill_hint">La photo du contact remplit toute la tuile, avec le nom en dessous.</string>
+    <string name="phone_fresh_start">Applis toujours depuis le début</string>
+    <string name="phone_fresh_start_detail">À chaque appui sur une tuile, l\'appli s\'ouvre sur son écran d\'accueil (liste des discussions, des messages…) et non sur la dernière page restée ouverte.</string>
     <string name="color_blue">Bleu</string>
     <string name="color_green">Vert</string>
     <string name="color_purple">Violet</string>

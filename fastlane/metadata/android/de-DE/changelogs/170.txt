@@ -1,0 +1,2 @@
+- Apps öffnen sich immer auf ihrem Startbildschirm (Chats, Nachrichten…), abschaltbar
+- Kontaktfoto so groß wie die Kachel, mit dem Namen darunter

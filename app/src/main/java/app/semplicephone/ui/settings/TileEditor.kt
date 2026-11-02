@@ -185,6 +185,11 @@ fun TileEditor(
                 }
                 if (t.icon.kind == IconKind.SYMBOL) SymbolGrid(t.icon.ref) { t = t.copy(icon = TileIcon(IconKind.SYMBOL, it)) }
                 if (t.icon.kind == IconKind.PHOTO) Hint(stringResource(R.string.tile_photo_hint))
+                val withPhoto = t.icon.kind == IconKind.PHOTO ||
+                    (t.icon.kind == IconKind.AUTO && t.type in setOf(TileType.CALL, TileType.WA_VIDEO, TileType.SMS))
+                if (withPhoto) Toggle(
+                    stringResource(R.string.tile_photo_fill), stringResource(R.string.tile_photo_fill_hint), t.icon.fill,
+                ) { t = t.copy(icon = t.icon.copy(fill = it)) }
             }
 
             SectionLabel(stringResource(R.string.tile_color))

@@ -1,0 +1,2 @@
+- Les applis s'ouvrent toujours sur leur écran d'accueil (discussions, messages…), désactivable
+- Photo du contact aussi grande que la tuile, avec le nom en dessous

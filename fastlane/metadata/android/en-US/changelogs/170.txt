@@ -1,0 +1,2 @@
+- Apps always open on their first screen (chats, messages list…), can be turned off
+- Contact photo as big as the tile, with the name below

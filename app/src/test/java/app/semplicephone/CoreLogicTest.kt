@@ -175,3 +175,15 @@ class I18nTest {
         }
     }
 }
+
+class CompatibilityTest {
+    /** Config scritte da versioni precedenti: i campi nuovi prendono il valore predefinito. */
+    @Test fun newFieldsHaveDefaults() {
+        val cfg = ConfigRepository.parse(
+            """{"pages":[{"cols":2,"rows":5,"tiles":[{"id":"a","col":0,"row":0,"type":"call","target":"123","icon":{"kind":"photo"}}]}],"phone":{"badges":true}}""",
+            "test",
+        )!!
+        assertTrue(cfg.phone.freshStart)
+        assertFalse(cfg.pages[0].tiles[0].icon.fill)
+    }
+}

@@ -1,0 +1,2 @@
+- Las apps se abren siempre en su pantalla inicial (chats, mensajes…), desactivable
+- Foto del contacto tan grande como el mosaico, con el nombre debajo
