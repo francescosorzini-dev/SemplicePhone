@@ -42,9 +42,12 @@ Ogni opzione si toglie da Impostazioni › Protezione, compreso il ruolo di Devi
 | **Tile** | `app` (package o ruoli `@dialer @sms @camera @gallery @browser`), `call`, `wa_video`, `sms`, `url`, `shortcut`, `clock`, `sos` |
 | **Contatti** | scelta dalla rubrica, foto in cerchio (o iniziali), chiamata diretta con `CALL_PHONE` |
 | **SOS** | pressione prolungata → conto alla rovescia annullabile → SMS con posizione a tutti i numeri → chiamata al primo |
+| **Pallini** | chiamate perse e messaggi non letti sui riquadri delle app (accesso alle notifiche) |
+| **Suoneria protetta** | silenzioso e volume basso tornano al livello scelto, anche per le sveglie |
+| **Batteria** | avviso in Home e SMS ai numeri SOS sotto soglia, una volta per scarica |
 | **Promemoria** | allarme a schermo intero anche a telefono bloccato, «PRESO» / rinvio, ripetizione fino a conferma, registro esiti |
-| **Editor** | protetto da PIN (PBKDF2, blocco dopo 5 errori); bozza applicata solo dopo validazione |
-| **Remoto** | busta firmata Ed25519, anti-replay, PIN impostabile, report batteria/promemoria; server in [`tools/remote-server`](tools/remote-server) |
+| **Editor** | protetto da PIN (PBKDF2, blocco dopo 5 errori); bozza applicata solo dopo validazione; riquadri trascinabili; scorciatoie guidate; esporta/importa su file |
+| **Remoto** | busta firmata Ed25519, anti-replay, PIN impostabile, controllo ogni 15 min (ETag), SMS «#AGGIORNA», eventi urgenti; portale con editor visuale, avvisi Telegram/email, storico versioni: [`tools/remote-server`](tools/remote-server) |
 | **Aggiornamenti** | `update.json` + verifica SHA-256 + PackageInstaller |
 
 ## Build
@@ -90,6 +93,6 @@ validazione.
 
 - **Videochiamata WhatsApp**: usa la data row del contatto, che non è documentata da WhatsApp.
   Se manca apre la chat.
-- **Scorciatoie app**: si inseriscono a mano come `pacchetto/id`.
-- **Spostamento dei tile**: si fa con colonna e riga nell'editor (niente trascinamento).
 - **Tendina e impostazioni di sistema**: bloccabili solo con Device Owner.
+- **Pallini**: richiedono l'«Accesso alle notifiche», da concedere a mano (nemmeno il Device Owner può concederlo da solo).
+- **Controllo ogni 15 minuti**: è il minimo consentito da Android; in risparmio energetico profondo (Doze) può slittare. Per applicare subito: «Aggiorna ora» o SMS «#AGGIORNA».

@@ -2,23 +2,36 @@
 /**
  * SemplicePhone – server della configurazione remota (single file, PHP 8.1+ con ext-sodium).
  *
- * Telefono:  GET  index.php?device=<id>            → busta firmata {v, payload, sig}
- *            POST index.php?device=<id>&report=1   → stato (batteria, esiti promemoria)
+ * Telefono:  GET  index.php?device=<id>            → busta firmata {v, payload, sig} (ETag / 304)
+ *            POST index.php?device=<id>&report=1   → stato (batteria, esiti promemoria, elenco app)
+ *            POST index.php?device=<id>&event=1    → eventi urgenti (SOS, batteria, promemoria saltato)
  *            Header X-Device-Secret: segreto del telefono, registrato al primo contatto (TOFU).
  * Gestione:  index.php senza parametri → pannello con login.
+ * Cron:      facoltativo, `php index.php cron` ogni 10 minuti (altrimenti i controlli partono
+ *            da soli quando arriva una richiesta).
  *
  * Dati in ./data (protetta da .htaccess). La chiave privata Ed25519 non esce mai dal server.
  */
 declare(strict_types=1);
 
 const DATA = __DIR__ . '/data';
+if (!ini_get('date.timezone')) date_default_timezone_set('Europe/Rome');
 const PBKDF2_ITER = 60000;
 const MAX_REPORT = 262144;
+const HISTORY_KEEP = 30;
 const TILE_TYPES = ['app', 'call', 'wa_video', 'sms', 'url', 'shortcut', 'clock', 'sos'];
+const EVENT_TITLES = [
+    'sos' => '🆘 SOS attivato',
+    'reminder_missed' => '💊 Promemoria non confermato',
+    'battery' => '🔋 Batteria scarica',
+    'offline' => '📵 Telefono non raggiungibile',
+    'online' => '✅ Telefono di nuovo raggiungibile',
+    'test' => '🔔 Messaggio di prova',
+];
 
 // ---------------------------------------------------------------- bootstrap
 if (!extension_loaded('sodium')) { http_response_code(500); exit('ext-sodium mancante'); }
-foreach ([DATA, DATA . '/devices', DATA . '/reports'] as $d) if (!is_dir($d)) mkdir($d, 0700, true);
+foreach ([DATA, DATA . '/devices', DATA . '/reports', DATA . '/events', DATA . '/history'] as $d) if (!is_dir($d)) mkdir($d, 0700, true);
 if (!is_file(DATA . '/.htaccess')) file_put_contents(DATA . '/.htaccess',
     "<IfModule mod_authz_core.c>\n  Require all denied\n</IfModule>\n<IfModule !mod_authz_core.c>\n  Deny from all\n</IfModule>\n");
 if (!is_file(DATA . '/signing.key')) {
@@ -39,6 +52,97 @@ function write_atomic(string $file, string $data): void {
     $tmp = $file . '.tmp' . bin2hex(random_bytes(4));
     file_put_contents($tmp, $data, LOCK_EX);
     rename($tmp, $file);
+}
+function append_jsonl(string $file, array $row): void {
+    file_put_contents($file, json_encode($row, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n", FILE_APPEND | LOCK_EX);
+}
+function tail_jsonl(string $file, int $n): array {
+    if (!is_file($file)) return [];
+    $out = [];
+    foreach (array_slice(file($file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES), -$n) as $l) { $r = json_decode($l, true); if (is_array($r)) $out[] = $r; }
+    return $out;
+}
+function device_ids(): array {
+    $ids = [];
+    foreach (glob(DATA . '/devices/*.{secret,meta.json,config.json}', GLOB_BRACE) ?: [] as $f) $ids[explode('.', basename($f))[0]] = true;
+    ksort($ids);
+    return array_keys($ids);
+}
+function device_name(string $id): string {
+    $m = read_json(dev_path($id, 'meta.json'), []);
+    return ($m['name'] ?? '') !== '' ? $m['name'] : "Telefono $id";
+}
+
+// ---------------------------------------------------------------- impostazioni e avvisi
+function settings(): array {
+    return array_replace_recursive([
+        'telegramToken' => '', 'telegramChat' => '', 'emailTo' => '', 'emailFrom' => '', 'panelUrl' => '',
+        'notify' => ['sos' => true, 'reminder_missed' => true, 'battery' => true, 'offline' => true],
+        'offlineHours' => 24,
+    ], read_json(DATA . '/settings.json', []));
+}
+function save_settings(array $s): void { write_atomic(DATA . '/settings.json', json_encode($s, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)); }
+
+function http_post(string $url, array $fields): array {
+    $body = http_build_query($fields);
+    if (function_exists('curl_init')) {
+        $c = curl_init($url);
+        curl_setopt_array($c, [CURLOPT_POST => true, CURLOPT_POSTFIELDS => $body, CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 10]);
+        $res = curl_exec($c); $code = (int)curl_getinfo($c, CURLINFO_HTTP_CODE); $err = curl_error($c); curl_close($c);
+        return [$code >= 200 && $code < 300, $code ? "HTTP $code" : $err];
+    }
+    $ctx = stream_context_create(['http' => ['method' => 'POST', 'header' => "Content-Type: application/x-www-form-urlencoded\r\n", 'content' => $body, 'timeout' => 10, 'ignore_errors' => true]]);
+    $res = @file_get_contents($url, false, $ctx);
+    $code = isset($http_response_header[0]) && preg_match('/\s(\d{3})\s/', $http_response_header[0], $m) ? (int)$m[1] : 0;
+    return [$code >= 200 && $code < 300, $code ? "HTTP $code" : 'connessione non riuscita'];
+}
+
+/** Invia un avviso su tutti i canali configurati. Restituisce l'esito per canale. */
+function send_alert(string $title, string $text, ?string $deviceId = null): array {
+    $s = settings();
+    $who = $deviceId ? device_name($deviceId) : 'SemplicePhone';
+    $link = $s['panelUrl'] !== '' ? "\n" . $s['panelUrl'] . ($deviceId ? '?edit=' . $deviceId : '') : '';
+    $msg = "$title — $who\n$text$link";
+    $out = [];
+    if ($s['telegramToken'] !== '' && $s['telegramChat'] !== '') {
+        foreach (array_filter(array_map('trim', explode(',', $s['telegramChat']))) as $chat) {
+            [$ok, $info] = http_post('https://api.telegram.org/bot' . $s['telegramToken'] . '/sendMessage',
+                ['chat_id' => $chat, 'text' => $msg, 'disable_web_page_preview' => 'true']);
+            $out[] = ['canale' => "Telegram $chat", 'ok' => $ok, 'info' => $info];
+        }
+    }
+    if ($s['emailTo'] !== '') {
+        $from = $s['emailFrom'] !== '' ? $s['emailFrom'] : 'semplicephone@' . preg_replace('/[^a-z0-9.\-]/i', '', $_SERVER['HTTP_HOST'] ?? 'localhost');
+        $headers = "From: $from\r\nContent-Type: text/plain; charset=UTF-8\r\nContent-Transfer-Encoding: 8bit";
+        $ok = @mail($s['emailTo'], '=?UTF-8?B?' . base64_encode("$title — $who") . '?=', $msg, $headers);
+        $out[] = ['canale' => 'Email ' . $s['emailTo'], 'ok' => (bool)$ok, 'info' => $ok ? 'inviata' : 'mail() non riuscita'];
+    }
+    append_jsonl(DATA . '/alerts.jsonl', ['at' => time(), 'device' => $deviceId, 'title' => $title, 'text' => $text, 'result' => $out]);
+    return $out;
+}
+
+/** Telefoni che non si fanno sentire da troppo: un avviso per ogni sparizione. Al massimo ogni 10 minuti. */
+function run_checks(bool $force = false): void {
+    $stamp = DATA . '/checks.json';
+    $last = (int)(read_json($stamp, [])['at'] ?? 0);
+    if (!$force && time() - $last < 600) return;
+    write_atomic($stamp, json_encode(['at' => time()]));
+    $s = settings();
+    if (empty($s['notify']['offline'])) return;
+    $limit = max(1, (int)$s['offlineHours']) * 3600;
+    foreach (device_ids() as $id) {
+        $m = read_json(dev_path($id, 'meta.json'), []);
+        $seen = (int)($m['lastSeen'] ?? 0);
+        if (!$seen || !empty($m['offlineAlerted']) || !empty($m['ignoreOffline']) || time() - $seen < $limit) continue;
+        $m['offlineAlerted'] = true;
+        write_atomic(dev_path($id, 'meta.json'), json_encode($m));
+        send_alert(EVENT_TITLES['offline'], 'Nessun contatto da ' . intdiv(time() - $seen, 3600) . ' ore (spento, senza rete o batteria esaurita?).', $id);
+    }
+}
+
+if (PHP_SAPI === 'cli') {
+    if (($argv[1] ?? '') === 'cron') { run_checks(true); exit(0); }
+    fwrite(STDERR, "Uso: php index.php cron\n"); exit(1);
 }
 
 // ---------------------------------------------------------------- API telefono
@@ -61,27 +165,75 @@ if (isset($_GET['device'])) {
     $meta = read_json(dev_path($id, 'meta.json'), []);
     $meta['lastSeen'] = time();
     $meta['lastIp'] = $_SERVER['REMOTE_ADDR'] ?? '';
+    $backOnline = !empty($meta['offlineAlerted']);
+    unset($meta['offlineAlerted']);
 
-    if (isset($_GET['report']) && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $readBody = function (): array {
         $body = file_get_contents('php://input', false, null, 0, MAX_REPORT + 1);
         if ($body === false || strlen($body) > MAX_REPORT) { http_response_code(413); exit('{"error":"size"}'); }
         $r = json_decode($body, true);
         if (!is_array($r)) { http_response_code(400); exit('{"error":"json"}'); }
+        return $r;
+    };
+
+    if (isset($_GET['report']) && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        $r = $readBody();
+        if (isset($r['apps']) && is_array($r['apps'])) {
+            $apps = [];
+            foreach (array_slice($r['apps'], 0, 800) as $a) {
+                $pkg = (string)($a['pkg'] ?? ''); $label = trim(strip_tags((string)($a['label'] ?? '')));
+                if (preg_match('/^[A-Za-z][\w]*(\.[\w]+)+$/', $pkg) && $label !== '') $apps[] = ['pkg' => $pkg, 'label' => mb_substr($label, 0, 60)];
+            }
+            usort($apps, fn($a, $b) => strcasecmp($a['label'], $b['label']));
+            write_atomic(dev_path($id, 'apps.json'), json_encode($apps, JSON_UNESCAPED_UNICODE));
+            unset($r['apps']);
+        }
         $r['receivedAt'] = time();
-        file_put_contents(DATA . "/reports/$id.jsonl", json_encode($r, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n", FILE_APPEND | LOCK_EX);
-        $meta['battery'] = $r['battery'] ?? null;
-        $meta['charging'] = $r['charging'] ?? null;
+        append_jsonl(DATA . "/reports/$id.jsonl", $r);
+        foreach (['battery', 'charging', 'appVersion', 'lastResult', 'badgesAccess'] as $k) $meta[$k] = $r[$k] ?? null;
         $meta['appliedSeq'] = $r['seq'] ?? null;
-        $meta['appVersion'] = $r['appVersion'] ?? null;
-        $meta['lastResult'] = $r['lastResult'] ?? null;
         write_atomic(dev_path($id, 'meta.json'), json_encode($meta));
+        if ($backOnline) send_alert(EVENT_TITLES['online'], 'Il telefono si è ricollegato.', $id);
+        http_response_code(204);
+        exit;
+    }
+
+    if (isset($_GET['event']) && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        $r = $readBody();
+        $s = settings();
+        $seenKeys = $meta['eventKeys'] ?? [];
+        foreach (array_slice((array)($r['events'] ?? []), 0, 200) as $ev) {
+            if (!is_array($ev)) continue;
+            $type = (string)($ev['type'] ?? '');
+            $key = $type . '@' . (string)($ev['at'] ?? '');
+            if (in_array($key, $seenKeys, true)) continue; // reinvio dopo una risposta persa
+            $seenKeys[] = $key;
+            $ev['receivedAt'] = time();
+            append_jsonl(DATA . "/events/$id.jsonl", $ev);
+            if (isset(EVENT_TITLES[$type]) && !empty($s['notify'][$type])) {
+                send_alert(EVENT_TITLES[$type], mb_substr((string)($ev['text'] ?? ''), 0, 600), $id);
+            }
+        }
+        $meta['eventKeys'] = array_slice($seenKeys, -100);
+        write_atomic(dev_path($id, 'meta.json'), json_encode($meta));
+        if ($backOnline) send_alert(EVENT_TITLES['online'], 'Il telefono si è ricollegato.', $id);
         http_response_code(204);
         exit;
     }
 
     write_atomic(dev_path($id, 'meta.json'), json_encode($meta));
+    if ($backOnline) send_alert(EVENT_TITLES['online'], 'Il telefono si è ricollegato.', $id);
+    run_checks();
     $env = dev_path($id, 'envelope.json');
     if (!is_file($env)) { http_response_code(404); exit('{"error":"none"}'); }
+    // ETag = versione pubblicata. Tollerante al suffisso "-gzip" che Apache aggiunge con mod_deflate.
+    $etag = '"' . (int)($meta['seq'] ?? 0) . '"';
+    header("ETag: $etag");
+    $norm = fn(string $t) => str_replace(['W/', '"', '-gzip'], '', trim($t));
+    if (isset($_SERVER['HTTP_IF_NONE_MATCH']) && $norm((string)$_SERVER['HTTP_IF_NONE_MATCH']) === $norm($etag)) {
+        http_response_code(304);
+        exit;
+    }
     readfile($env);
     exit;
 }
@@ -126,7 +278,7 @@ function pin_hash(string $pin): string {
     return 'pbkdf2-sha256$' . PBKDF2_ITER . '$' . base64_encode($salt) . '$' . base64_encode($hash);
 }
 
-/** Firma e pubblica: seq monotono, payload = byte esatti firmati. */
+/** Firma e pubblica: seq monotono, payload = byte esatti firmati. Tiene le ultime versioni nello storico. */
 function publish(string $id, $cfg, ?string $pin): int {
     $meta = read_json(dev_path($id, 'meta.json'), []);
     $seq = max((int)($meta['seq'] ?? 0) + 1, time());
@@ -138,7 +290,20 @@ function publish(string $id, $cfg, ?string $pin): int {
     $meta['seq'] = $seq;
     $meta['publishedAt'] = time();
     write_atomic(dev_path($id, 'meta.json'), json_encode($meta));
+
+    $dir = DATA . "/history/$id";
+    if (!is_dir($dir)) mkdir($dir, 0700, true);
+    write_atomic("$dir/$seq.json", json_encode(['seq' => $seq, 'at' => time(), 'pin' => $pin !== null && $pin !== '', 'config' => $cfg], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+    $all = glob("$dir/*.json") ?: [];
+    rsort($all, SORT_NATURAL);
+    foreach (array_slice($all, HISTORY_KEEP) as $old) @unlink($old);
     return $seq;
+}
+
+function history(string $id): array {
+    $all = glob(DATA . "/history/$id/*.json") ?: [];
+    rsort($all, SORT_NATURAL);
+    return array_map(fn($f) => (int)basename($f, '.json'), $all);
 }
 
 const DEFAULT_CONFIG = <<<'JSON'
@@ -161,7 +326,8 @@ const DEFAULT_CONFIG = <<<'JSON'
     }
   ],
   "sos": { "numbers": [], "holdSeconds": 3, "countdownSeconds": 5, "message": "Ho bisogno di aiuto." },
-  "reminders": []
+  "reminders": [],
+  "phone": { "ringerLock": false, "ringVolumePercent": 100, "batteryAlertPercent": 15, "badges": true, "smsUpdateCommand": false }
 }
 JSON;
 
@@ -204,6 +370,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $err[] = 'Password errata.';
     } elseif ($act === 'logout') {
         session_destroy(); header('Location: ?'); exit;
+    } elseif (!empty($_SESSION['ok']) && $act === 'settings') {
+        $s = settings();
+        foreach (['telegramToken', 'telegramChat', 'emailTo', 'emailFrom'] as $k) $s[$k] = trim((string)($_POST[$k] ?? ''));
+        foreach (array_keys($s['notify']) as $k) $s['notify'][$k] = !empty($_POST['notify_' . $k]);
+        $s['offlineHours'] = max(1, min(168, (int)($_POST['offlineHours'] ?? 24)));
+        if ($s['emailTo'] !== '' && !filter_var(explode(',', $s['emailTo'])[0], FILTER_VALIDATE_EMAIL)) $err[] = 'Indirizzo email non valido.';
+        if ($s['telegramToken'] !== '' && !preg_match('/^\d+:[\w-]{20,}$/', $s['telegramToken'])) $err[] = 'Il token Telegram non sembra valido (formato 123456:ABC…).';
+        if (!$err) { save_settings($s); $msg = 'Impostazioni degli avvisi salvate.'; }
+    } elseif (!empty($_SESSION['ok']) && $act === 'test') {
+        $res = send_alert(EVENT_TITLES['test'], 'Se leggi questo messaggio, gli avvisi di SemplicePhone funzionano.');
+        if (!$res) $err[] = 'Nessun canale configurato: inserisci Telegram o email e salva.';
+        foreach ($res as $r) { if ($r['ok']) $msg .= ($msg ? ' ' : '') . $r['canale'] . ': inviato.'; else $err[] = $r['canale'] . ': ' . $r['info']; }
     } elseif (!empty($_SESSION['ok'])) {
         $id = strtolower(trim((string)($_POST['id'] ?? '')));
         if (!valid_id($id)) $err[] = 'Codice telefono non valido: 6–32 caratteri, solo lettere minuscole e cifre.';
@@ -219,7 +397,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $meta['name'] = trim((string)($_POST['name'] ?? ($meta['name'] ?? '')));
                 write_atomic(dev_path($id, 'meta.json'), json_encode($meta));
                 publish($id, $cfg, $pin !== '' ? $pin : null);
-                $msg = 'Pubblicato. Il telefono lo riceve entro 6 ore, oppure subito con «Aggiorna ora» nelle sue impostazioni.';
+                $msg = 'Pubblicato. Il telefono lo riceve entro 15 minuti (con rete), subito con «Aggiorna ora» nelle sue impostazioni o con l\'SMS «#AGGIORNA» se attivato.';
             }
         } elseif ($act === 'rename') {
             $meta = read_json(dev_path($id, 'meta.json'), []);
@@ -229,12 +407,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif ($act === 'forget') {
             @unlink(dev_path($id, 'secret'));
             $msg = 'Fatto: il prossimo telefono che si collega con questo codice viene accettato.';
+        } elseif ($act === 'ignore') {
+            $meta = read_json(dev_path($id, 'meta.json'), []);
+            $meta['ignoreOffline'] = empty($meta['ignoreOffline']);
+            write_atomic(dev_path($id, 'meta.json'), json_encode($meta));
+            header('Location: ?edit=' . urlencode($id)); exit;
+        } elseif ($act === 'delete') {
+            foreach (glob(DATA . "/devices/$id.*") ?: [] as $f) @unlink($f);
+            foreach ([DATA . "/reports/$id.jsonl", DATA . "/events/$id.jsonl"] as $f) @unlink($f);
+            foreach (glob(DATA . "/history/$id/*.json") ?: [] as $f) @unlink($f);
+            @rmdir(DATA . "/history/$id");
+            header('Location: ?'); exit;
         }
     }
 }
 
 $logged = !empty($_SESSION['ok']);
 $edit = $logged && isset($_GET['edit']) && valid_id(strtolower((string)$_GET['edit'])) ? strtolower((string)$_GET['edit']) : null;
+$view = $logged ? ($edit ? 'device' : (isset($_GET['avvisi']) ? 'alerts' : 'list')) : 'login';
+if ($logged) {
+    // Indirizzo del pannello per i link negli avvisi.
+    $s = settings();
+    if ($s['panelUrl'] !== base_url()) { $s['panelUrl'] = base_url(); save_settings($s); }
+    run_checks();
+}
 ?><!doctype html>
 <html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>SemplicePhone – gestione</title>
@@ -246,12 +442,13 @@ header.top{background:var(--ink);color:#fff}
 header.top .in{max-width:1080px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;gap:12px}
 header.top .brand{font-weight:700;font-size:19px;flex:1}
 header.top a{color:#fff}
+.nav{display:flex;gap:4px}.nav a{padding:8px 12px;border-radius:8px;text-decoration:none;font-weight:600}.nav a[aria-current=page]{background:#ffffff26}
 main{max-width:1080px;margin:0 auto;padding:16px}
 h1{font-size:26px;margin:8px 0 4px}h2{font-size:20px;margin:26px 0 8px}h3{font-size:17px;margin:14px 0 6px}
 p.lead{color:var(--mute);margin-top:0}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin:12px 0}
 .msg{border-radius:12px;padding:12px 14px;margin:12px 0;font-weight:600}
-.msg.ok{background:#E3F1E7;color:#124a24}.msg.err{background:#FCE4E4;color:#7a1010}
+.msg.ok{background:#E3F1E7;color:#124a24}.msg.err{background:#FCE4E4;color:#7a1010}.msg.warn{background:#FFF0DF;color:#6b2f00}
 label{display:block;font-weight:600;margin:10px 0 4px}
 .hint{font-weight:400;color:var(--mute);font-size:14px}
 input[type=text],input[type=password],input[type=tel],input[type=url],input[type=time],input[type=number],select,textarea{font:inherit;padding:10px 12px;border:2px solid #bdb6a8;border-radius:10px;width:100%;background:#fff;color:var(--ink)}
@@ -300,6 +497,7 @@ details summary{cursor:pointer;font-weight:600}
 @media (max-width:640px){.phone{flex-basis:100%}}
 </style></head><body>
 <header class="top"><div class="in"><div class="brand">SemplicePhone · gestione</div>
+<?php if ($logged): ?><nav class="nav"><a href="?" <?= $view !== 'alerts' ? 'aria-current="page"' : '' ?>>Telefoni</a><a href="?avvisi" <?= $view === 'alerts' ? 'aria-current="page"' : '' ?>>Avvisi</a></nav><?php endif; ?>
 <?php if ($logged): ?><form method="post" style="margin:0"><input type="hidden" name="csrf" value="<?= h($csrf) ?>"><input type="hidden" name="act" value="logout"><button class="small sec">Esci</button></form><?php endif; ?>
 </div></header>
 <main>
@@ -322,13 +520,61 @@ details summary{cursor:pointer;font-weight:600}
     <p><button>Entra</button></p>
   </form>
 
-<?php elseif (!$edit):
-    $ids = [];
-    foreach (glob(DATA . '/devices/*.{secret,meta.json,config.json}', GLOB_BRACE) ?: [] as $f) $ids[explode('.', basename($f))[0]] = true;
-    ksort($ids);
+<?php elseif ($view === 'alerts'):
+    $s = settings();
+    $log = array_reverse(tail_jsonl(DATA . '/alerts.jsonl', 30));
+?>
+  <h1>Avvisi</h1>
+  <p class="lead">Ricevi subito un messaggio quando succede qualcosa su uno dei telefoni.</p>
+  <form method="post" class="card"><input type="hidden" name="csrf" value="<?= h($csrf) ?>"><input type="hidden" name="act" value="settings">
+    <h3>Quando avvisare</h3>
+    <?php foreach (['sos' => 'Quando viene premuto SOS', 'reminder_missed' => 'Quando un promemoria non viene confermato', 'battery' => 'Quando la batteria è quasi scarica', 'offline' => 'Quando un telefono non si fa sentire'] as $k => $label): ?>
+      <label style="font-weight:400"><input type="checkbox" name="notify_<?= $k ?>" <?= !empty($s['notify'][$k]) ? 'checked' : '' ?>> <?= h($label) ?></label>
+    <?php endforeach; ?>
+    <div class="row"><div><label for="oh">Dopo quante ore senza notizie</label><input id="oh" type="number" name="offlineHours" min="1" max="168" value="<?= (int)$s['offlineHours'] ?>"></div><div></div></div>
+
+    <h3>Telegram <span class="hint">(consigliato: arriva subito sul cellulare)</span></h3>
+    <details><summary>Come si configura</summary>
+      <ol class="steps">
+        <li>In Telegram scrivi a <b>@BotFather</b>, invia <code>/newbot</code> e segui le istruzioni: ricevi un <b>token</b>.</li>
+        <li>Apri il bot appena creato e premi <b>Avvia</b> (ogni familiare che vuole gli avvisi deve farlo).</li>
+        <li>Per sapere il tuo <b>chat id</b> scrivi a <b>@userinfobot</b>. Per un gruppo, aggiungi il bot al gruppo e usa l'id del gruppo (inizia con -).</li>
+      </ol>
+    </details>
+    <div class="row">
+      <div><label for="tt">Token del bot</label><input id="tt" type="password" name="telegramToken" value="<?= h($s['telegramToken']) ?>" autocomplete="off" placeholder="123456:ABC…"></div>
+      <div><label for="tc">Chat id <span class="hint">(più di uno separati da virgola)</span></label><input id="tc" type="text" name="telegramChat" value="<?= h($s['telegramChat']) ?>"></div>
+    </div>
+    <h3>Email</h3>
+    <div class="row">
+      <div><label for="et">Destinatari <span class="hint">(separati da virgola)</span></label><input id="et" type="text" name="emailTo" value="<?= h($s['emailTo']) ?>"></div>
+      <div><label for="ef">Mittente <span class="hint">(facoltativo)</span></label><input id="ef" type="text" name="emailFrom" value="<?= h($s['emailFrom']) ?>" placeholder="semplicephone@<?= h($_SERVER['HTTP_HOST'] ?? 'tuosito') ?>"></div>
+    </div>
+    <p class="hint">L'email usa la funzione mail() dell'hosting: se non arriva, controlla la cartella spam o usa Telegram.</p>
+    <p class="row" style="gap:8px"><button>Salva</button></p>
+  </form>
+  <form method="post"><input type="hidden" name="csrf" value="<?= h($csrf) ?>"><input type="hidden" name="act" value="test"><button class="sec">Invia un messaggio di prova</button></form>
+  <p class="hint">Il controllo dei telefoni silenziosi parte da solo quando qualcuno apre il pannello o un telefono si collega. Per farlo anche di notte, se l'hosting lo permette aggiungi un cron ogni 10 minuti: <code>php <?= h(__FILE__) ?> cron</code></p>
+
+  <h2>Ultimi avvisi inviati</h2>
+  <div class="card">
+  <?php if (!$log): ?><p class="hint">Nessun avviso inviato finora.</p><?php else: ?>
+    <table><tr><th>Quando</th><th>Avviso</th><th>Esito</th></tr>
+    <?php foreach ($log as $a): $okAll = $a['result'] && !in_array(false, array_column($a['result'], 'ok'), true); ?>
+      <tr><td><?= h(date('d/m H:i', (int)$a['at'])) ?></td><td><b><?= h($a['title']) ?></b><?= $a['device'] ? ' · ' . h(device_name($a['device'])) : '' ?><br><span class="hint"><?= h($a['text']) ?></span></td>
+      <td><span class="pill <?= !$a['result'] ? 'mute' : ($okAll ? 'ok' : 'bad') ?>"><?= !$a['result'] ? 'Nessun canale' : ($okAll ? 'Inviato' : 'Errore') ?></span></td></tr>
+    <?php endforeach; ?></table>
+  <?php endif; ?>
+  </div>
+
+<?php elseif ($view === 'list'):
+    $ids = array_fill_keys(device_ids(), true);
 ?>
   <h1>I tuoi telefoni</h1>
   <p class="lead">Tocca un telefono per cambiarne la schermata, i numeri SOS e i promemoria.</p>
+  <?php $st = settings(); if ($st['telegramToken'] === '' && $st['emailTo'] === ''): ?>
+    <div class="msg warn">Gli avvisi immediati (SOS, promemoria saltati, batteria) non sono ancora attivi. <a href="?avvisi">Configurali</a>.</div>
+  <?php endif; ?>
   <?php if (!$ids): ?><div class="card">Nessun telefono collegato. Segui i passi qui sotto per collegare il primo.</div><?php endif; ?>
   <div class="grid-devices">
   <?php foreach (array_keys($ids) as $id): $m = read_json(dev_path($id, 'meta.json'), []);
@@ -367,6 +613,19 @@ details summary{cursor:pointer;font-weight:600}
 <?php else:
     $meta = read_json(dev_path($edit, 'meta.json'), []);
     $src = $_POST['config'] ?? (is_file(dev_path($edit, 'config.json')) ? file_get_contents(dev_path($edit, 'config.json')) : DEFAULT_CONFIG);
+    $loaded = '';
+    if (!isset($_POST['config']) && isset($_GET['from']) && is_file($hf = DATA . "/history/$edit/" . (int)$_GET['from'] . '.json')) {
+        $hv = read_json($hf, []);
+        $src = json_encode($hv['config'] ?? [], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        $loaded = 'Hai caricato la versione del ' . date('d/m/Y H:i', (int)($hv['at'] ?? 0)) . '. Controlla e premi «Pubblica sul telefono» per applicarla.';
+    } elseif (!isset($_POST['config']) && isset($_GET['copy']) && valid_id($cp = strtolower((string)$_GET['copy'])) && is_file(dev_path($cp, 'config.json'))) {
+        $src = file_get_contents(dev_path($cp, 'config.json'));
+        $loaded = 'Hai copiato la configurazione di «' . device_name($cp) . '», compresi numeri SOS e promemoria. Controlla e premi «Pubblica sul telefono».';
+    }
+    $devApps = read_json(dev_path($edit, 'apps.json'), []);
+    $urgent = array_reverse(tail_jsonl(DATA . "/events/$edit.jsonl", 20));
+    $versions = array_slice(history($edit), 0, 15);
+    $others = array_values(array_filter(device_ids(), fn($o) => $o !== $edit && is_file(dev_path($o, 'config.json'))));
     $lines = is_file(DATA . "/reports/$edit.jsonl") ? array_slice(file(DATA . "/reports/$edit.jsonl", FILE_IGNORE_NEW_LINES), -40) : [];
     $events = [];
     foreach ($lines as $l) foreach ((json_decode($l, true)['reminderEvents'] ?? []) as $ev) $events[] = $ev;
@@ -377,7 +636,9 @@ details summary{cursor:pointer;font-weight:600}
   <p class="lead">Codice <?= h($edit) ?> · ultimo contatto <?= h(ago(isset($meta['lastSeen']) ? (int)$meta['lastSeen'] : null)) ?>
     <?php if (isset($meta['battery']) && $meta['battery'] >= 0): ?> · batteria <?= (int)$meta['battery'] ?>%<?php endif; ?></p>
 
-  <form method="post" id="pubform">
+  <?php if ($loaded): ?><div class="msg warn"><?= h($loaded) ?></div><?php endif; ?>
+  <?php if (isset($meta['badgesAccess']) && !$meta['badgesAccess']): ?><div class="msg warn">Sul telefono manca l'«Accesso alle notifiche»: i pallini sui riquadri non compaiono finché non viene concesso dalle impostazioni di SemplicePhone.</div><?php endif; ?>
+  <form method="post" id="pubform" data-dirty="<?= $loaded ? '1' : '0' ?>">
     <input type="hidden" name="csrf" value="<?= h($csrf) ?>"><input type="hidden" name="act" value="publish"><input type="hidden" name="id" value="<?= h($edit) ?>">
     <div class="row">
       <div><label for="name">Nome <span class="hint">(solo per te, es. «Nonna Maria»)</span></label><input id="name" type="text" name="name" value="<?= h($meta['name'] ?? '') ?>"></div>
@@ -388,6 +649,7 @@ details summary{cursor:pointer;font-weight:600}
       <button type="button" role="tab" aria-selected="true" data-tab="t-screen">Schermata</button>
       <button type="button" role="tab" aria-selected="false" data-tab="t-sos">SOS</button>
       <button type="button" role="tab" aria-selected="false" data-tab="t-rem">Promemoria</button>
+      <button type="button" role="tab" aria-selected="false" data-tab="t-phone">Telefono</button>
       <button type="button" role="tab" aria-selected="false" data-tab="t-json">Avanzato</button>
     </div>
 
@@ -400,6 +662,7 @@ details summary{cursor:pointer;font-weight:600}
     </section>
     <section class="tabpanel" id="t-sos" role="tabpanel" hidden></section>
     <section class="tabpanel" id="t-rem" role="tabpanel" hidden></section>
+    <section class="tabpanel" id="t-phone" role="tabpanel" hidden></section>
     <section class="tabpanel" id="t-json" role="tabpanel" hidden>
       <p class="hint">La stessa configurazione in formato JSON. Le modifiche fatte qui si vedono nelle altre schede.</p>
       <textarea class="json" name="config" id="config" spellcheck="false"><?= h($src) ?></textarea>
@@ -412,6 +675,33 @@ details summary{cursor:pointer;font-weight:600}
       <span class="hint" id="dirty"></span>
     </div>
   </form>
+
+  <h2>Avvisi da questo telefono</h2>
+  <div class="card">
+  <?php if (!$urgent): ?><p class="hint">Nessun avviso ricevuto.</p><?php else: ?>
+    <table><tr><th>Quando</th><th>Cosa</th></tr>
+    <?php foreach ($urgent as $ev): ?><tr><td><?= h(date('d/m H:i', (int)(($ev['at'] ?? 0) / 1000))) ?></td><td><b><?= h(EVENT_TITLES[$ev['type'] ?? ''] ?? ($ev['type'] ?? '')) ?></b><br><span class="hint"><?= h($ev['text'] ?? '') ?></span></td></tr><?php endforeach; ?>
+    </table>
+  <?php endif; ?>
+  </div>
+
+  <h2>Versioni precedenti</h2>
+  <div class="card">
+  <?php if (!$versions): ?><p class="hint">Ancora nessuna pubblicazione.</p><?php else: ?>
+    <table><tr><th>Pubblicata</th><th></th></tr>
+    <?php foreach ($versions as $i => $v): $hv = read_json(DATA . "/history/$edit/$v.json", []); ?>
+      <tr><td><?= h(date('d/m/Y H:i', (int)($hv['at'] ?? 0))) ?><?= $i === 0 ? ' <span class="pill ok">attuale</span>' : '' ?><?= !empty($hv['pin']) ? ' <span class="pill mute">PIN cambiato</span>' : '' ?></td>
+      <td style="text-align:right"><?php if ($i > 0): ?><a class="btn sec" href="?edit=<?= h($edit) ?>&amp;from=<?= (int)$v ?>">Carica nell'editor</a><?php endif; ?></td></tr>
+    <?php endforeach; ?></table>
+  <?php endif; ?>
+  <?php if ($others): ?>
+    <form method="get" class="row" style="align-items:flex-end;margin-top:12px"><input type="hidden" name="edit" value="<?= h($edit) ?>">
+      <div><label for="cp">Copia la configurazione da un altro telefono</label>
+        <select id="cp" name="copy"><?php foreach ($others as $o): ?><option value="<?= h($o) ?>"><?= h(device_name($o)) ?></option><?php endforeach; ?></select></div>
+      <div style="flex:0 0 auto"><button class="sec">Copia nell'editor</button></div>
+    </form>
+  <?php endif; ?>
+  </div>
 
   <h2>Promemoria: cosa è successo</h2>
   <div class="card">
@@ -428,6 +718,16 @@ details summary{cursor:pointer;font-weight:600}
     <form method="post"><input type="hidden" name="csrf" value="<?= h($csrf) ?>"><input type="hidden" name="act" value="forget"><input type="hidden" name="id" value="<?= h($edit) ?>">
       <button class="danger">Accetta di nuovo il prossimo collegamento</button></form>
   </details>
+  <details class="card"><summary>Altre azioni</summary>
+    <form method="post" style="margin:10px 0"><input type="hidden" name="csrf" value="<?= h($csrf) ?>"><input type="hidden" name="act" value="ignore"><input type="hidden" name="id" value="<?= h($edit) ?>">
+      <button class="sec"><?= empty($meta['ignoreOffline']) ? 'Non avvisare se questo telefono resta spento' : 'Riattiva l\'avviso «telefono non raggiungibile»' ?></button></form>
+    <form method="post" id="delform"><input type="hidden" name="csrf" value="<?= h($csrf) ?>"><input type="hidden" name="act" value="delete"><input type="hidden" name="id" value="<?= h($edit) ?>">
+      <button class="danger">Rimuovi questo telefono dal pannello</button></form>
+  </details>
+  <script nonce="<?= h($nonce) ?>">
+    window.DEVICE_APPS = <?= json_encode($devApps, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) ?>;
+    document.getElementById('delform').addEventListener('submit', e => { if (!confirm('Rimuovere il telefono, il suo storico e i suoi avvisi dal pannello?')) e.preventDefault(); });
+  </script>
 <?php endif; ?>
 </main>
 
@@ -461,12 +761,21 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
     ['#A84300', 'Arancio'], ['#00695C', 'Petrolio'], ['#FFFFFF', 'Bianco'], ['#FFF3C4', 'Giallo chiaro']];
   const DAYS = ['L', 'M', 'M', 'G', 'V', 'S', 'D'];
 
-  let cfg, page = 0, selId = null, dirty = false;
+  // Se il telefono ha mandato l'elenco delle sue app, il menu mostra quelle (più i ruoli predefiniti).
+  const DEV = (window.DEVICE_APPS || []).filter(a => a && a.pkg);
+  if (DEV.length) {
+    APPS.splice(5, APPS.length - 5, ...DEV.map(a => [a.pkg, a.label]));
+    DEV.forEach(a => { APP_LABEL[a.pkg] = a.label; });
+  }
+
+  let cfg, page = 0, selId = null, dirty = document.getElementById('pubform').dataset.dirty === '1';
   try { cfg = JSON.parse(ta.value); } catch (e) { cfg = null; }
   if (!cfg) { show('t-json'); return; }
   cfg.pages = cfg.pages || [{cols: 2, rows: 5, tiles: []}];
   cfg.sos = cfg.sos || {numbers: [], holdSeconds: 3, countdownSeconds: 5, message: 'Ho bisogno di aiuto.'};
   cfg.reminders = cfg.reminders || [];
+  cfg.phone = Object.assign({ringerLock: false, ringVolumePercent: 100, batteryAlertPercent: 15, badges: true, smsUpdateCommand: false}, cfg.phone || {});
+  if (dirty) document.getElementById('dirty').textContent = 'Modifiche non ancora pubblicate';
 
   // -------- utilità
   function el(tag, attrs, ...kids) {
@@ -606,7 +915,8 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
         changed(); render();
       })));
       if (!known) parts.push(field('Nome pacchetto', el('input', {type: 'text', value: t.target || '', placeholder: 'es. it.ilmeteo', onchange: e => upd('target', e.target.value.trim())}),
-        '(si trova nell\'indirizzo della pagina Play Store dopo «id=»)'));
+        DEV.length ? '(app non installata sul telefono)' : '(si trova nell\'indirizzo della pagina Play Store dopo «id=»)'));
+      if (!DEV.length) parts.push(el('p', {class: 'hint'}, 'L\'elenco delle app installate compare qui dopo il primo collegamento del telefono con la versione 0.4 o successiva.'));
     }
     if (['call', 'wa_video', 'sms'].includes(t.type)) {
       parts.push(field('Numero di telefono', el('input', {type: 'tel', value: t.target || '', placeholder: '+39 333 1234567', onchange: e => upd('target', e.target.value.replace(/[^\d+]/g, ''))})));
@@ -701,7 +1011,23 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
     document.querySelectorAll('[data-rem]').forEach(td => { const r = cfg.reminders.find(x => x.id === td.dataset.rem); if (r) td.textContent = r.time + ' · ' + (r.title || ''); });
   }
 
-  function render() { renderPages(); renderGrid(); renderSide(); renderSos(); renderRem(); issues(); }
+  // -------- telefono
+  function renderPhone() {
+    const p = cfg.phone, box = document.getElementById('t-phone');
+    const set = (k, v) => { p[k] = v; changed(); renderPhone(); };
+    const check = (k, label, hint) => el('div', {style: 'margin:12px 0'},
+      el('label', {style: 'font-weight:600'}, el('input', {type: 'checkbox', checked: !!p[k], onchange: e => set(k, e.target.checked)}), ' ' + label),
+      el('div', {class: 'hint'}, hint));
+    box.replaceChildren(
+      check('ringerLock', 'Suoneria protetta', 'Se il telefono viene messo in silenzioso o il volume si abbassa, torna al livello scelto. Vale anche per le sveglie dei promemoria.'),
+      p.ringerLock ? field('Volume minimo', select({30: '30%', 50: '50%', 70: '70%', 80: '80%', 90: '90%', 100: '100%'}, String(p.ringVolumePercent), v => set('ringVolumePercent', +v))) : '',
+      field('Avviso batteria scarica', select({0: 'Mai', 10: 'Sotto il 10%', 15: 'Sotto il 15%', 20: 'Sotto il 20%', 25: 'Sotto il 25%', 30: 'Sotto il 30%'}, String(p.batteryAlertPercent), v => set('batteryAlertPercent', +v)),
+        '(avviso in Home, SMS ai numeri SOS e messaggio qui se gli avvisi sono attivi)'),
+      check('badges', 'Pallino sui riquadri', 'Mostra quante chiamate perse e quanti messaggi non letti ci sono sui riquadri delle app. Sul telefono va concesso l\'«Accesso alle notifiche».'),
+      check('smsUpdateCommand', 'Comando SMS «#AGGIORNA»', 'Se uno dei numeri SOS manda al telefono l\'SMS «#AGGIORNA», il telefono applica subito l\'ultima configurazione pubblicata invece di aspettare il controllo (ogni 15 minuti).'));
+  }
+
+  function render() { renderPages(); renderGrid(); renderSide(); renderSos(); renderRem(); renderPhone(); issues(); }
   render();
   window.addEventListener('beforeunload', e => { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
   document.getElementById('pubform').addEventListener('submit', () => {

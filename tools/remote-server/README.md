@@ -20,7 +20,35 @@ per esempio `https://example.com/semplicephone/`. Al primo accesso crea `data/`,
    Il pannello segnala cosa manca prima di poter premere **Pubblica sul telefono**. Facoltativo:
    imposta un nuovo PIN.
 
-Il telefono controlla ogni 6 ore. Per applicare subito c'è «Aggiorna ora».
+Il telefono controlla ogni 15 minuti, con rete. Quando non ci sono novità il server risponde
+`304` e la richiesta pesa pochi byte. Per applicare subito ci sono «Aggiorna ora» sul telefono e,
+se attivato nella scheda **Telefono**, l'SMS «#AGGIORNA» inviato da uno dei numeri SOS.
+
+## Avvisi immediati
+
+Dalla pagina **Avvisi** del pannello puoi ricevere un messaggio su Telegram (consigliato) o via
+email in questi casi:
+- viene premuto SOS (il messaggio include la posizione);
+- un promemoria non viene confermato;
+- la batteria scende sotto la soglia;
+- un telefono non si fa sentire da N ore, e poi quando torna raggiungibile.
+
+C'è il pulsante «Invia un messaggio di prova». Il controllo dei telefoni silenziosi parte da solo
+a ogni richiesta, al massimo ogni 10 minuti. Se l'hosting lo permette conviene aggiungere un cron:
+
+```
+*/10 * * * * php /percorso/semplicephone/index.php cron
+```
+
+## Altro
+
+- **App reali**: il telefono invia l'elenco delle app installate, quindi il menu «Quale app»
+  mostra quelle.
+- **Versioni precedenti**: le ultime 30 pubblicazioni di ogni telefono si possono ricaricare
+  nell'editor e ripubblicare.
+- **Copia**: la configurazione di un telefono si può copiare su un altro.
+- **Telefoni spenti apposta**: per ciascuno si può disattivare l'avviso «non raggiungibile».
+  Un telefono si può anche rimuovere dal pannello.
 
 ## Sicurezza
 
