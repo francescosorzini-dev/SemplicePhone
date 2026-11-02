@@ -1,0 +1,21 @@
+SemplicePhone replaces the home screen with a few large, clear tiles for people who rarely use a smartphone. A family member sets it up once; the senior only sees what they need. The interface is in Italian.
+
+<b>Every tile is customizable</b>
+<ul>
+<li>Direct call to a contact, with their photo</li>
+<li>WhatsApp video call</li>
+<li>Open an app, a website or a shortcut</li>
+<li>Pre-written SMS</li>
+<li>Large clock and date</li>
+<li>SOS button</li>
+</ul>
+
+<b>SOS</b>: long press, cancellable countdown, then a call to the first number and the location sent to family.
+
+<b>Medication reminders</b>: full-screen alarm even on the lock screen, with "taken" and snooze; repeats until confirmed.
+
+<b>Protection</b>: PIN-protected settings, ringer volume that restores itself, low-battery alert.
+
+<b>Optional remote management</b>: a family member edits the tiles from a self-hosted PHP portal (included). Configurations are signed with Ed25519; the portal receives SOS, missed-reminder and battery alerts, also via Telegram or email.
+
+No ads, no tracking, no account. Free software (GPL-3.0).

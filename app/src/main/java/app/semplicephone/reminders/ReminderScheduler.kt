@@ -66,7 +66,7 @@ class ReminderScheduler(private val context: Context) {
                 )
                 am.setAlarmClock(AlarmManager.AlarmClockInfo(atMillis, show), op)
             } else {
-                // Senza permesso esatto (solo Android 12) l'allarme può slittare di qualche minuto.
+                // Senza «Sveglie e promemoria» (Android 12; edizione Play da Android 14) può slittare di qualche minuto.
                 am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, atMillis, op)
             }
         } catch (e: SecurityException) {

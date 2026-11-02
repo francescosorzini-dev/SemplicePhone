@@ -1,0 +1,31 @@
+# Da copiare in fdroiddata come metadata/app.semplicephone.yml (vedi README.md qui accanto).
+Categories:
+  - Phone & SMS
+  - Theming
+License: GPL-3.0-or-later
+AuthorName: Francesco Sorzini
+SourceCode: https://github.com/francescosorzini-dev/SemplicePhone
+IssueTracker: https://github.com/francescosorzini-dev/SemplicePhone/issues
+Changelog: https://github.com/francescosorzini-dev/SemplicePhone/releases
+
+AutoName: SemplicePhone
+
+RepoType: git
+Repo: https://github.com/francescosorzini-dev/SemplicePhone.git
+# Build riproducibile: F-Droid compila, confronta con il nostro APK e pubblica quello firmato da noi.
+Binaries: https://github.com/francescosorzini-dev/SemplicePhone/releases/download/v%v/SemplicePhone-completo-%v.apk
+
+Builds:
+  - versionName: 0.6.0
+    versionCode: 130
+    commit: v0.6.0
+    subdir: app
+    gradle:
+      - completo
+
+AllowedAPKSigningKeys: 3871cf5b478aea297ec9aa665cebc98f7e62d9076fab62a548bac70e10f8819e
+
+AutoUpdateMode: Version
+UpdateCheckMode: Tags
+CurrentVersion: 0.6.0
+CurrentVersionCode: 130

@@ -2,10 +2,10 @@
 
 Launcher Android per anziani. La Home è fatta solo di tile grandi e ogni tile è configurabile:
 app, chiamata, videochiamata WhatsApp, SMS, link, scorciatoie, orologio, SOS.
-Si distribuisce via APK (sideload), non dal Play Store. La configurazione si può gestire anche da
-remoto, con firma Ed25519.
+Si distribuisce come APK dal sito; sono pronte anche le edizioni per F-Droid e Google Play
+(vedi [Store](#store)). La configurazione si può gestire anche da remoto, con firma Ed25519.
 
-- Kotlin + Jetpack Compose, minSdk 29 / targetSdk 35, font Atkinson Hyperlegible (OFL)
+- Kotlin + Jetpack Compose, minSdk 29 / targetSdk 36, font Atkinson Hyperlegible (OFL)
 - Config JSON: `assets/default_config.json` (predefinita) → `filesDir/config.json` (locale) →
   config remota firmata (sostituisce quella locale quando arriva una versione più nuova)
 
@@ -77,6 +77,17 @@ adb shell appops set app.semplicephone ACCESS_RESTRICTED_SETTINGS allow
 Gli aggiornamenti successivi li installa l'app stessa (Gestione da remoto → Controlla
 aggiornamenti), in silenzio se è Device Owner.
 
+### Store
+
+| | Edizione | Stato | Guida |
+|---|---|---|---|
+| **F-Droid** | completa, stesso APK firmato da noi (build riproducibile) | da proporre | [`tools/fdroid`](tools/fdroid) |
+| **Google Play** | play: come la standard, ma senza invio automatico di SMS (l'SOS apre Messaggi già pronto) | da pubblicare | [`tools/play`](tools/play) |
+
+Tutte le edizioni hanno lo stesso pacchetto e la stessa chiave: si passa dall'una all'altra
+installando sopra. Se l'app arriva da uno store, l'aggiornamento in-app si spegne e aggiorna lo
+store.
+
 ### Dal 2027
 
 Google estenderà all'Italia l'obbligo di installare app da sviluppatori verificati,
@@ -118,9 +129,14 @@ Ogni opzione si toglie da Impostazioni › Protezione, compreso il ruolo di Devi
 ## Build
 
 - Ogni push su `main` esegue la CI: APK debug come artifact, unit test e build release R8 di controllo.
-- Release firmata: esegui una volta [`tools/release/new-keystore.ps1`](tools/release/new-keystore.ps1),
-  che crea la chiave e i secrets GitHub. Poi `git tag v0.2.0 && git push origin v0.2.0`.
-  La GitHub Release conterrà l'APK firmato e `update.json`.
+- Release firmata: la chiave e i secrets GitHub si creano una volta con
+  [`tools/release/new-keystore.ps1`](tools/release/new-keystore.ps1). Poi, a ogni versione:
+  1. in `app/build.gradle.kts` aggiorna `versionName` e porta `versionCode` a +10;
+  2. aggiungi `fastlane/metadata/android/*/changelogs/<versionCode>.txt`;
+  3. avvia il workflow **release** con la stessa versione.
+
+  La GitHub Release conterrà gli APK firmati, l'AAB per Play, gli `update.json` e `index.php`.
+  Il workflow verifica anche che la build sia riproducibile.
 - In locale: `./gradlew assembleDebug testDebugUnitTest` (JDK 17, Android SDK 35).
 
 Valori di default sovrascrivibili con `-P` o in `gradle.properties`: `semplice.remoteUrl`,
@@ -153,6 +169,7 @@ validazione.
 | M5 – promemoria farmaci | ✅ |
 | M6 – config remota firmata Ed25519 + server PHP | ✅ |
 | M7 – release firmata, aggiornamento in-app | ✅ |
+| M8 – edizioni per F-Droid (build riproducibile) e Google Play | 🔧 |
 
 ## Limiti noti
 

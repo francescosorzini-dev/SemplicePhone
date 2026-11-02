@@ -56,8 +56,11 @@ fun PhoneEditor(initial: PhoneConfig, hasSosNumbers: Boolean, onSave: (PhoneConf
                 format = { if (it == 0) "mai" else "${it * 5}%" },
             )
             Text(
-                if (hasSosNumbers) "Compare un avviso in Home e parte un SMS ai numeri SOS (una volta per ogni scarica)."
-                else "Compare un avviso in Home. Per l'SMS ai familiari imposta prima i numeri SOS.",
+                when {
+                    !BuildConfig.SEND_SMS -> "Compare un avviso in Home. Con la gestione da remoto arriva anche un messaggio al portale."
+                    hasSosNumbers -> "Compare un avviso in Home e parte un SMS ai numeri SOS (una volta per ogni scarica)."
+                    else -> "Compare un avviso in Home. Per l'SMS ai familiari imposta prima i numeri SOS."
+                },
                 fontSize = 15.sp, color = Color(0xFF4A4A4A),
             )
 
@@ -76,7 +79,11 @@ fun PhoneEditor(initial: PhoneConfig, hasSosNumbers: Boolean, onSave: (PhoneConf
             } else {
                 SectionLabel("Solo nell'edizione completa")
                 Text(
-                    "Pallini con messaggi non letti, comando SMS «${SmsCommand.KEYWORD}» e aggiornamento automatico " +
+                    if (BuildConfig.EDITION == "play")
+                        "Pallini con messaggi non letti, comando SMS «${SmsCommand.KEYWORD}» e SMS automatici non sono " +
+                            "nella versione di Google Play. Ci sono nell'edizione completa (F-Droid o sito del progetto)."
+                    else
+                        "Pallini con messaggi non letti, comando SMS «${SmsCommand.KEYWORD}» e aggiornamento automatico " +
                         "richiedono permessi che Android blocca sulle app scaricate dal browser. Sono nell'edizione " +
                         "completa, da installare con ADB (vedi la guida nel sito del progetto).",
                     fontSize = 15.sp, color = Color(0xFF4A4A4A),

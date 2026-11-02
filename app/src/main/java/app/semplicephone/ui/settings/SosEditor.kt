@@ -45,7 +45,11 @@ fun SosEditor(initial: SosConfig, onSave: (SosConfig) -> Unit, onCancel: () -> U
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            Text("Il primo numero viene chiamato. Tutti riceveranno un SMS con la posizione.", fontSize = 15.sp, color = Color(0xFF4A4A4A))
+            Text(
+                if (app.semplicephone.BuildConfig.SEND_SMS) "Il primo numero viene chiamato. Tutti riceveranno un SMS con la posizione."
+                else "Il primo numero viene chiamato. Poi lo schermo mostra «MANDA LA POSIZIONE», che apre Messaggi già pronto per tutti i numeri.",
+                fontSize = 15.sp, color = Color(0xFF4A4A4A),
+            )
             Text("Usa numeri di familiari o vicini: Android non permette alle app di chiamare direttamente " +
                 "il 112 e il servizio SMS del 112 è riservato a chi è registrato.", fontSize = 15.sp, color = Color(0xFF4A4A4A))
             numbers.forEachIndexed { i, n ->

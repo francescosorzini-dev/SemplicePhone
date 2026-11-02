@@ -34,11 +34,11 @@ object Permissions {
         ) out[Manifest.permission.READ_CONTACTS] = "foto dei contatti e videochiamate WhatsApp"
         if (tiles.any { it.type == TileType.SOS }) {
             out.putIfAbsent(Manifest.permission.CALL_PHONE, "chiamata SOS")
-            out[Manifest.permission.SEND_SMS] = "SMS di emergenza"
-            out[Manifest.permission.ACCESS_FINE_LOCATION] = "posizione nell'SMS di emergenza"
-            out[Manifest.permission.ACCESS_COARSE_LOCATION] = "posizione nell'SMS di emergenza"
+            if (BuildConfig.SEND_SMS) out[Manifest.permission.SEND_SMS] = "SMS di emergenza"
+            out[Manifest.permission.ACCESS_FINE_LOCATION] = "posizione nel messaggio di emergenza"
+            out[Manifest.permission.ACCESS_COARSE_LOCATION] = "posizione nel messaggio di emergenza"
         }
-        if (cfg.phone.batteryAlertPercent > 0 && cfg.sos.numbers.isNotEmpty()) {
+        if (BuildConfig.SEND_SMS && cfg.phone.batteryAlertPercent > 0 && cfg.sos.numbers.isNotEmpty()) {
             out.putIfAbsent(Manifest.permission.SEND_SMS, "SMS ai familiari con batteria scarica")
         }
         if (cfg.phone.smsUpdateCommand && BuildConfig.FULL) out[Manifest.permission.RECEIVE_SMS] = "comando SMS «#AGGIORNA» dai familiari"

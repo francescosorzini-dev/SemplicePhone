@@ -39,8 +39,17 @@ class Updater(private val context: Context) {
         get() = prefs.getString("last", "").orEmpty()
         set(v) = prefs.edit().putString("last", v).apply()
 
+    /**
+     * Aggiornamento in-app solo per gli APK presi dal sito. Se l'app è arrivata da uno store
+     * (Play, F-Droid, IzzyOnDroid…) gli aggiornamenti li porta lo store: niente doppioni.
+     */
+    val selfUpdate: Boolean get() = BuildConfig.UPDATE_URL.isNotEmpty() && store == null
+
+    /** Nome dello store che ha installato l'app, o null se installata da file/ADB. */
+    val store: String? by lazy { storeName(installer(context)) }
+
     suspend fun check(): UpdateInfo? = withContext(Dispatchers.IO) {
-        if (!url.startsWith("https://")) return@withContext null
+        if (!selfUpdate || !url.startsWith("https://")) return@withContext null
         try {
             val conn = (URL(url).openConnection() as HttpURLConnection).apply {
                 connectTimeout = 15_000; readTimeout = 15_000; instanceFollowRedirects = true
@@ -127,11 +136,33 @@ class Updater(private val context: Context) {
 
     /** Da chiamare in background: aggiorna da solo solo se l'installazione è silenziosa. */
     suspend fun autoUpdateIfSilent() {
-        if (!BuildConfig.FULL || !Protection(context).isDeviceOwner) return
+        if (!BuildConfig.FULL || !selfUpdate || !Protection(context).isDeviceOwner) return
         check()?.let { install(it) }
     }
 
-    companion object { private const val TAG = "Updater" }
+    companion object {
+        private const val TAG = "Updater"
+
+        private val STORES = mapOf(
+            "com.android.vending" to "Google Play",
+            "org.fdroid.fdroid" to "F-Droid",
+            "org.fdroid.basic" to "F-Droid",
+            "com.looker.droidify" to "Droid-ify",
+            "com.machiav3lli.fdroid" to "Neo Store",
+            "in.sunilpaulmathew.izzyondroid" to "IzzyOnDroid",
+            "dev.imranr.obtainium" to "Obtainium",
+            "com.aurora.store" to "Aurora Store",
+        )
+
+        fun storeName(installer: String?): String? = installer?.let { STORES[it] }
+
+        @Suppress("DEPRECATION")
+        private fun installer(context: Context): String? = runCatching {
+            val pm = context.packageManager
+            if (Build.VERSION.SDK_INT >= 30) pm.getInstallSourceInfo(context.packageName).installingPackageName
+            else pm.getInstallerPackageName(context.packageName)
+        }.getOrNull()
+    }
 }
 
 /** Esito dell'installazione; se serve conferma (niente Device Owner) mostra la richiesta di sistema. */

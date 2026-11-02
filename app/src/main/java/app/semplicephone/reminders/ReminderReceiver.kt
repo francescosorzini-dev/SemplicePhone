@@ -1,5 +1,6 @@
 package app.semplicephone.reminders
 
+import android.app.AlarmManager
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.BroadcastReceiver
@@ -17,7 +18,8 @@ class ReminderReceiver : BroadcastReceiver() {
         val scheduler = ReminderScheduler(context)
         when (intent.action) {
             Intent.ACTION_BOOT_COMPLETED, Intent.ACTION_TIME_CHANGED, Intent.ACTION_TIMEZONE_CHANGED,
-            Intent.ACTION_MY_PACKAGE_REPLACED -> scheduler.scheduleAll(ConfigRepository.readCurrent(context))
+            Intent.ACTION_MY_PACKAGE_REPLACED,
+            AlarmManager.ACTION_SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED -> scheduler.scheduleAll(ConfigRepository.readCurrent(context))
             ACTION_FIRE -> fire(context, scheduler, intent)
             ACTION_TAKEN -> taken(context, intent.getStringExtra(EXTRA_ID) ?: return)
             ACTION_SNOOZE -> snooze(context, intent.getStringExtra(EXTRA_ID) ?: return)

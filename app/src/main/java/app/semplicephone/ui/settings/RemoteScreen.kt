@@ -78,7 +78,9 @@ fun RemoteScreen(onBack: () -> Unit) {
         ) {
             Text(
                 "Il telefono controlla ogni 15 minuti la configurazione pubblicata sul server e la applica solo se " +
-                    "la firma è valida. Le modifiche fatte qui sul telefono vengono sostituite alla pubblicazione successiva.",
+                    "la firma è valida. Le modifiche fatte qui sul telefono vengono sostituite alla pubblicazione successiva.\n" +
+                    "Se attivi, il telefono invia solo al tuo server: livello della batteria, versione, esito dei promemoria, " +
+                    "elenco delle app installate (per scegliere i riquadri) e, quando si preme SOS, la posizione.",
                 fontSize = 15.sp, color = Color(0xFF4A4A4A),
             )
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -124,43 +126,47 @@ fun RemoteScreen(onBack: () -> Unit) {
             Text("Versione applicata: ${settings.lastSeq}", fontSize = 15.sp, color = Color(0xFF4A4A4A))
 
             SectionLabel("Aggiornamenti dell'app")
-            Text("Installata: ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})", fontSize = 15.sp)
-            OutlinedTextField(updateUrl, { updateUrl = it }, label = { Text("Indirizzo update.json") }, modifier = Modifier.fillMaxWidth())
-            OutlinedButton(
-                onClick = {
-                    updater.url = updateUrl
-                    busy = true
-                    scope.launch {
-                        available = updater.check()
-                        updateStatus = updater.lastResult
-                        busy = false
-                    }
-                },
-                enabled = !busy,
-                modifier = Modifier.fillMaxWidth().height(52.dp),
-            ) { Text("Controlla aggiornamenti") }
-            available?.let { info ->
+            Text("Installata: ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE}), edizione ${BuildConfig.EDITION}", fontSize = 15.sp)
+            if (!updater.selfUpdate) {
+                Text("Gli aggiornamenti arrivano da ${updater.store ?: "Google Play"}.", fontSize = 15.sp, color = Color(0xFF4A4A4A))
+            } else {
+                OutlinedTextField(updateUrl, { updateUrl = it }, label = { Text("Indirizzo update.json") }, modifier = Modifier.fillMaxWidth())
                 OutlinedButton(
                     onClick = {
+                        updater.url = updateUrl
                         busy = true
                         scope.launch {
-                            updater.install(info)
+                            available = updater.check()
                             updateStatus = updater.lastResult
                             busy = false
                         }
                     },
                     enabled = !busy,
                     modifier = Modifier.fillMaxWidth().height(52.dp),
-                ) { Text(if (BuildConfig.FULL) "Installa ${info.versionName}" else "Scarica ${info.versionName}") }
+                ) { Text("Controlla aggiornamenti") }
+                available?.let { info ->
+                    OutlinedButton(
+                        onClick = {
+                            busy = true
+                            scope.launch {
+                                updater.install(info)
+                                updateStatus = updater.lastResult
+                                busy = false
+                            }
+                        },
+                        enabled = !busy,
+                        modifier = Modifier.fillMaxWidth().height(52.dp),
+                    ) { Text(if (BuildConfig.FULL) "Installa ${info.versionName}" else "Scarica ${info.versionName}") }
+                }
+                if (updateStatus.isNotBlank()) Text(updateStatus, fontSize = 15.sp)
+                Text(
+                    if (BuildConfig.FULL) "Con SemplicePhone amministratore del dispositivo gli aggiornamenti si installano da soli " +
+                        "durante il controllo periodico; altrimenti Android chiede conferma."
+                    else "Edizione standard: l'aggiornamento si scarica dal browser e si conferma l'installazione. " +
+                        "Le impostazioni restano.",
+                    fontSize = 14.sp, color = Color(0xFF4A4A4A),
+                )
             }
-            if (updateStatus.isNotBlank()) Text(updateStatus, fontSize = 15.sp)
-            Text(
-                if (BuildConfig.FULL) "Con SemplicePhone amministratore del dispositivo gli aggiornamenti si installano da soli " +
-                    "durante il controllo periodico; altrimenti Android chiede conferma."
-                else "Edizione standard: l'aggiornamento si scarica dal browser e si conferma l'installazione. " +
-                    "Le impostazioni restano.",
-                fontSize = 14.sp, color = Color(0xFF4A4A4A),
-            )
         }
     }
 }

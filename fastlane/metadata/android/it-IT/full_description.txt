@@ -1,0 +1,30 @@
+SemplicePhone sostituisce la schermata Home con pochi riquadri grandi e chiari, pensati per chi usa poco lo smartphone. Un familiare prepara tutto una volta; poi la persona anziana vede solo quello che le serve.
+
+<b>Ogni riquadro si personalizza</b>
+<ul>
+<li>Chiamata diretta a un contatto, con la sua foto</li>
+<li>Videochiamata WhatsApp a un contatto</li>
+<li>Apertura di un'app, di un sito o di una scorciatoia</li>
+<li>SMS già scritto</li>
+<li>Orologio e data in grande</li>
+<li>Pulsante SOS</li>
+</ul>
+Per ogni riquadro si scelgono testo, icona, colore e dimensione; la griglia può avere più pagine.
+
+<b>SOS</b>
+Si tiene premuto, parte un conto alla rovescia annullabile, poi la chiamata al primo numero e la posizione inviata ai familiari.
+
+<b>Promemoria farmaci</b>
+Allarme a schermo intero anche a telefono bloccato, con «PRESO» e rinvio. Se nessuno conferma, l'allarme si ripete.
+
+<b>Telefono protetto</b>
+<ul>
+<li>Impostazioni protette da PIN: si aprono toccando 5 volte l'orologio</li>
+<li>Suoneria che torna al volume scelto se viene abbassata per errore</li>
+<li>Avviso di batteria scarica</li>
+</ul>
+
+<b>Gestione da remoto (facoltativa)</b>
+Un familiare può cambiare i riquadri da un portale web che installa sul proprio spazio (PHP, codice incluso nel progetto). Le configurazioni sono firmate digitalmente: il telefono accetta solo quelle del suo portale. Il portale riceve avvisi di SOS, promemoria non confermati e batteria scarica, anche su Telegram o via email.
+
+Nessuna pubblicità, nessun tracciamento, nessun account. Software libero (GPL-3.0).

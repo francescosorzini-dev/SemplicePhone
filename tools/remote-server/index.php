@@ -1049,8 +1049,8 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
       p.ringerLock ? field('Volume minimo', select({30: '30%', 50: '50%', 70: '70%', 80: '80%', 90: '90%', 100: '100%'}, String(p.ringVolumePercent), v => set('ringVolumePercent', +v))) : '',
       field('Avviso batteria scarica', select({0: 'Mai', 10: 'Sotto il 10%', 15: 'Sotto il 15%', 20: 'Sotto il 20%', 25: 'Sotto il 25%', 30: 'Sotto il 30%'}, String(p.batteryAlertPercent), v => set('batteryAlertPercent', +v)),
         '(avviso in Home, SMS ai numeri SOS e messaggio qui se gli avvisi sono attivi)'),
-      ...(document.getElementById('pubform').dataset.edition === 'standard'
-        ? [el('p', {class: 'msg warn'}, 'Questo telefono ha l\'edizione standard: pallini con messaggi non letti e comando SMS «#AGGIORNA» funzionano solo con l\'edizione completa.')]
+      ...(['standard', 'play'].includes(document.getElementById('pubform').dataset.edition)
+        ? [el('p', {class: 'msg warn'}, 'Questo telefono ha l\'edizione ' + (document.getElementById('pubform').dataset.edition === 'play' ? 'Google Play (niente SMS automatici: l\'SOS apre Messaggi già pronto)' : 'standard') + ': pallini con messaggi non letti e comando SMS «#AGGIORNA» funzionano solo con l\'edizione completa.')]
         : []),
       check('badges', 'Pallino sui riquadri', 'Mostra quante chiamate perse e quanti messaggi non letti ci sono sui riquadri delle app. Sul telefono va concesso l\'«Accesso alle notifiche».'),
       check('smsUpdateCommand', 'Comando SMS «#AGGIORNA»', 'Se uno dei numeri SOS manda al telefono l\'SMS «#AGGIORNA», il telefono applica subito l\'ultima configurazione pubblicata invece di aspettare il controllo (ogni 15 minuti).'));

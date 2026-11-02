@@ -1,0 +1,3 @@
+- Google Play and F-Droid builds
+- In-app updater disabled when installed from a store
+- Targets Android 16 (API 36)

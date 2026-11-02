@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Edizione Google Play: toglie dal manifest principale i permessi che la policy di Play
+     riserva ad altre categorie di app.
+     - SEND_SMS: solo app SMS predefinite o eccezioni approvate. L'SOS apre Messaggi con
+       destinatari, testo e posizione già pronti.
+     - USE_EXACT_ALARM: solo sveglie e calendari. Al suo posto SCHEDULE_EXACT_ALARM, che
+       l'utente concede da «Sveglie e promemoria» (l'editor dei promemoria lo chiede). -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.SEND_SMS" tools:node="remove" />
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" tools:node="remove" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" tools:remove="android:maxSdkVersion" />
+</manifest>

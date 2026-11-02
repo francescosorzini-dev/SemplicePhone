@@ -116,3 +116,13 @@ class PhoneLogicTest {
         org.junit.Assert.assertNull(app.semplicephone.ui.settings.movedTiles(page, page.tiles[0], 0, 1))
     }
 }
+
+class StoreDetectionTest {
+    @Test fun storesDisableSelfUpdate() {
+        assertEquals("Google Play", app.semplicephone.update.Updater.storeName("com.android.vending"))
+        assertEquals("F-Droid", app.semplicephone.update.Updater.storeName("org.fdroid.fdroid"))
+        // APK dal browser o via ADB: nessuno store, l'app si aggiorna da sola
+        org.junit.Assert.assertNull(app.semplicephone.update.Updater.storeName(null))
+        org.junit.Assert.assertNull(app.semplicephone.update.Updater.storeName("com.google.android.packageinstaller"))
+    }
+}

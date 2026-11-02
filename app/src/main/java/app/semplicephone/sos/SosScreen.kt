@@ -115,7 +115,8 @@ fun SosScreen(cfg: SosConfig, launcher: TileLauncher, contactNames: (String) -> 
             Text("Chiamo ${contactNames(first)}", color = Color.White, fontSize = 22.sp, textAlign = TextAlign.Center)
             if (cfg.numbers.isNotEmpty()) {
                 Text(
-                    "Invio SMS con la posizione a ${cfg.numbers.joinToString(", ") { contactNames(it) }}",
+                    (if (app.semplicephone.BuildConfig.SEND_SMS) "Invio SMS con la posizione a " else "Poi un tocco manda la posizione a ") +
+                        cfg.numbers.joinToString(", ") { contactNames(it) },
                     color = Color.White, fontSize = 20.sp, textAlign = TextAlign.Center,
                 )
             }

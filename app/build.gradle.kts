@@ -7,15 +7,16 @@ plugins {
 
 android {
     namespace = "app.semplicephone"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "app.semplicephone"
         minSdk = 29
-        targetSdk = 35
-        // In CI di release: -PversionCode=<numero run> -PversionName=<tag>
-        versionCode = (project.findProperty("versionCode") as String?)?.toInt() ?: 1
-        versionName = (project.findProperty("versionName") as String?) ?: "0.1.0-dev"
+        targetSdk = 36 // obbligatorio su Google Play dal 31/8/2026
+        // Versione scritta qui (non calcolata in CI): F-Droid la legge da questo file e ricompila
+        // lo stesso APK. A ogni release: versionName = tag senza «v», versionCode +10.
+        versionCode = 130
+        versionName = "0.6.0"
 
         // Valori predefiniti per la config remota (vuoti = da inserire nel telefono),
         // sovrascrivibili da gradle.properties o -P per build dedicate.
@@ -27,23 +28,43 @@ android {
 
     // standard: installabile dal browser, senza i permessi che Play Protect blocca sugli APK scaricati
     //           (ricezione SMS, lettura notifiche, installazione di APK).
-    // completo: tutte le funzioni (comando SMS, pallini, aggiornamento silenzioso), da installare via ADB.
+    // completo: tutte le funzioni (comando SMS, pallini, aggiornamento silenzioso), via ADB o F-Droid.
+    // play:     per Google Play. Niente invio di SMS (policy SMS di Play: l'SOS apre Messaggi già
+    //           compilato), niente sveglie USE_EXACT_ALARM, aggiornamenti solo dal Play Store.
+    // Stesso applicationId e stessa chiave: si passa da un'edizione all'altra installando sopra.
     flavorDimensions += "edizione"
     val releases = "https://github.com/francescosorzini-dev/SemplicePhone/releases/latest/download"
     productFlavors {
         create("standard") {
             dimension = "edizione"
+            buildConfigField("String", "EDITION", "\"standard\"")
             buildConfigField("boolean", "FULL", "false")
+            buildConfigField("boolean", "SEND_SMS", "true")
             val u = (project.findProperty("semplice.updateUrl") as String?) ?: "$releases/update.json"
             buildConfigField("String", "UPDATE_URL", "\"$u\"")
         }
         create("completo") {
             dimension = "edizione"
+            buildConfigField("String", "EDITION", "\"completo\"")
             buildConfigField("boolean", "FULL", "true")
-            versionNameSuffix = "-completo"
+            buildConfigField("boolean", "SEND_SMS", "true")
             val u = (project.findProperty("semplice.updateUrlFull") as String?) ?: "$releases/update-completo.json"
             buildConfigField("String", "UPDATE_URL", "\"$u\"")
         }
+        create("play") {
+            dimension = "edizione"
+            buildConfigField("String", "EDITION", "\"play\"")
+            buildConfigField("boolean", "FULL", "false")
+            buildConfigField("boolean", "SEND_SMS", "false")
+            buildConfigField("String", "UPDATE_URL", "\"\"")
+        }
+    }
+
+    // Il blocco «dipendenze» firmato da Google non serve nell'APK (F-Droid lo rifiuta);
+    // resta nell'AAB per la Play Console.
+    dependenciesInfo {
+        includeInApk = false
+        includeInBundle = true
     }
 
     // Firma release da variabili d'ambiente (secrets GitHub); senza, l'APK release resta non firmato.

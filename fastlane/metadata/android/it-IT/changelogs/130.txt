@@ -1,0 +1,3 @@
+- Edizione per Google Play e F-Droid
+- Gli aggiornamenti in-app si disattivano se l'app arriva da uno store
+- Android 16 (API 36)
