@@ -13,6 +13,22 @@ data class LauncherConfig(
     val pages: List<Page> = emptyList(),
     val sos: SosConfig = SosConfig(),
     val reminders: List<Reminder> = emptyList(),
+    val phone: PhoneConfig = PhoneConfig(),
+)
+
+/** Comportamento del telefono attorno alla Home: suoneria, batteria, pallini, comandi SMS. */
+@Serializable
+data class PhoneConfig(
+    /** Riporta suoneria (e volume sveglie) al livello impostato se vengono abbassati o silenziati. */
+    val ringerLock: Boolean = false,
+    /** Volume garantito per suoneria e sveglie, in percento del massimo. */
+    val ringVolumePercent: Int = 100,
+    /** Sotto questa percentuale, SMS ai numeri SOS e avviso in Home. 0 = disattivato. */
+    val batteryAlertPercent: Int = 15,
+    /** Pallino con chiamate perse e messaggi non letti sui riquadri delle app. */
+    val badges: Boolean = true,
+    /** Un SMS «#AGGIORNA» da un numero SOS fa scaricare subito la configurazione remota. */
+    val smsUpdateCommand: Boolean = false,
 )
 
 /** Promemoria (farmaci o altro) a orario fisso, con ripetizione finché non viene confermato. */

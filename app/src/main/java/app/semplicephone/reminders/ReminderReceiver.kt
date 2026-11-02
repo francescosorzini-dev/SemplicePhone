@@ -36,6 +36,11 @@ class ReminderReceiver : BroadcastReceiver() {
             scheduler.scheduleRepeat(id, attempt + 1, System.currentTimeMillis() + r.repeatMinutes.coerceAtLeast(1) * 60_000L)
         } else {
             ReminderLog.append(context, id, "non_confermato")
+            app.semplicephone.remote.RemoteEvents.enqueue(
+                context, "reminder_missed",
+                "Promemoria delle ${r.time} non confermato: ${r.title}${if (r.detail.isNotBlank()) " (${r.detail})" else ""}",
+                mapOf("reminder" to r.id),
+            )
         }
         show(context, r)
     }

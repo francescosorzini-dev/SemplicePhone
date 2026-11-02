@@ -44,6 +44,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -83,16 +84,17 @@ fun TileView(
     launcher: TileLauncher,
     modifier: Modifier = Modifier,
     onSecretTap: () -> Unit = {},
+    badge: Int = 0,
 ) {
     when (tile.type) {
         TileType.CLOCK -> ClockTile(tile, modifier, onSecretTap)
         TileType.SOS -> SosTile(tile, sos, launcher, modifier)
-        else -> ActionTile(tile, sos, launcher, modifier)
+        else -> ActionTile(tile, sos, launcher, modifier, badge)
     }
 }
 
 @Composable
-private fun ActionTile(tile: Tile, sos: SosConfig, launcher: TileLauncher, modifier: Modifier) {
+private fun ActionTile(tile: Tile, sos: SosConfig, launcher: TileLauncher, modifier: Modifier, badge: Int) {
     val available = remember(tile) { launcher.isAvailable(tile) }
     val bg = parseColor(tile.color).let { if (available) it else it.copy(alpha = 0.35f) }
     val fg = contentColorFor(parseColor(tile.color))
@@ -104,10 +106,10 @@ private fun ActionTile(tile: Tile, sos: SosConfig, launcher: TileLauncher, modif
             .background(bg)
             .border(if (bg.isLight()) 2.dp else 0.dp, Palette.Ink, TileShape)
             .clickable(role = Role.Button, onClickLabel = tile.label) { launcher.launch(tile, sos) }
-            .padding(12.dp),
+            .semantics { if (badge > 0) stateDescription = "$badge da vedere" },
         contentAlignment = Alignment.Center,
     ) {
-        BoxWithConstraints(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        BoxWithConstraints(Modifier.fillMaxSize().padding(12.dp), contentAlignment = Alignment.Center) {
             val iconSize = (minOf(maxWidth, maxHeight) * if (wide) 0.62f else 0.42f).coerceAtMost(96.dp)
             val textSize = (if (wide) 30.dp else 22.dp).fixedSp()
             if (wide) {
@@ -122,6 +124,30 @@ private fun ActionTile(tile: Tile, sos: SosConfig, launcher: TileLauncher, modif
                 }
             }
         }
+        if (badge > 0) Badge(badge, Modifier.align(Alignment.TopEnd).padding(6.dp))
+    }
+}
+
+/** Pallino rosso con numero: grande e con bordo bianco, leggibile su qualsiasi colore del riquadro. */
+@Composable
+private fun Badge(count: Int, modifier: Modifier) {
+    Box(
+        modifier
+            .size(40.dp)
+            .clip(CircleShape)
+            .background(Color.White)
+            .padding(3.dp)
+            .clip(CircleShape)
+            .background(Palette.Sos),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            if (count > 99) "99+" else "$count",
+            color = Color.White,
+            fontSize = (if (count > 9) 15.dp else 19.dp).fixedSp(),
+            fontWeight = FontWeight.Bold,
+            maxLines = 1,
+        )
     }
 }
 

@@ -93,6 +93,7 @@ fun TileEditor(
 ) {
     var t by remember { mutableStateOf(initial) }
     var pickApp by remember { mutableStateOf(false) }
+    var pickShortcut by remember { mutableStateOf(false) }
     var confirmDelete by remember { mutableStateOf(false) }
     val conflict = ConfigRepository.conflict(page, t)
     val pickContact = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { res ->
@@ -149,8 +150,11 @@ fun TileEditor(
                 }
                 TileType.URL -> Field("Indirizzo (https://…)", t.target, KeyboardType.Uri) { t = t.copy(target = it.trim()) }
                 TileType.SHORTCUT -> {
-                    Field("Scorciatoia (pacchetto/id)", t.target) { t = t.copy(target = it.trim()) }
-                    Hint("Selezione guidata delle scorciatoie: prossima versione.")
+                    SectionLabel("Scorciatoia")
+                    OutlinedButton(onClick = { pickShortcut = true }, modifier = Modifier.fillMaxWidth().height(52.dp), shape = RoundedCornerShape(10.dp)) {
+                        Text(t.target.ifBlank { "Scegli…" }.substringAfter('/').take(40), fontSize = 17.sp, color = Palette.Ink)
+                    }
+                    Hint("Le scorciatoie sono azioni dirette delle app (es. una chat WhatsApp, una destinazione in Maps).")
                 }
                 TileType.CLOCK -> Hint("Mostra ora e data. 5 tocchi rapidi aprono le impostazioni.")
                 TileType.SOS -> Hint("Numeri e durata della pressione si impostano nella sezione SOS.")
@@ -196,6 +200,14 @@ fun TileEditor(
             t = t.copy(target = app.target, label = if (keepLabel) t.label else app.defaultLabel)
             pickApp = false
         })
+    }
+
+    if (pickShortcut) {
+        ShortcutPickerDialog(launcher, onDismiss = { pickShortcut = false }) { sc ->
+            val keepLabel = t.label.isNotBlank() && t.label != defaultLabel(TileType.SHORTCUT)
+            t = t.copy(target = sc.target, label = if (keepLabel) t.label else sc.label)
+            pickShortcut = false
+        }
     }
 
     if (confirmDelete) {

@@ -1,6 +1,17 @@
 package app.semplicephone.ui.settings
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.zIndex
+import kotlin.math.roundToInt
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -73,9 +84,35 @@ fun LayoutEditor(
     onExit: () -> Unit,
     missingPermissions: List<Permissions.Need> = emptyList(),
     onRequestPermissions: () -> Unit = {},
+    missingSpecial: List<Permissions.Special> = emptyList(),
+    onOpenSpecial: (Permissions.Special) -> Unit = {},
+    onExternalStart: () -> Unit = {},
     extraSections: @Composable () -> Unit = {},
 ) {
     val page = draft.pages.getOrNull(pageIndex) ?: return
+    val context = LocalContext.current
+    var notice by remember { mutableStateOf<String?>(null) }
+    val exportDoc = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        notice = runCatching {
+            context.contentResolver.openOutputStream(uri, "wt")!!.use {
+                it.write(ConfigRepository.json.encodeToString(LauncherConfig.serializer(), draft).toByteArray())
+            }
+            "Configurazione esportata."
+        }.getOrElse { "Esportazione non riuscita: ${it.message}" }
+    }
+    val importDoc = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        val text = runCatching {
+            context.contentResolver.openInputStream(uri)!!.use { it.readBytes().toString(Charsets.UTF_8) }
+        }.getOrNull()
+        val cfg = text?.let { ConfigRepository.parse(it, "importata") }
+        notice = if (cfg == null) "File non valido: nessuna modifica." else {
+            onDraftChange(cfg)
+            onPageIndex(0)
+            "Configurazione importata: controlla e premi Salva."
+        }
+    }
     val problems = remember(draft) { ConfigRepository.validate(draft) }
     val noSos = draft.pages.none { p -> p.tiles.any { it.type == TileType.SOS } }
     var confirm by remember { mutableStateOf<Pair<String, () -> Unit>?>(null) }
@@ -126,8 +163,18 @@ fun LayoutEditor(
                 Stepper("Righe", page.rows, 1..8, { updatePage(page.copy(rows = it)) })
             }
 
-            GridPreview(page, onTile = { onEditTile(pageIndex, it) }, onEmpty = { c, r -> onAddTile(pageIndex, c, r) })
-            Text("Tocca un tile per modificarlo, una casella vuota per aggiungerne uno.", fontSize = 15.sp, color = Color(0xFF4A4A4A))
+            GridPreview(
+                page,
+                onTile = { onEditTile(pageIndex, it) },
+                onEmpty = { c, r -> onAddTile(pageIndex, c, r) },
+                onMove = { moved -> updatePage(page.copy(tiles = page.tiles.map { t -> moved.firstOrNull { it.id == t.id } ?: t })) },
+            )
+            Text(
+                "Tocca un tile per modificarlo, una casella vuota per aggiungerne uno. " +
+                    "Tieni premuto un tile e trascinalo per spostarlo (sopra un tile uguale li scambia).",
+                fontSize = 15.sp, color = Color(0xFF4A4A4A),
+            )
+            notice?.let { Text(it, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Palette.Ink) }
 
             if (problems.isNotEmpty()) {
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -149,11 +196,30 @@ fun LayoutEditor(
                     OutlinedButton(onClick = onRequestPermissions, modifier = Modifier.fillMaxWidth().height(52.dp)) { Text("Concedi permessi") }
                 }
             }
+            missingSpecial.forEach { sp ->
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    SectionLabel(sp.label)
+                    Text("Serve per: ${sp.why}. Nella pagina che si apre attiva SemplicePhone.", fontSize = 15.sp, color = Palette.Ink)
+                    OutlinedButton(onClick = { onExternalStart(); onOpenSpecial(sp) }, modifier = Modifier.fillMaxWidth().height(52.dp)) {
+                        Text("Apri impostazioni")
+                    }
+                }
+            }
 
             SectionLabel("Altre impostazioni")
             OutlinedButton(onClick = onEditSos, modifier = Modifier.fillMaxWidth().height(52.dp)) { Text("Numeri SOS") }
             extraSections()
             OutlinedButton(onClick = onChangePin, modifier = Modifier.fillMaxWidth().height(52.dp)) { Text("Cambia PIN") }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedButton(
+                    onClick = { onExternalStart(); exportDoc.launch("semplicephone-config.json") },
+                    modifier = Modifier.weight(1f).height(52.dp),
+                ) { Text("Esporta su file") }
+                OutlinedButton(
+                    onClick = { onExternalStart(); importDoc.launch(arrayOf("application/json", "text/plain", "application/octet-stream")) },
+                    modifier = Modifier.weight(1f).height(52.dp),
+                ) { Text("Importa da file") }
+            }
             OutlinedButton(
                 onClick = { confirm = "Sostituire la disposizione con quella predefinita? Le modifiche non salvate vanno perse." to onResetDefaults },
                 modifier = Modifier.fillMaxWidth().height(52.dp),
@@ -173,10 +239,15 @@ fun LayoutEditor(
 
 /** Griglia in scala con le stesse proporzioni della Home (circa 2:1 in verticale per 2 colonne). */
 @Composable
-private fun GridPreview(page: Page, onTile: (Tile) -> Unit, onEmpty: (Int, Int) -> Unit) {
+private fun GridPreview(page: Page, onTile: (Tile) -> Unit, onEmpty: (Int, Int) -> Unit, onMove: (List<Tile>) -> Unit) {
+    var dragging by remember { mutableStateOf<String?>(null) }
+    var drag by remember { mutableStateOf(Offset.Zero) }
+    val density = LocalDensity.current
     BoxWithConstraints(Modifier.fillMaxWidth().aspectRatio(0.62f)) {
         val cellW = (maxWidth - Gap * (page.cols - 1)) / page.cols
         val cellH = (maxHeight - Gap * (page.rows - 1)) / page.rows
+        val stepX = with(density) { (cellW + Gap).toPx() }
+        val stepY = with(density) { (cellH + Gap).toPx() }
         val occupied = Array(page.rows) { BooleanArray(page.cols) }
         page.tiles.forEach { t ->
             for (r in t.row until (t.row + t.h).coerceAtMost(page.rows)) for (c in t.col until (t.col + t.w).coerceAtMost(page.cols)) {
@@ -201,10 +272,27 @@ private fun GridPreview(page: Page, onTile: (Tile) -> Unit, onEmpty: (Int, Int) 
             val bg = parseColor(t.color)
             val fg = contentColorFor(bg)
             val inGrid = ConfigRepository.conflict(page.copy(tiles = emptyList()), t) == null
+            val isDragged = dragging == t.id
             Box(
                 Modifier
                     .offset(x = (cellW + Gap) * t.col.coerceAtLeast(0), y = (cellH + Gap) * t.row.coerceAtLeast(0))
+                    .offset { if (isDragged) IntOffset(drag.x.roundToInt(), drag.y.roundToInt()) else IntOffset.Zero }
+                    .zIndex(if (isDragged) 1f else 0f)
+                    .alpha(if (isDragged) 0.85f else 1f)
                     .size(cellW * t.w + Gap * (t.w - 1), cellH * t.h + Gap * (t.h - 1))
+                    .pointerInput(t, page) {
+                        detectDragGesturesAfterLongPress(
+                            onDragStart = { dragging = t.id; drag = Offset.Zero },
+                            onDrag = { change, amount -> change.consume(); drag += amount },
+                            onDragCancel = { dragging = null },
+                            onDragEnd = {
+                                val col = (t.col + (drag.x / stepX).roundToInt()).coerceIn(0, (page.cols - t.w).coerceAtLeast(0))
+                                val row = (t.row + (drag.y / stepY).roundToInt()).coerceIn(0, (page.rows - t.h).coerceAtLeast(0))
+                                dragging = null
+                                movedTiles(page, t, col, row)?.let(onMove)
+                            },
+                        )
+                    }
                     .clip(RoundedCornerShape(10.dp))
                     .background(bg)
                     .border(if (inGrid) 1.dp else 3.dp, if (inGrid) Palette.Ink else Palette.Sos, RoundedCornerShape(10.dp))
@@ -224,6 +312,22 @@ private fun GridPreview(page: Page, onTile: (Tile) -> Unit, onEmpty: (Int, Int) 
             }
         }
     }
+}
+
+/**
+ * Spostamento di [t] in (col,row): libero → sposta; occupato da un solo tile della stessa misura →
+ * scambio; altrimenti null (il tile torna al suo posto).
+ */
+internal fun movedTiles(page: Page, t: Tile, col: Int, row: Int): List<Tile>? {
+    if (col == t.col && row == t.row) return null
+    val moved = t.copy(col = col, row = row)
+    if (ConfigRepository.conflict(page, moved) == null) return listOf(moved)
+    val hit = page.tiles.filter { o ->
+        o.id != t.id && moved.col < o.col + o.w && o.col < moved.col + moved.w && moved.row < o.row + o.h && o.row < moved.row + moved.h
+    }
+    val other = hit.singleOrNull() ?: return null
+    if (other.w != t.w || other.h != t.h || other.col != col || other.row != row) return null
+    return listOf(moved, other.copy(col = t.col, row = t.row))
 }
 
 private fun previewLabel(t: Tile): String = when (t.type) {

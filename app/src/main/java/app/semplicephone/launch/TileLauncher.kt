@@ -94,6 +94,20 @@ class TileLauncher(private val context: Context, val contacts: Contacts, private
         null
     }
 
+    /** Pacchetti le cui notifiche vanno contate nel pallino del riquadro. */
+    fun badgePackages(tile: Tile): Set<String> = when (tile.type) {
+        TileType.APP -> {
+            val pkg = appIntent(tile.target)?.resolveActivity(pm)?.packageName
+            when {
+                pkg == null -> emptySet()
+                tile.target == "@dialer" -> setOf(pkg) + app.semplicephone.phone.Badges.CALL_PACKAGES
+                else -> setOf(pkg)
+            }
+        }
+        TileType.SHORTCUT -> setOf(tile.target.substringBefore('/'))
+        else -> emptySet()
+    }
+
     fun isAvailable(tile: Tile): Boolean = when (tile.type) {
         TileType.APP -> appIntent(tile.target) != null
         TileType.SHORTCUT -> tile.target.contains('/')

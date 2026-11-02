@@ -212,3 +212,46 @@ fun AppPickerDialog(apps: List<AppEntry>, launcher: TileLauncher, onPick: (AppEn
         confirmButton = { TextButton(onClick = onDismiss) { Text("Annulla") } },
     )
 }
+
+/** Elenco delle scorciatoie delle app installate, con ricerca. */
+@Composable
+fun ShortcutPickerDialog(launcher: TileLauncher, onDismiss: () -> Unit, onPick: (app.semplicephone.launch.ShortcutEntry) -> Unit) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    var query by remember { mutableStateOf("") }
+    val all by androidx.compose.runtime.produceState<List<app.semplicephone.launch.ShortcutEntry>?>(null) {
+        value = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { app.semplicephone.launch.ShortcutPins.available(context) }
+    }
+    val canUse = remember { app.semplicephone.launch.ShortcutPins.canUse(context) }
+    val iconPx = with(LocalDensity.current) { 36.dp.roundToPx() }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Scegli scorciatoia") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                when {
+                    !canUse -> Text("Disponibile solo con SemplicePhone impostato come schermata Home.")
+                    all == null -> Text("Caricamento…")
+                    all!!.isEmpty() -> Text("Nessuna app installata offre scorciatoie.")
+                    else -> {
+                        OutlinedTextField(query, { query = it }, singleLine = true, label = { Text("Cerca") }, modifier = Modifier.fillMaxWidth())
+                        val shown = all!!.filter { AppCatalog.matches(query, it.label) || AppCatalog.matches(query, it.appLabel) }
+                        LazyColumn(Modifier.heightIn(max = 420.dp)) {
+                            items(shown, key = { it.target }) { sc ->
+                                val icon = remember(sc.pkg) { launcher.appIcon(sc.pkg)?.toBitmap(iconPx, iconPx)?.asImageBitmap() }
+                                Row(Modifier.fillMaxWidth().clickable { onPick(sc) }.padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                                    if (icon != null) Image(icon, null, Modifier.size(36.dp)) else Spacer(Modifier.size(36.dp))
+                                    Spacer(Modifier.size(12.dp))
+                                    Column {
+                                        Text(sc.label, fontSize = 17.sp)
+                                        Text(sc.appLabel, fontSize = 14.sp, color = androidx.compose.ui.graphics.Color(0xFF4A4A4A))
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = onDismiss) { Text("Annulla") } },
+    )
+}

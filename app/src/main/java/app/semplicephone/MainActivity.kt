@@ -47,6 +47,9 @@ import app.semplicephone.ui.settings.PinMode
 import app.semplicephone.ui.settings.PinScreen
 import app.semplicephone.ui.settings.SosEditor
 import app.semplicephone.ui.settings.TileEditor
+import app.semplicephone.ui.settings.PhoneEditor
+import app.semplicephone.launch.ShortcutPins
+import app.semplicephone.phone.PhoneGuard
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -62,6 +65,7 @@ sealed interface Screen {
     data object SosCountdown : Screen
     data object Reminders : Screen
     data object Remote : Screen
+    data object Phone : Screen
 }
 
 class MainActivity : ComponentActivity() {
@@ -148,7 +152,13 @@ class MainActivity : ComponentActivity() {
                             onExit = ::closeSettings,
                             missingPermissions = remember(d, permissionsTick) { Permissions.missing(this@MainActivity, d) },
                             onRequestPermissions = { askPermissions(d) },
+                            missingSpecial = remember(d, permissionsTick) { Permissions.missingSpecial(this@MainActivity, d) },
+                            onOpenSpecial = { Permissions.openSpecial(this@MainActivity, it) },
+                            onExternalStart = { externalActivity = true },
                             extraSections = {
+                                OutlinedButton(onClick = { screen = Screen.Phone }, modifier = Modifier.fillMaxWidth().height(52.dp)) {
+                                    Text("Suoneria, batteria e pallini")
+                                }
                                 OutlinedButton(onClick = { screen = Screen.Reminders }, modifier = Modifier.fillMaxWidth().height(52.dp)) {
                                     Text("Promemoria farmaci (${d.reminders.size})")
                                 }
@@ -187,6 +197,14 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                     Screen.Remote -> RemoteScreen(onBack = { screen = Screen.Layout })
+                    Screen.Phone -> draft?.let { d ->
+                        PhoneEditor(
+                            initial = d.phone,
+                            hasSosNumbers = d.sos.numbers.isNotEmpty(),
+                            onSave = { draft = d.copy(phone = it); screen = Screen.Layout },
+                            onCancel = { screen = Screen.Layout },
+                        )
+                    }
                     Screen.Protection -> ProtectionScreen(protection, onBack = { screen = Screen.Layout })
                     Screen.SosCountdown -> SosScreen(
                         cfg = config.sos,
@@ -211,6 +229,7 @@ class MainActivity : ComponentActivity() {
         externalActivity = false
         permissionsTick++
         refreshHomeRole()
+        lifecycleScope.launch(Dispatchers.IO) { runCatching { PhoneGuard.checkAll(applicationContext) } }
     }
 
     /** Uscendo dall'app (schermo spento, altra app) le impostazioni si richiudono: serve di nuovo il PIN. */
@@ -252,7 +271,7 @@ class MainActivity : ComponentActivity() {
             Screen.Home -> Screen.Home
             is Screen.Pin -> if (draft != null) Screen.Layout else { closeSettings(); Screen.Home }
             Screen.Layout -> { closeSettings(); Screen.Home }
-            is Screen.EditTile, Screen.Sos, Screen.Protection, Screen.Reminders, Screen.Remote -> Screen.Layout
+            is Screen.EditTile, Screen.Sos, Screen.Protection, Screen.Reminders, Screen.Remote, Screen.Phone -> Screen.Layout
             Screen.SosCountdown -> Screen.Home
         }
     }
@@ -263,6 +282,10 @@ class MainActivity : ComponentActivity() {
             runCatching { repo.save(d) }
                 .onSuccess {
                     scheduler.scheduleAll(d)
+                    withContext(Dispatchers.IO) {
+                        ShortcutPins.sync(applicationContext, d)
+                        PhoneGuard.checkAll(applicationContext)
+                    }
                     askPermissions(d)
                     closeSettings()
                 }

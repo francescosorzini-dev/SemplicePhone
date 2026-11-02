@@ -23,6 +23,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import app.semplicephone.phone.Badges
+import app.semplicephone.phone.PhoneGuard
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -51,6 +54,8 @@ fun HomeScreen(
     onOpenSettings: () -> Unit,
 ) {
     val pages = config.pages
+    val counts by Badges.counts.collectAsState()
+    val badgeCounts = if (config.phone.badges) counts else emptyMap()
     val pagerState = rememberPagerState { pages.size.coerceAtLeast(1) }
 
     // Tasto Home premuto mentre si è già nel launcher → torna alla prima pagina.
@@ -65,13 +70,16 @@ fun HomeScreen(
         verticalArrangement = Arrangement.spacedBy(Gap),
     ) {
         if (showSetHomeBanner) SetHomeBanner(onSetHome)
+        val battery by PhoneGuard.battery.collectAsState()
+        val threshold = config.phone.batteryAlertPercent.takeIf { it > 0 } ?: 15
+        battery?.let { b -> if (!b.charging && b.level in 0..threshold) BatteryBanner(b.level) }
 
         HorizontalPager(
             state = pagerState,
             modifier = Modifier.weight(1f).fillMaxWidth(),
             beyondViewportPageCount = 1,
         ) { index ->
-            pages.getOrNull(index)?.let { PageGrid(it, config, launcher, onOpenSettings) }
+            pages.getOrNull(index)?.let { PageGrid(it, config, launcher, onOpenSettings, badgeCounts) }
         }
 
         if (pages.size > 1) PageDots(pages.size, pagerState.currentPage)
@@ -80,7 +88,14 @@ fun HomeScreen(
 
 /** Posizionamento assoluto per cella: supporta span w×h arbitrari validati dal repository. */
 @Composable
-private fun PageGrid(page: Page, config: LauncherConfig, launcher: TileLauncher, onOpenSettings: () -> Unit) {
+private fun PageGrid(
+    page: Page,
+    config: LauncherConfig,
+    launcher: TileLauncher,
+    onOpenSettings: () -> Unit,
+    badgeCounts: Map<String, Int>,
+) {
+    val packages = remember(page.tiles) { page.tiles.associate { it.id to launcher.badgePackages(it) } }
     val taps = remember { ArrayDeque<Long>() }
     val open by rememberUpdatedState(onOpenSettings)
     BoxWithConstraints(Modifier.fillMaxSize().secretTaps(taps) { open() }) {
@@ -95,6 +110,7 @@ private fun PageGrid(page: Page, config: LauncherConfig, launcher: TileLauncher,
                     .offset(x = (cellW + Gap) * t.col, y = (cellH + Gap) * t.row)
                     .size(width = cellW * t.w + Gap * (t.w - 1), height = cellH * t.h + Gap * (t.h - 1)),
                 onSecretTap = onOpenSettings,
+                badge = packages[t.id].orEmpty().sumOf { badgeCounts[it] ?: 0 },
             )
         }
     }
@@ -117,6 +133,25 @@ private fun PageDots(count: Int, current: Int) {
                     ),
             )
         }
+    }
+}
+
+@Composable
+private fun BatteryBanner(level: Int) {
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .background(Color(0xFFA84300))
+            .padding(16.dp)
+            .semantics(mergeDescendants = true) {},
+    ) {
+        Text(
+            "Batteria quasi scarica ($level%): metti il telefono in carica",
+            color = Color.White,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+        )
     }
 }
 

@@ -76,6 +76,15 @@ class RemoteSettings(context: Context) {
     var reportOffset: Long
         get() = prefs.getLong("report_offset", 0)
         set(v) = prefs.edit().putLong("report_offset", v).apply()
+    var etag: String
+        get() = prefs.getString("etag", "").orEmpty()
+        set(v) = prefs.edit().putString("etag", v).apply()
+    var lastReport: Long
+        get() = prefs.getLong("last_report", 0)
+        set(v) = prefs.edit().putLong("last_report", v).apply()
+    var appsHash: Int
+        get() = prefs.getInt("apps_hash", 0)
+        set(v) = prefs.edit().putInt("apps_hash", v).apply()
 
     val deviceId: String get() = stable("device_id", 10)
     val deviceSecret: String get() = stable("device_secret", 40)
@@ -113,21 +122,25 @@ class RemoteClient(private val context: Context) {
     private val settings = RemoteSettings(context)
     private val json = Json { ignoreUnknownKeys = true }
 
-    /** Scarica, verifica e applica. Restituisce un esito leggibile, salvato anche in lastResult. */
-    suspend fun sync(): String = withContext(Dispatchers.IO) {
+    /**
+     * Scarica, verifica e applica. Restituisce un esito leggibile, salvato anche in lastResult.
+     * [force]: controllo manuale («Aggiorna ora», SMS) che ignora l'ETag e invia sempre il report.
+     */
+    suspend fun sync(force: Boolean = false): String = withContext(Dispatchers.IO) {
         val result = try {
-            syncInternal()
+            syncInternal(force)
         } catch (e: Exception) {
             Log.w(TAG, "sync fallita", e)
             "Errore: ${e.javaClass.simpleName}${e.message?.let { " – $it" } ?: ""}"
         }
         settings.lastCheck = System.currentTimeMillis()
         settings.lastResult = result
-        runCatching { report() }.onFailure { Log.w(TAG, "report fallito", it) }
+        runCatching { report(force) }.onFailure { Log.w(TAG, "report fallito", it) }
+        runCatching { RemoteEvents.flush(context) }
         result
     }
 
-    private suspend fun syncInternal(): String {
+    private suspend fun syncInternal(force: Boolean): String {
         if (!settings.enabled) return "Disattivata"
         val url = settings.resolvedUrl()
         if (!url.startsWith("https://")) return "Indirizzo non valido (serve https)"
@@ -138,11 +151,15 @@ class RemoteClient(private val context: Context) {
             readTimeout = 15_000
             setRequestProperty("X-Device-Secret", settings.deviceSecret)
             setRequestProperty("Accept", "application/json")
+            // Controllo ogni 15 minuti: se non è cambiato nulla il server risponde 304 senza corpo.
+            if (!force && settings.etag.isNotBlank()) setRequestProperty("If-None-Match", settings.etag)
         }
         val code = conn.responseCode
+        if (code == 304) return "Già aggiornata (versione ${settings.lastSeq})"
         if (code == 404) return "Nessuna configurazione pubblicata per ${settings.deviceId}"
         if (code != 200) return "Server: HTTP $code"
         val body = conn.inputStream.use { readLimited(it, MAX_BYTES) }
+        val etag = conn.getHeaderField("ETag").orEmpty()
 
         val env = json.decodeFromString(Envelope.serializer(), body)
         val payloadBytes = Base64.decode(env.payload, Base64.DEFAULT)
@@ -150,7 +167,10 @@ class RemoteClient(private val context: Context) {
 
         val p = json.decodeFromString(RemotePayload.serializer(), payloadBytes.toString(Charsets.UTF_8))
         if (p.device != "*" && p.device != settings.deviceId) return "Configurazione destinata a un altro dispositivo"
-        if (p.seq <= settings.lastSeq) return "Già aggiornata (versione ${settings.lastSeq})"
+        if (p.seq <= settings.lastSeq) {
+            settings.etag = etag
+            return "Già aggiornata (versione ${settings.lastSeq})"
+        }
 
         p.config?.let { cfg ->
             val problems = ConfigRepository.validate(cfg)
@@ -159,14 +179,21 @@ class RemoteClient(private val context: Context) {
             ReminderScheduler(context).scheduleAll(cfg)
             app.semplicephone.admin.Protection(context)
                 .grantRuntimePermissions(app.semplicephone.launch.Permissions.required(cfg).map { n -> n.permission })
+            app.semplicephone.launch.ShortcutPins.sync(context, cfg)
+            app.semplicephone.phone.PhoneGuard.checkAll(context)
         }
         p.pinHash?.let { PinStore(context).setEncoded(it) }
         settings.lastSeq = p.seq
+        settings.etag = etag
         return "Applicata versione ${p.seq}"
     }
 
-    /** Stato verso il server: batteria, versione, esiti promemoria dall'ultimo invio. */
-    private fun report() {
+    /**
+     * Stato verso il server: batteria, versione, esiti promemoria, elenco app (solo se cambiato).
+     * Al massimo una volta l'ora, salvo novità o controllo manuale: il contatto ogni 15 minuti
+     * basta già al server per sapere che il telefono è vivo.
+     */
+    private fun report(force: Boolean) {
         if (!settings.enabled || !settings.resolvedUrl().startsWith("https://")) return
         val battery = context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
         val level = battery?.let {
@@ -188,6 +215,12 @@ class RemoteClient(private val context: Context) {
                 }
             }
         }
+        val apps = runCatching { app.semplicephone.data.AppCatalog(context).load().filterNot { it.target.startsWith("@") } }.getOrDefault(emptyList())
+        val appsHash = apps.joinToString("|") { it.target + "=" + it.label }.hashCode()
+        val appsChanged = apps.isNotEmpty() && appsHash != settings.appsHash
+        val due = System.currentTimeMillis() - settings.lastReport > 60 * 60_000L
+        if (!force && !due && events.length() == 0 && !appsChanged) return
+
         val body = JSONObject()
             .put("device", settings.deviceId)
             .put("appVersion", BuildConfig.VERSION_NAME)
@@ -196,6 +229,10 @@ class RemoteClient(private val context: Context) {
             .put("charging", charging)
             .put("lastResult", settings.lastResult)
             .put("reminderEvents", events)
+            .put("badgesAccess", app.semplicephone.phone.Badges.isEnabled(context))
+            .apply {
+                if (appsChanged) put("apps", JSONArray().also { a -> apps.forEach { a.put(JSONObject().put("pkg", it.target).put("label", it.label)) } })
+            }
             .toString().toByteArray()
 
         val reportUrl = settings.resolvedUrl() + (if ('?' in settings.resolvedUrl()) "&" else "?") + "report=1"
@@ -208,7 +245,11 @@ class RemoteClient(private val context: Context) {
             setRequestProperty("X-Device-Secret", settings.deviceSecret)
         }
         conn.outputStream.use { it.write(body) }
-        if (conn.responseCode in 200..299 && log.exists()) settings.reportOffset = log.length()
+        if (conn.responseCode in 200..299) {
+            if (log.exists()) settings.reportOffset = log.length()
+            if (appsChanged) settings.appsHash = appsHash
+            settings.lastReport = System.currentTimeMillis()
+        }
         conn.disconnect()
     }
 
@@ -229,25 +270,46 @@ class RemoteClient(private val context: Context) {
         private const val MAX_BYTES = 512 * 1024
         private const val WORK = "remote-config-sync"
 
-        /** Controllo periodico (6 h, con rete). Senza config remota attiva il lavoro viene tolto. */
+        /**
+         * Controllo periodico ogni 15 minuti (il minimo di Android), solo con rete. Grazie all'ETag
+         * ogni controllo senza novità costa una richiesta di pochi byte.
+         */
         fun schedule(context: Context) {
             val wm = WorkManager.getInstance(context)
             if (!RemoteSettings(context).enabled) {
                 wm.cancelUniqueWork(WORK)
                 return
             }
-            val req = PeriodicWorkRequestBuilder<RemoteWorker>(6, TimeUnit.HOURS)
+            val req = PeriodicWorkRequestBuilder<RemoteWorker>(15, TimeUnit.MINUTES)
                 .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
                 .build()
             wm.enqueueUniquePeriodicWork(WORK, ExistingPeriodicWorkPolicy.UPDATE, req)
         }
+
+        /** Controllo immediato fuori programma (comando SMS). */
+        fun syncNow(context: Context) {
+            val req = androidx.work.OneTimeWorkRequestBuilder<RemoteWorker>()
+                .setInputData(androidx.work.workDataOf(KEY_FORCE to true))
+                .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
+                .build()
+            wm(context).enqueueUniqueWork("remote-sync-now", androidx.work.ExistingWorkPolicy.REPLACE, req)
+        }
+
+        private fun wm(context: Context) = WorkManager.getInstance(context)
+        const val KEY_FORCE = "force"
     }
 }
 
 class RemoteWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
     override suspend fun doWork(): Result {
-        val res = RemoteClient(applicationContext).sync()
-        runCatching { app.semplicephone.update.Updater(applicationContext).autoUpdateIfSilent() }
+        val force = inputData.getBoolean(RemoteClient.KEY_FORCE, false)
+        val res = RemoteClient(applicationContext).sync(force)
+        // Gli aggiornamenti dell'app si controllano al massimo ogni 6 ore, non a ogni sync.
+        val prefs = applicationContext.getSharedPreferences("update", Context.MODE_PRIVATE)
+        if (System.currentTimeMillis() - prefs.getLong("last_auto", 0) > 6 * 3_600_000L) {
+            prefs.edit().putLong("last_auto", System.currentTimeMillis()).apply()
+            runCatching { app.semplicephone.update.Updater(applicationContext).autoUpdateIfSilent() }
+        }
         return if (res.startsWith("Errore")) Result.retry() else Result.success()
     }
 }

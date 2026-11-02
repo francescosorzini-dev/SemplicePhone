@@ -77,7 +77,7 @@ fun RemoteScreen(onBack: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             Text(
-                "Il telefono scarica ogni 6 ore la configurazione pubblicata sul server e la applica solo se " +
+                "Il telefono controlla ogni 15 minuti la configurazione pubblicata sul server e la applica solo se " +
                     "la firma è valida. Le modifiche fatte qui sul telefono vengono sostituite alla pubblicazione successiva.",
                 fontSize = 15.sp, color = Color(0xFF4A4A4A),
             )
@@ -103,7 +103,7 @@ fun RemoteScreen(onBack: () -> Unit) {
                     persist()
                     busy = true
                     scope.launch {
-                        status = RemoteClient(context).sync()
+                        status = RemoteClient(context).sync(force = true)
                         lastCheck = settings.lastCheck
                         busy = false
                     }

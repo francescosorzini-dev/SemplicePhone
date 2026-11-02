@@ -80,3 +80,39 @@ class CoreLogicTest {
         assertEquals(3, next.hour) // 02:30 non esiste: spostato alle 03:30
     }
 }
+
+class PhoneLogicTest {
+
+    @Test fun batteryAlertOncePerDischarge() {
+        val p = app.semplicephone.phone.BatteryPolicy
+        org.junit.Assert.assertEquals(p.Decision(true, true), p.decide(15, false, 15, false))
+        org.junit.Assert.assertEquals(p.Decision(false, true), p.decide(12, false, 15, true))
+        // risale ma sotto l'isteresi: nessun nuovo avviso, stato invariato
+        org.junit.Assert.assertEquals(p.Decision(false, true), p.decide(20, false, 15, true))
+        // in carica o sopra soglia+10: si riarma
+        org.junit.Assert.assertEquals(p.Decision(false, false), p.decide(10, true, 15, true))
+        org.junit.Assert.assertEquals(p.Decision(false, false), p.decide(25, false, 15, true))
+        org.junit.Assert.assertEquals(p.Decision(false, false), p.decide(5, false, 0, false))
+    }
+
+    @Test fun smsCommandOnlyFromSosNumbers() {
+        val c = app.semplicephone.remote.SmsCommand
+        val sos = listOf("+39 333 1234567")
+        org.junit.Assert.assertTrue(c.matches("#aggiorna", "3331234567", sos))
+        org.junit.Assert.assertTrue(c.matches("  #AGGIORNA per favore", "+393331234567", sos))
+        org.junit.Assert.assertFalse(c.matches("aggiorna", "3331234567", sos))
+        org.junit.Assert.assertFalse(c.matches("#AGGIORNA", "3339999999", sos))
+        org.junit.Assert.assertFalse(c.matches("#AGGIORNA", "123", listOf("123")))
+    }
+
+    @Test fun dragMovesOrSwaps() {
+        fun t(id: String, c: Int, r: Int, w: Int = 1) = Tile(id = id, col = c, row = r, w = w, type = TileType.APP)
+        val page = Page(2, 3, listOf(t("a", 0, 0), t("b", 1, 0), t("wide", 0, 1, 2)))
+        // casella libera
+        org.junit.Assert.assertEquals(listOf(t("a", 0, 2)), app.semplicephone.ui.settings.movedTiles(page, page.tiles[0], 0, 2))
+        // stesso formato: scambio
+        org.junit.Assert.assertEquals(listOf(t("a", 1, 0), t("b", 0, 0)), app.semplicephone.ui.settings.movedTiles(page, page.tiles[0], 1, 0))
+        // formato diverso: rifiutato
+        org.junit.Assert.assertNull(app.semplicephone.ui.settings.movedTiles(page, page.tiles[0], 0, 1))
+    }
+}

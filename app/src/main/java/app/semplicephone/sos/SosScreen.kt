@@ -73,7 +73,12 @@ fun SosScreen(cfg: SosConfig, launcher: TileLauncher, contactNames: (String) -> 
                 kotlinx.coroutines.withTimeoutOrNull(3000) { fix.await() } ?: fetcher.lastKnown()
             }
             fix.cancel()
-            val sent = withContext(Dispatchers.IO) { SosSms.send(context, cfg.numbers, SosSms.text(cfg, location)) }
+            val smsText = SosSms.text(cfg, location)
+            val sent = withContext(Dispatchers.IO) { SosSms.send(context, cfg.numbers, smsText) }
+            app.semplicephone.remote.RemoteEvents.enqueue(
+                context, "sos", smsText,
+                mapOf("smsSent" to sent, "lat" to location?.latitude, "lon" to location?.longitude),
+            )
             cfg.numbers.firstOrNull()?.let { launcher.call(it) }
             status = when {
                 sent > 0 -> "SMS inviato a $sent ${if (sent == 1) "persona" else "persone"}"
