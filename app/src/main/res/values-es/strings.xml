@@ -299,13 +299,16 @@
     <plurals name="reminder_snooze_short">
         <item quantity="one">En %1$d minuto</item>
         <item quantity="other">En %1$d minutos</item>
+        <item quantity="many">En %1$d minutos</item>
     </plurals>
     <plurals name="reminder_snooze_long">
         <item quantity="one">Recuérdamelo en %1$d minuto</item>
         <item quantity="other">Recuérdamelo en %1$d minutos</item>
+        <item quantity="many">Recuérdamelo en %1$d minutos</item>
     </plurals>
     <plurals name="sos_sms_sent">
         <item quantity="one">SMS enviado a %1$d persona</item>
         <item quantity="other">SMS enviado a %1$d personas</item>
+        <item quantity="many">SMS enviado a %1$d personas</item>
     </plurals>
 </resources>

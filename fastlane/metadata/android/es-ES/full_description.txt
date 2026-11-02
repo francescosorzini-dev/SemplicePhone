@@ -1,0 +1,23 @@
+SemplicePhone sustituye la pantalla de inicio por unos pocos mosaicos grandes y claros, pensados para quien usa poco el smartphone. Un familiar lo prepara todo una vez; la persona mayor solo ve lo que necesita.
+
+<b>Cada mosaico se personaliza</b>
+<ul>
+<li>Llamada directa a un contacto, con su foto</li>
+<li>Videollamada de WhatsApp</li>
+<li>Abrir una app, una web o un acceso directo</li>
+<li>SMS predefinido</li>
+<li>Reloj grande con la fecha</li>
+<li>Botón SOS</li>
+</ul>
+
+<b>SOS</b>: pulsación larga, cuenta atrás cancelable, después llamada al primer número y ubicación enviada a la familia.
+
+<b>Recordatorios de medicamentos</b>: alarma a pantalla completa incluso con el teléfono bloqueado, con «Tomada» y posponer; se repite hasta que se confirma.
+
+<b>Protección</b>: ajustes protegidos con PIN, tono que vuelve al volumen elegido, aviso de batería baja.
+
+<b>Gestión remota (opcional)</b>: un familiar cambia los mosaicos desde un portal PHP alojado por él mismo (incluido). Las configuraciones están firmadas con Ed25519; el portal recibe avisos de SOS, recordatorios perdidos y batería, también por Telegram o correo.
+
+Idiomas: alemán, español, francés, inglés, italiano.
+
+Sin publicidad, sin rastreo, sin cuentas. Software libre (GPL-3.0).

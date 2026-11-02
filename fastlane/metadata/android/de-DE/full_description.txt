@@ -1,0 +1,23 @@
+SemplicePhone ersetzt den Startbildschirm durch wenige große, klare Kacheln für Menschen, die ihr Smartphone selten benutzen. Ein Angehöriger richtet alles einmal ein; die ältere Person sieht nur, was sie braucht.
+
+<b>Jede Kachel ist anpassbar</b>
+<ul>
+<li>Direktanruf bei einem Kontakt, mit Foto</li>
+<li>WhatsApp-Videoanruf</li>
+<li>Eine App, eine Webseite oder eine Verknüpfung öffnen</li>
+<li>Vorgefertigte SMS</li>
+<li>Große Uhr mit Datum</li>
+<li>SOS-Taste</li>
+</ul>
+
+<b>SOS</b>: gedrückt halten, abbrechbarer Countdown, dann Anruf bei der ersten Nummer und Standort an die Familie.
+
+<b>Medikamenten-Erinnerungen</b>: Wecker im Vollbild auch bei gesperrtem Telefon, mit „Genommen“ und „Später“; wiederholt sich, bis bestätigt wird.
+
+<b>Schutz</b>: Einstellungen mit PIN, Klingelton stellt sich selbst wieder ein, Hinweis bei schwachem Akku.
+
+<b>Fernverwaltung (optional)</b>: Ein Angehöriger ändert die Kacheln über ein selbst gehostetes PHP-Portal (im Projekt enthalten). Die Konfigurationen sind mit Ed25519 signiert; das Portal empfängt Hinweise zu SOS, verpassten Erinnerungen und Akku, auch per Telegram oder E-Mail.
+
+Sprachen: Deutsch, Englisch, Französisch, Italienisch, Spanisch.
+
+Keine Werbung, kein Tracking, kein Konto. Freie Software (GPL-3.0).

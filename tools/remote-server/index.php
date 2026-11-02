@@ -30,7 +30,6 @@ const SOURCE_URL = 'https://github.com/francescosorzini-dev/SemplicePhone';
 const VERSION = '0.5.1'; // aggiornata in automatico nelle release
 const TILE_TYPES = ['app', 'call', 'wa_video', 'sms', 'url', 'shortcut', 'clock', 'sos'];
 const EVENT_TYPES = ['sos', 'reminder_missed', 'battery', 'offline', 'online', 'test'];
-const LANGS = ['it', 'en', 'de', 'fr', 'es'];
 // Testi delle lingue: nelle release sono incorporati qui (file unico); in sviluppo si leggono da lang/*.json.
 const LANG_DATA = null;
 
@@ -89,6 +88,14 @@ function settings(): array {
     ], read_json(DATA . '/settings.json', []));
 }
 // ---------------------------------------------------------------- lingue
+/** Lingue disponibili: quelle incorporate o i file in lang/ (una lingua nuova non richiede codice). */
+function langs(): array {
+    static $list = null;
+    if ($list !== null) return $list;
+    $list = LANG_DATA !== null ? array_keys(LANG_DATA) : array_map(fn($f) => basename($f, '.json'), glob(__DIR__ . '/lang/*.json') ?: []);
+    sort($list);
+    return $list ?: ['en'];
+}
 function lang_table(string $l): array {
     static $cache = [];
     if (isset($cache[$l])) return $cache[$l];
@@ -107,15 +114,15 @@ function ev_title(string $type): string { return in_array($type, EVENT_TYPES, tr
 /** Lingua del pannello: ?lang=, poi cookie, poi lingua del browser, altrimenti inglese. */
 function pick_lang(): string {
     $q = $_GET['lang'] ?? null;
-    if (is_string($q) && in_array($q, LANGS, true)) {
+    if (is_string($q) && in_array($q, langs(), true)) {
         setcookie('lang', $q, ['expires' => time() + 31536000, 'samesite' => 'Lax', 'httponly' => true, 'secure' => !empty($_SERVER['HTTPS'])]);
         return $q;
     }
     $c = (string)($_COOKIE['lang'] ?? '');
-    if (in_array($c, LANGS, true)) return $c;
+    if (in_array($c, langs(), true)) return $c;
     foreach (explode(',', (string)($_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? '')) as $part) {
         $l = strtolower(substr(trim($part), 0, 2));
-        if (in_array($l, LANGS, true)) return $l;
+        if (in_array($l, langs(), true)) return $l;
     }
     return 'en';
 }
@@ -179,7 +186,7 @@ function run_checks(bool $force = false): void {
     }
 }
 
-$LANG = in_array(settings()['lang'], LANGS, true) ? settings()['lang'] : 'en';
+$LANG = in_array(settings()['lang'], langs(), true) ? settings()['lang'] : 'en';
 
 if (PHP_SAPI === 'cli') {
     if (($argv[1] ?? '') === 'cron') { run_checks(true); exit(0); }
@@ -802,8 +809,8 @@ details summary{cursor:pointer;font-weight:600}
   </script>
 <?php endif; ?>
 <footer class="hint" style="margin:32px 0 8px;text-align:center"><?= t('footer_html', h(VERSION), h(SOURCE_URL)) ?>
-  <nav aria-label="<?= th('language') ?>" style="margin-top:6px"><?php foreach (LANGS as $l): $q = $_GET; $q['lang'] = $l; ?>
-    <a href="?<?= h(http_build_query($q)) ?>" lang="<?= $l ?>" <?= $l === $LANG ? 'aria-current="true" style="font-weight:700"' : '' ?>><?= h(lang_table($l)['lang_name'] ?? $l) ?></a><?= $l !== LANGS[count(LANGS) - 1] ? ' · ' : '' ?>
+  <nav aria-label="<?= th('language') ?>" style="margin-top:6px"><?php foreach (langs() as $l): $q = $_GET; $q['lang'] = $l; ?>
+    <a href="?<?= h(http_build_query($q)) ?>" lang="<?= $l ?>" <?= $l === $LANG ? 'aria-current="true" style="font-weight:700"' : '' ?>><?= h(lang_table($l)['lang_name'] ?? $l) ?></a><?= $l !== langs()[count(langs()) - 1] ? ' · ' : '' ?>
   <?php endforeach; ?></nav></footer>
 </main>
 

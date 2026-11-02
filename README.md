@@ -1,11 +1,16 @@
 # SemplicePhone
 
+*[English version](README.en.md)*
+
 Launcher Android per anziani. La Home è fatta solo di tile grandi e ogni tile è configurabile:
 app, chiamata, videochiamata WhatsApp, SMS, link, scorciatoie, orologio, SOS.
 Si distribuisce come APK dal sito; sono pronte anche le edizioni per F-Droid e Google Play
 (vedi [Store](#store)). La configurazione si può gestire anche da remoto, con firma Ed25519.
 
 - Kotlin + Jetpack Compose, minSdk 29 / targetSdk 36, font Atkinson Hyperlegible (OFL)
+- Lingue: italiano, inglese, tedesco, francese, spagnolo (app e portale). L'app segue la lingua
+  del telefono; da Android 13 se ne può scegliere una solo per SemplicePhone (Impostazioni ›
+  Lingua). Per tradurre: [TRANSLATING.md](TRANSLATING.md)
 - Config JSON: `assets/default_config.json` (predefinita) → `filesDir/config.json` (locale) →
   config remota firmata (sostituisce quella locale quando arriva una versione più nuova)
 
@@ -170,6 +175,7 @@ validazione.
 | M6 – config remota firmata Ed25519 + server PHP | ✅ |
 | M7 – release firmata, aggiornamento in-app | ✅ |
 | M8 – edizioni per F-Droid (build riproducibile) e Google Play | 🔧 |
+| M9 – app e portale in 5 lingue, pronti per Weblate | ✅ |
 
 ## Limiti noti
 

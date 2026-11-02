@@ -23,9 +23,16 @@ Builds:
     gradle:
       - completo
 
+  - versionName: 0.7.0
+    versionCode: 140
+    commit: v0.7.0
+    subdir: app
+    gradle:
+      - completo
+
 AllowedAPKSigningKeys: 3871cf5b478aea297ec9aa665cebc98f7e62d9076fab62a548bac70e10f8819e
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
-CurrentVersion: 0.6.0
-CurrentVersionCode: 130
+CurrentVersion: 0.7.0
+CurrentVersionCode: 140

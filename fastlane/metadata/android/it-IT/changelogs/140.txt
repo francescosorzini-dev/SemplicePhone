@@ -1,0 +1,3 @@
+- App e portale in 5 lingue: italiano, inglese, tedesco, francese, spagnolo
+- Lingua scelta per la sola app (Android 13+)
+- Comando SMS accettato in tutte le lingue (#AGGIORNA, #UPDATE…)

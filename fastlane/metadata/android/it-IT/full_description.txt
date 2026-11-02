@@ -27,4 +27,6 @@ Allarme a schermo intero anche a telefono bloccato, con «PRESO» e rinvio. Se n
 <b>Gestione da remoto (facoltativa)</b>
 Un familiare può cambiare i riquadri da un portale web che installa sul proprio spazio (PHP, codice incluso nel progetto). Le configurazioni sono firmate digitalmente: il telefono accetta solo quelle del suo portale. Il portale riceve avvisi di SOS, promemoria non confermati e batteria scarica, anche su Telegram o via email.
 
+Lingue: italiano, inglese, tedesco, francese, spagnolo.
+
 Nessuna pubblicità, nessun tracciamento, nessun account. Software libero (GPL-3.0).

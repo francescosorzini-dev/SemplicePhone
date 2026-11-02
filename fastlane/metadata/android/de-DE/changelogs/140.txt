@@ -1,0 +1,3 @@
+- App und Portal in 5 Sprachen: Deutsch, Englisch, Französisch, Italienisch, Spanisch
+- Eigene Sprache nur für die App (Android 13+)
+- SMS-Befehl in allen Sprachen (#AKTUALISIEREN, #UPDATE…)

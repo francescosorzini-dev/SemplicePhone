@@ -1,0 +1,23 @@
+SemplicePhone remplace l'écran d'accueil par quelques grandes tuiles claires, pensées pour les personnes qui utilisent peu leur smartphone. Un proche configure tout une fois ; la personne âgée ne voit que ce dont elle a besoin.
+
+<b>Chaque tuile est personnalisable</b>
+<ul>
+<li>Appel direct à un contact, avec sa photo</li>
+<li>Appel vidéo WhatsApp</li>
+<li>Ouvrir une appli, un site ou un raccourci</li>
+<li>SMS prérédigé</li>
+<li>Grande horloge avec la date</li>
+<li>Bouton SOS</li>
+</ul>
+
+<b>SOS</b> : appui long, compte à rebours annulable, puis appel au premier numéro et position envoyée à la famille.
+
+<b>Rappels de médicaments</b> : alarme plein écran même téléphone verrouillé, avec « Pris » et report ; elle se répète jusqu'à confirmation.
+
+<b>Protection</b> : paramètres protégés par code PIN, sonnerie qui revient au volume choisi, alerte batterie faible.
+
+<b>Gestion à distance (facultative)</b> : un proche modifie les tuiles depuis un portail PHP qu'il héberge lui-même (inclus). Les configurations sont signées avec Ed25519 ; le portail reçoit les alertes SOS, rappels manqués et batterie, aussi par Telegram ou e-mail.
+
+Langues : allemand, anglais, espagnol, français, italien.
+
+Sans publicité, sans pistage, sans compte. Logiciel libre (GPL-3.0).
