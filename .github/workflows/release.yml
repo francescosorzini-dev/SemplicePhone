@@ -82,6 +82,12 @@ jobs:
           if grep -Eq "RECEIVE_SMS|REQUEST_INSTALL_PACKAGES|BIND_NOTIFICATION_LISTENER" perms.txt; then echo "::error::permessi bloccati nella standard"; exit 1; fi
           "$AAPT" dump xmltree --file AndroidManifest.xml "SemplicePhone-$VERSION.apk" | grep -q BIND_NOTIFICATION_LISTENER_SERVICE && { echo "::error::listener nella standard"; exit 1; } || true
 
+      - name: Portale con la versione della release
+        run: |
+          sed -E "s/^const VERSION = '[^']*';.*/const VERSION = '$VERSION';/" tools/remote-server/index.php > index.php
+          grep -q "const VERSION = '$VERSION';" index.php || { echo "::error::versione portale non aggiornata"; exit 1; }
+          php -l index.php 2>/dev/null || true
+
       - name: GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -90,5 +96,5 @@ jobs:
           cp "SemplicePhone-$VERSION.apk" SemplicePhone.apk
           cp "SemplicePhone-completo-$VERSION.apk" SemplicePhone-completo.apk
           gh release create "$TAG" "SemplicePhone-$VERSION.apk" "SemplicePhone-completo-$VERSION.apk" \
-            SemplicePhone.apk SemplicePhone-completo.apk update.json update-completo.json \
+            SemplicePhone.apk SemplicePhone-completo.apk update.json update-completo.json index.php \
             --target "$GITHUB_SHA" --title "SemplicePhone $TAG" --generate-notes

@@ -1,6 +1,8 @@
 # Server config remota
 
-`index.php` è un file unico (PHP 8.1+, estensione `sodium`). Va copiato in una cartella del sito,
+`index.php` è un file unico (PHP 8.1+, estensione `sodium`). Scaricalo dall'ultima release
+([index.php](https://github.com/francescosorzini-dev/SemplicePhone/releases/latest/download/index.php)),
+che porta già il numero di versione giusto. Va copiato in una cartella del sito,
 per esempio `https://example.com/semplicephone/`. Al primo accesso crea `data/`, protetta da
 `.htaccess`, e dentro genera:
 - la coppia di chiavi Ed25519 (`signing.key`, permessi 0600);
