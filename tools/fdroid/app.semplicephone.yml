@@ -18,7 +18,7 @@ Binaries:
 Builds:
   - versionName: 0.7.2
     versionCode: 160
-    commit: v0.7.2
+    commit: a15bac364c652308dc7f6ae869cc4b62d8afd576
     subdir: app
     gradle:
       - completo
