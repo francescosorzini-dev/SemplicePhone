@@ -191,7 +191,7 @@ class CompatibilityTest {
 class OpenModeTest {
     @Test fun tileChoiceWinsOverPhone() {
         val t = Tile(id = "a", col = 0, row = 0, type = TileType.APP)
-        val f = app.semplicephone.launch::tileFreshStart
+        val f: (Tile, Boolean) -> Boolean = { tile, d -> app.semplicephone.launch.tileFreshStart(tile, d) }
         assertTrue(f(t, true)); assertFalse(f(t, false))
         assertTrue(f(t.copy(open = "fresh"), false))
         assertFalse(f(t.copy(open = "resume"), true))
