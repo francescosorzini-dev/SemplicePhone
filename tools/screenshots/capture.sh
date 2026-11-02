@@ -9,8 +9,6 @@ declare -A CANCEL=([it]=ANNULLA [en]=CANCEL [de]=ABBRECHEN [fr]=ANNULER [es]=CAN
 
 adb root >/dev/null; adb wait-for-device; sleep 2
 adb install -r "$APK"
-adb shell settings put global auto_time 0
-adb shell date 110209302026.00 >/dev/null
 adb shell settings put system screen_off_timeout 1800000
 adb shell svc power stayon true
 adb shell cmd role add-role-holder android.app.role.HOME $P 0 || true
@@ -32,13 +30,16 @@ contact Luca +393477654321
 # Barra di stato pulita
 adb shell settings put global sysui_demo_allowed 1
 demo() { adb shell am broadcast -a com.android.systemui.demo -e command "$@" >/dev/null; }
-demo enter; demo clock -e hhmm 0930; demo battery -e level 100 -e plugged false
-demo network -e wifi show -e level 4 -e mobile show -e level 4 -e datatype none; demo notifications -e visible false
 
 # In caso di errore salva l'albero di uiautomator per capire cosa c'era a schermo.
 dbg() { adb shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1; adb shell cat /sdcard/ui.xml > "$OUT/debug_$1.xml" || true; adb exec-out screencap -p > "$OUT/debug_$1.png" || true; }
 trap 'dbg error' ERR
-shot() { sleep "${2:-2}"; adb exec-out screencap -p > "$OUT/$1.png"; echo "  $1"; }
+# Barra di stato in modalità demo, con l'ora del telefono (uguale all'orologio dell'app).
+statusbar() {
+  demo enter; demo clock -e hhmm "$(adb shell date +%H%M | tr -d '\r')"; demo battery -e level 100 -e plugged false
+  demo network -e wifi show -e level 4 -e mobile show -e level 4 -e datatype none; demo notifications -e visible false
+}
+shot() { sleep "${2:-2}"; statusbar; sleep 1; adb exec-out screencap -p > "$OUT/$1.png"; echo "  $1"; }
 home() { adb shell am start -W -a android.intent.action.MAIN -c android.intent.category.HOME >/dev/null; }
 first=1
 for L in it en de fr es; do
@@ -51,7 +52,7 @@ for L in it en de fr es; do
   home; shot "${L}_1_home" 4
 
   # SOS: pressione prolungata, conto alla rovescia, annulla
-  python3 tap.py --long 2600 --regex '^SOS:'
+  python3 tap.py --long 2600 --regex '^SOS'
   shot "${L}_2_sos" 1
   python3 tap.py "${CANCEL[$L]}"; sleep 1
 
