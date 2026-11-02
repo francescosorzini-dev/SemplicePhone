@@ -134,6 +134,7 @@ Ogni opzione si toglie da Impostazioni › Protezione, compreso il ruolo di Devi
 ## Build
 
 - Ogni push su `main` esegue la CI: APK debug come artifact, unit test e build release R8 di controllo.
+- Checklist completa di ogni release (GitHub, portale, F-Droid, Play, documentazione): [RELEASING.md](RELEASING.md).
 - Release firmata: la chiave e i secrets GitHub si creano una volta con
   [`tools/release/new-keystore.ps1`](tools/release/new-keystore.ps1). Poi, a ogni versione:
   1. in `app/build.gradle.kts` aggiorna `versionName` e porta `versionCode` a +10;
