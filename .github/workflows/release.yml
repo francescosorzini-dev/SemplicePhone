@@ -69,7 +69,7 @@ jobs:
             else APK="SemplicePhone-completo-$VERSION.apk"; JSON=update-completo.json; NAME="$VERSION-completo"; fi
             cp "app/build/outputs/apk/$ED/release/app-$ED-release.apk" "$APK"
             "$APKSIGNER" verify --verbose --print-certs "$APK" > certs.txt
-            grep -E "Signer #1 certificate (DN|SHA-256)" certs.txt
+            grep -E "certificate (DN|SHA-256)" certs.txt || true
             tr -d ': ' < certs.txt | tr 'A-F' 'a-f' | grep -q "$EXPECTED" || { echo "::error::$APK non firmato con la chiave attesa"; exit 1; }
             SHA=$(sha256sum "$APK" | cut -d' ' -f1)
             printf '{"versionCode": %s, "versionName": "%s",\n "apkUrl": "https://github.com/%s/releases/download/%s/%s",\n "sha256": "%s"}\n' \
