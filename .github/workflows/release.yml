@@ -112,7 +112,9 @@ jobs:
         run: |
           sed -E "s/^const VERSION = '[^']*';.*/const VERSION = '$VERSION';/" tools/remote-server/index.php > index.php
           grep -q "const VERSION = '$VERSION';" index.php || { echo "::error::versione portale non aggiornata"; exit 1; }
-          php -l index.php 2>/dev/null || true
+          # Lingue incorporate: il portale resta un file unico da copiare sul sito.
+          php tools/remote-server/embed-langs.php index.php tools/remote-server/lang
+          php -l index.php
 
       - name: GitHub Release
         env:

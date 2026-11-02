@@ -8,6 +8,17 @@ per esempio `https://example.com/semplicephone/`. Al primo accesso crea `data/`,
 - la coppia di chiavi Ed25519 (`signing.key`, permessi 0600);
 - la password del pannello, scelta da te.
 
+## Lingue
+
+Il pannello è in italiano, inglese, tedesco, francese e spagnolo. La lingua segue quella del
+browser e si cambia dai link in fondo alla pagina. Gli avvisi Telegram/email usano l'ultima lingua
+scelta nel pannello.
+
+L'`index.php` della release contiene già tutti i testi. Nel repository i testi stanno in
+`lang/*.json`, che `embed-langs.php` incorpora in fase di release. Per provare il portale dal
+sorgente copia anche la cartella `lang/` accanto a `index.php`. Per tradurre vedi
+[TRANSLATING.md](../../TRANSLATING.md).
+
 ## Collegare un telefono
 
 1. Sul telefono: impostazioni (5 tocchi sull'orologio) › Gestione da remoto. Lì trovi l'**ID del telefono**.

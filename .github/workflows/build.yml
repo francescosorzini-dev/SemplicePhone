@@ -23,6 +23,13 @@ jobs:
       - name: Build debug (due edizioni) + unit test + release (R8, non firmata)
         run: ./gradlew --no-daemon assembleDebug testStandardDebugUnitTest assembleRelease
 
+      - name: Portale PHP (sintassi e lingue)
+        run: |
+          php -l tools/remote-server/index.php
+          cp tools/remote-server/index.php /tmp/portal.php
+          php tools/remote-server/embed-langs.php /tmp/portal.php tools/remote-server/lang
+          php -l /tmp/portal.php
+
       - uses: actions/upload-artifact@v4
         with:
           name: SemplicePhone-debug-${{ github.sha }}
