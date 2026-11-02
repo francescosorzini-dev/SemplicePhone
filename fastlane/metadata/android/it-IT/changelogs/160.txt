@@ -1,0 +1,1 @@
+- Build compatibile con F-Droid (JDK 21)

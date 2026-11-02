@@ -15,8 +15,8 @@ android {
         targetSdk = 36 // obbligatorio su Google Play dal 31/8/2026
         // Versione scritta qui (non calcolata in CI): F-Droid la legge da questo file e ricompila
         // lo stesso APK. A ogni release: versionName = tag senza «v», versionCode +10.
-        versionCode = 150
-        versionName = "0.7.1"
+        versionCode = 160
+        versionName = "0.7.2"
 
         // Valori predefiniti per la config remota (vuoti = da inserire nel telefono),
         // sovrascrivibili da gradle.properties o -P per build dedicate.
@@ -110,8 +110,12 @@ android {
     }
 }
 
+// Nessun toolchain fisso: si compila con il JDK in uso (21, come il buildserver di F-Droid,
+// così la build resta riproducibile) e il bytecode resta Java 17.
 kotlin {
-    jvmToolchain(17)
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+    }
 }
 
 dependencies {
