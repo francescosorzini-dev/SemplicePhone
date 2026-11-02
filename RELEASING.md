@@ -40,6 +40,7 @@ Il workflow pubblica e verifica:
   dichiarazioni nella Console (`tools/play/README.md`).
 
 ## 6. Documentazione
+- [ ] Se è cambiato l'aspetto: rigenerare gli screenshot ([tools/screenshots](tools/screenshots/README.md)).
 - [ ] `README.md` e `README.en.md` (funzioni, edizioni, milestone), `PRIVACY.md` se cambiano i dati
   trattati, le guide in `tools/` se cambia la procedura.
 - [ ] Link all'APK: `https://github.com/francescosorzini-dev/SemplicePhone/releases/latest/download/SemplicePhone.apk`.
