@@ -16,16 +16,9 @@ Repo: https://github.com/francescosorzini-dev/SemplicePhone.git
 Binaries: https://github.com/francescosorzini-dev/SemplicePhone/releases/download/v%v/SemplicePhone-completo-%v.apk
 
 Builds:
-  - versionName: 0.6.0
-    versionCode: 130
-    commit: v0.6.0
-    subdir: app
-    gradle:
-      - completo
-
-  - versionName: 0.7.0
-    versionCode: 140
-    commit: v0.7.0
+  - versionName: 0.7.1
+    versionCode: 150
+    commit: v0.7.1
     subdir: app
     gradle:
       - completo
@@ -34,5 +27,5 @@ AllowedAPKSigningKeys: 3871cf5b478aea297ec9aa665cebc98f7e62d9076fab62a548bac70e1
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
-CurrentVersion: 0.7.0
-CurrentVersionCode: 140
+CurrentVersion: 0.7.1
+CurrentVersionCode: 150
