@@ -1,7 +1,7 @@
-# Da copiare in fdroiddata come metadata/app.semplicephone.yml (vedi README.md qui accanto).
 Categories:
-  - Phone & SMS
-  - Theming
+  - Emergency Action
+  - Launcher
+  - Medication
 License: GPL-3.0-or-later
 AuthorName: Francesco Sorzini
 SourceCode: https://github.com/francescosorzini-dev/SemplicePhone
@@ -12,7 +12,6 @@ AutoName: SemplicePhone
 
 RepoType: git
 Repo: https://github.com/francescosorzini-dev/SemplicePhone.git
-# Build riproducibile: F-Droid compila, confronta con il nostro APK e pubblica quello firmato da noi.
 Binaries: https://github.com/francescosorzini-dev/SemplicePhone/releases/download/v%v/SemplicePhone-completo-%v.apk
 
 Builds:
