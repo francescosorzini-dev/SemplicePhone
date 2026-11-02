@@ -20,6 +20,9 @@ demo() { adb shell am broadcast -a com.android.systemui.demo -e command "$@" >/d
 demo enter; demo clock -e hhmm 0930; demo battery -e level 100 -e plugged false
 demo network -e wifi show -e level 4 -e mobile show -e level 4 -e datatype none; demo notifications -e visible false
 
+# In caso di errore salva l'albero di uiautomator per capire cosa c'era a schermo.
+dbg() { adb shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1; adb shell cat /sdcard/ui.xml > "$OUT/debug_$1.xml" || true; adb exec-out screencap -p > "$OUT/debug_$1.png" || true; }
+trap 'dbg error' ERR
 shot() { sleep "${2:-2}"; adb exec-out screencap -p > "$OUT/$1.png"; echo "  $1"; }
 home() { adb shell am start -W -a android.intent.action.MAIN -c android.intent.category.HOME >/dev/null; }
 first=1
