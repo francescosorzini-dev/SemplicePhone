@@ -14,6 +14,18 @@ adb shell date 110209302026.00 >/dev/null
 adb shell settings put system screen_off_timeout 1800000
 adb shell svc power stayon true
 adb shell cmd role add-role-holder android.app.role.HOME $P 0 || true
+adb shell pm grant $P android.permission.READ_CONTACTS
+# Contatti dimostrativi: nell'SOS compaiono i nomi invece dei numeri
+contact() {
+  adb shell content insert --uri content://com.android.contacts/raw_contacts --bind account_type:n: --bind account_name:n:
+  local id; id=$(adb shell content query --uri content://com.android.contacts/raw_contacts --projection _id | tail -1 | sed -E 's/.*_id=([0-9]+).*/\1/')
+  adb shell content insert --uri content://com.android.contacts/data --bind raw_contact_id:i:$id \
+    --bind mimetype:s:vnd.android.cursor.item/name --bind data1:s:"$1"
+  adb shell content insert --uri content://com.android.contacts/data --bind raw_contact_id:i:$id \
+    --bind mimetype:s:vnd.android.cursor.item/phone_v2 --bind data1:s:"$2" --bind data2:i:2
+}
+contact Maria +393331234567
+contact Luca +393477654321
 # Barra di stato pulita
 adb shell settings put global sysui_demo_allowed 1
 demo() { adb shell am broadcast -a com.android.systemui.demo -e command "$@" >/dev/null; }
@@ -46,7 +58,7 @@ for L in it en de fr es; do
   home; sleep 1
 
   # Impostazioni: 5 tocchi sull'orologio, PIN (creato la prima volta), editor
-  for i in 1 2 3 4 5; do python3 tap.py --regex '\d\d:\d\d' >/dev/null; done
+  python3 tap.py --times 5 --regex '^\d\d:\d\d$' >/dev/null; sleep 1
   for round in $( [ $first = 1 ] && echo 1 2 || echo 1 ); do
     for d in 1 2 3 4; do python3 tap.py "$d" >/dev/null; done
     python3 tap.py "${CONFIRM[$L]}" >/dev/null; sleep 1

@@ -7,9 +7,11 @@ import re, subprocess, sys, time, xml.etree.ElementTree as ET
 args = sys.argv[1:]
 long_ms = None
 regex = False
+times = 1
 while args and args[0].startswith('--'):
     if args[0] == '--long': long_ms = args[1]; args = args[2:]
     elif args[0] == '--regex': regex = True; args = args[1:]
+    elif args[0] == '--times': times = int(args[1]); args = args[2:]
 want, idx = args[0], int(args[1]) if len(args) > 1 else 0
 
 def dump():
@@ -30,8 +32,10 @@ for attempt in range(10):
     if len(hits) > idx:
         x1, y1, x2, y2 = map(int, re.findall(r'\d+', hits[idx].get('bounds')))
         x, y = str((x1 + x2) // 2), str((y1 + y2) // 2)
-        cmd = ['input', 'swipe', x, y, x, y, long_ms] if long_ms else ['input', 'tap', x, y]
-        subprocess.run(['adb', 'shell', *cmd])
+        if long_ms:
+            subprocess.run(['adb', 'shell', 'input', 'swipe', x, y, x, y, long_ms])
+        else:  # più tocchi rapidi in un solo comando (es. 5 tocchi sull'orologio)
+            subprocess.run(['adb', 'shell', '; '.join([f'input tap {x} {y}'] * times)])
         print(f'{want!r} -> {x},{y}')
         sys.exit(0)
     time.sleep(1)
