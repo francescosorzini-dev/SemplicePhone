@@ -73,24 +73,28 @@ server suo (non dello sviluppatore). Per prudenza dichiararli come raccolti, fac
 
 | Tipo | Raccolto | Condiviso | Scopo | Facoltativo |
 |---|---|---|---|---|
-| Posizione › Posizione precisa | sì | no | Funzionalità dell'app | sì |
+| Posizione › Posizione precisa (SOS e «Dov'è?» su richiesta del familiare, mai in background nell'edizione Play) | sì | no | Funzionalità dell'app | sì |
 | Info app e prestazioni › Altro (batteria, versione) | sì | no | Funzionalità dell'app | sì |
 | Attività nelle app › App installate | sì | no | Funzionalità dell'app | sì |
 | Attività nelle app › Altre azioni (esiti promemoria) | sì | no | Funzionalità dell'app | sì |
 | ID dispositivo o altri ID (ID casuale) | sì | no | Funzionalità dell'app | sì |
+| Telefono › Registro chiamate (numeri sconosciuti bloccati, solo se il blocco è attivo) | sì | no | Funzionalità dell'app | sì |
 
 - Dati crittografati in transito: **sì** (solo HTTPS).
 - Richiesta di eliminazione: **sì**, si spegne la gestione da remoto o si disinstalla l'app; i
   dati si cancellano dal portale.
 - Contatti: usati solo sul telefono, **non** raccolti.
+- Meteo: il riquadro meteo chiede a Open-Meteo solo le coordinate del luogo scelto dal familiare, senza ID; dichiararlo non è necessario (nessun dato utente).
+- Foto di famiglia/pastiglie: scelte dal familiare, scaricate dal suo portale; restano sul telefono.
 
 ### Dichiarazioni dei permessi
 
 | Permesso | Cosa scrivere |
 |---|---|
-| Notifiche a schermo intero (`USE_FULL_SCREEN_INTENT`) | «Funzionalità sveglia: i promemoria dei farmaci suonano a schermo intero anche a telefono bloccato, come una sveglia, e restano finché la persona conferma.» |
+| Notifiche a schermo intero (`USE_FULL_SCREEN_INTENT`) | «Funzionalità sveglia: i promemoria (farmaci e attività) suonano a schermo intero anche a telefono bloccato, come una sveglia, e restano finché la persona conferma.» |
 | Sveglie esatte (`SCHEDULE_EXACT_ALARM`) | Di solito non serve dichiarazione. Se richiesta: «Promemoria impostati dall'utente a un orario preciso». |
 | Amministratore del dispositivo / Device Owner | «Facoltativo, attivato via ADB da un familiare per impedire disinstallazioni e modifiche accidentali su un telefono usato da un anziano. Nessuna attivazione automatica.» |
+| Ruolo «Filtro chiamate» (`CallScreeningService`) | Nessun permesso sensibile: il ruolo si concede dal dialogo di sistema. Nella scheda: «blocca le chiamate da numeri non in rubrica, per proteggere gli anziani dalle truffe telefoniche». |
 | Accesso a «Non disturbare» | «Riattiva la suoneria se la persona anziana mette il telefono in silenzioso per errore; attivabile solo dalle impostazioni protette da PIN.» |
 
 ## 5. Pubblicazione
