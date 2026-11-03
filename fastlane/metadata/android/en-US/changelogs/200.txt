@@ -1,0 +1,1 @@
+- The voice now speaks in the app's chosen language, also after changing it.

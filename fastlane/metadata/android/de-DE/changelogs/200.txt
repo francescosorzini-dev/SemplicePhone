@@ -1,0 +1,1 @@
+- Die Sprachausgabe spricht jetzt in der gewählten App-Sprache, auch nach einem Wechsel.

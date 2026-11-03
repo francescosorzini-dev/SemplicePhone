@@ -22,7 +22,6 @@ object Voice {
         tts = TextToSpeech(context.applicationContext) { status ->
             ready = status == TextToSpeech.SUCCESS
             if (ready) {
-                tts?.language = context.resources.configuration.locales[0]
                 tts?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
                     override fun onStart(id: String) {}
                     override fun onDone(id: String) = finish(id)
@@ -31,6 +30,29 @@ object Voice {
                 })
             }
         }
+    }
+
+    private var current: java.util.Locale? = null
+
+    /**
+     * Lingua dell'app (scelta per-app di Android 13+, altrimenti quella del contesto).
+     * Va riletta a ogni frase: la lingua può cambiare mentre la sintesi resta inizializzata.
+     */
+    private fun appLocale(context: Context): java.util.Locale {
+        if (android.os.Build.VERSION.SDK_INT >= 33) {
+            val app = context.getSystemService(android.app.LocaleManager::class.java)?.applicationLocales
+            if (app != null && !app.isEmpty) return app[0]
+        }
+        return context.resources.configuration.locales[0]
+    }
+
+    private fun applyLanguage(context: Context, t: TextToSpeech) {
+        val wanted = appLocale(context)
+        if (wanted == current) return
+        // Prima la variante esatta (en-US), poi la sola lingua (en): alcune voci hanno solo quella.
+        val ok = t.setLanguage(wanted) >= TextToSpeech.LANG_AVAILABLE ||
+            t.setLanguage(java.util.Locale(wanted.language)) >= TextToSpeech.LANG_AVAILABLE
+        current = if (ok) wanted else null
     }
 
     private fun finish(id: String) {
@@ -49,6 +71,7 @@ object Voice {
             } else then?.invoke()
             return
         }
+        applyLanguage(context, t)
         val id = "u${counter++}"
         if (then != null) {
             synchronized(after) { after[id] = then }
