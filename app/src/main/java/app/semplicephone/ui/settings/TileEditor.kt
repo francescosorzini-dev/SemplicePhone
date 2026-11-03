@@ -72,6 +72,7 @@ private val TypeLabels = linkedMapOf(
     TileType.CLOCK to R.string.label_clock,
     TileType.WEATHER to R.string.type_weather,
     TileType.PHOTOS to R.string.type_photos,
+    TileType.MISSED_CALLS to R.string.type_missed_calls,
     TileType.SOS to 0,
 )
 
@@ -210,13 +211,16 @@ fun TileEditor(
                     }
                     MediaPickButtons(onPicked = { ref -> if (ref !in t.photos) t = t.copy(photos = t.photos + ref) }, onExternalStart = onExternalStart, multiple = true)
                 }
+                TileType.MISSED_CALLS -> Hint(
+                    stringResource(if (app.semplicephone.data.MissedCalls.supported()) R.string.tile_missed_hint else R.string.tile_missed_hint_play),
+                )
                 TileType.UNKNOWN -> Hint(stringResource(R.string.tile_unknown_hint))
                 TileType.SOS -> Hint(stringResource(R.string.tile_sos_hint))
             }
 
             if (t.type != TileType.CLOCK) Field(stringResource(R.string.tile_label), t.label) { t = t.copy(label = it) }
 
-            if (t.type !in setOf(TileType.CLOCK, TileType.SOS, TileType.WEATHER, TileType.PHOTOS, TileType.UNKNOWN)) {
+            if (t.type !in setOf(TileType.CLOCK, TileType.SOS, TileType.WEATHER, TileType.PHOTOS, TileType.MISSED_CALLS, TileType.UNKNOWN)) {
                 OptionPicker(stringResource(R.string.tile_icon), IconLabels.keys.toList(), t.icon.kind, { context.getString(IconLabels.getValue(it)) }) { k ->
                     t = t.copy(icon = TileIcon(k, if (k == IconKind.SYMBOL) t.icon.ref.ifBlank { Symbols.defaultFor(t.type) } else ""))
                 }
@@ -296,6 +300,7 @@ fun defaultLabel(context: Context, type: TileType): String = when (type) {
     TileType.CLOCK -> ""
     TileType.WEATHER -> ""
     TileType.PHOTOS -> context.getString(R.string.label_photos)
+    TileType.MISSED_CALLS -> context.getString(R.string.label_missed_calls)
     TileType.UNKNOWN -> ""
     TileType.SOS -> "SOS"
 }

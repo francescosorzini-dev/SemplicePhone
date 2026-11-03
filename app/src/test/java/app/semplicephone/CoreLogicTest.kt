@@ -232,3 +232,48 @@ class Features090Test {
         assertFalse(app.semplicephone.phone.CallFilter.allowed("", known))
     }
 }
+
+class Features0100Test {
+    private val missed = android.provider.CallLog.Calls.MISSED_TYPE
+    private val incoming = android.provider.CallLog.Calls.INCOMING_TYPE
+    private val outgoing = android.provider.CallLog.Calls.OUTGOING_TYPE
+    private val rejected = android.provider.CallLog.Calls.REJECTED_TYPE
+    private val h = 3_600_000L
+
+    @Test fun missedCallsPendingUntilCalledBack() {
+        val now = 100 * h
+        val rows = listOf(
+            app.semplicephone.data.CallRow("+39 333 1234567", missed, now - 5 * h),
+            app.semplicephone.data.CallRow("3331234567", missed, now - 2 * h),      // stesso numero, altro formato
+            app.semplicephone.data.CallRow("3477654321", missed, now - 3 * h),
+            app.semplicephone.data.CallRow("+393477654321", outgoing, now - 1 * h), // richiamato
+            app.semplicephone.data.CallRow("0212345678", rejected, now - 1 * h),   // bloccato: non conta
+            app.semplicephone.data.CallRow("3401112223", missed, now - 6 * h),
+            app.semplicephone.data.CallRow("3401112223", incoming, now - 7 * h),   // risposta più vecchia: la persa resta
+            app.semplicephone.data.CallRow("3209998887", missed, now - 80 * h),    // fuori finestra
+            app.semplicephone.data.CallRow("", missed, now - 1 * h),               // nascosto
+        )
+        val p = app.semplicephone.data.MissedCalls.pending(rows, now)
+        assertEquals(listOf("3331234567", "3401112223"), p.map { it.number })
+        assertEquals(2, p[0].count)
+        assertEquals(now - 2 * h, p[0].at)
+    }
+
+    @Test fun homeButtonVisibility() {
+        val hb = app.semplicephone.launch.HomeButton
+        assertTrue(hb.shouldShow(enabled = true, canDraw = true, appVisible = false, inCall = false))
+        assertFalse(hb.shouldShow(enabled = true, canDraw = true, appVisible = true, inCall = false))
+        assertFalse(hb.shouldShow(enabled = true, canDraw = false, appVisible = false, inCall = false))
+        assertFalse(hb.shouldShow(enabled = true, canDraw = true, appVisible = false, inCall = true))
+        assertFalse(hb.shouldShow(enabled = false, canDraw = true, appVisible = false, inCall = false))
+    }
+
+    @Test fun missedCallsTileType() {
+        val cfg = ConfigRepository.parse(
+            """{"pages":[{"cols":2,"rows":5,"tiles":[{"id":"m","col":0,"row":0,"w":2,"h":2,"type":"missed_calls"}]}],"phone":{"homeButton":true}}""",
+            "test",
+        )!!
+        assertEquals(TileType.MISSED_CALLS, cfg.pages[0].tiles[0].type)
+        assertTrue(cfg.phone.homeButton)
+    }
+}

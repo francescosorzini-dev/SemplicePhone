@@ -18,6 +18,10 @@
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <!-- Riquadro «Chiamate perse» (tolto nell'edizione Play) -->
+    <uses-permission android:name="android.permission.READ_CALL_LOG" />
+    <!-- Pulsante «Casa» sopra le altre app; si concede a mano da Impostazioni -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
     <!-- Package visibility: elenco delle app avviabili senza QUERY_ALL_PACKAGES -->
     <queries>

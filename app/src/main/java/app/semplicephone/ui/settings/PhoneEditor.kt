@@ -60,6 +60,19 @@ fun PhoneEditor(
     fun requestContacts() {
         if (!contacts) { onExternalStart(); askContacts.launch(android.Manifest.permission.READ_CONTACTS) }
     }
+    var overlay by remember { mutableStateOf(android.provider.Settings.canDrawOverlays(context)) }
+    val askOverlay = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult(),
+    ) { overlay = android.provider.Settings.canDrawOverlays(context) }
+    fun requestOverlay() {
+        if (overlay) return
+        onExternalStart()
+        runCatching {
+            askOverlay.launch(
+                android.content.Intent(android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION, android.net.Uri.parse("package:${context.packageName}")),
+            )
+        }
+    }
     val never = stringResource(R.string.phone_never)
     val keyword = stringResource(R.string.sms_keyword)
 
@@ -101,6 +114,16 @@ fun PhoneEditor(
             Toggle(stringResource(R.string.phone_speak_tiles), stringResource(R.string.phone_speak_tiles_detail), p.speakTiles) { p = p.copy(speakTiles = it) }
             Toggle(stringResource(R.string.phone_voice_confirm), stringResource(R.string.phone_voice_confirm_detail), p.voiceConfirm) { p = p.copy(voiceConfirm = it) }
             Toggle(stringResource(R.string.phone_bedside), stringResource(R.string.phone_bedside_detail), p.bedsideClock) { p = p.copy(bedsideClock = it) }
+            Toggle(stringResource(R.string.phone_home_button), stringResource(R.string.phone_home_button_detail), p.homeButton) {
+                p = p.copy(homeButton = it)
+                if (it) requestOverlay()
+            }
+            if (p.homeButton && !overlay) {
+                Text(stringResource(R.string.phone_home_needs_overlay), fontSize = 15.sp, color = Palette.Sos)
+                androidx.compose.material3.OutlinedButton(onClick = ::requestOverlay, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
+                    Text(stringResource(R.string.phone_home_grant))
+                }
+            }
 
             Toggle(
                 stringResource(R.string.phone_fresh_start),

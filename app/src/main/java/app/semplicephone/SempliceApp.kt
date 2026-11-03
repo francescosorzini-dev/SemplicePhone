@@ -13,6 +13,7 @@ import androidx.work.WorkManager
 import app.semplicephone.phone.GuardWorker
 import app.semplicephone.phone.PhoneGuard
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.launch
 
 /**
  * Il processo del launcher resta vivo quasi sempre: qui si ascoltano suoneria, volume e batteria.
@@ -36,6 +37,14 @@ class SempliceApp : Application() {
             override fun onReceive(c: Context, i: Intent) = PhoneGuard.onBattery(c, i)
         }
         ContextCompat.registerReceiver(this, battery, IntentFilter(Intent.ACTION_BATTERY_CHANGED), ContextCompat.RECEIVER_NOT_EXPORTED)
+
+        // Pulsante «Casa» sopra le altre app: segue le Activity e si aggiorna a ogni cambio di config.
+        app.semplicephone.launch.HomeButton.install(this)
+        kotlinx.coroutines.MainScope().launch {
+            app.semplicephone.data.ConfigRepository.get(this@SempliceApp).config.collect {
+                app.semplicephone.launch.HomeButton.update(this@SempliceApp)
+            }
+        }
 
         WorkManager.getInstance(this).enqueueUniquePeriodicWork(
             "phone-guard",

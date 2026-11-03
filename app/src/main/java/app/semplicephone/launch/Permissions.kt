@@ -34,6 +34,13 @@ object Permissions {
         if (tiles.any { it.type == TileType.WA_VIDEO || it.icon.kind == IconKind.PHOTO ||
                 ((it.type == TileType.CALL || it.type == TileType.SMS) && it.icon.kind == IconKind.AUTO) }
         ) out[Manifest.permission.READ_CONTACTS] = s(R.string.perm_contacts)
+        if (tiles.any { it.type == TileType.MISSED_CALLS } && BuildConfig.CALL_LOG) {
+            out[Manifest.permission.READ_CALL_LOG] = s(R.string.perm_missed_calls)
+            out.putIfAbsent(Manifest.permission.READ_CONTACTS, s(R.string.perm_missed_contacts))
+            out.putIfAbsent(Manifest.permission.CALL_PHONE, s(R.string.perm_call_tiles))
+        }
+        // Il filtro chiamate riconosce i contatti solo leggendo la rubrica: senza, non blocca nessuno.
+        if (cfg.phone.blockUnknown) out.putIfAbsent(Manifest.permission.READ_CONTACTS, s(R.string.perm_block_contacts))
         if (tiles.any { it.type == TileType.SOS }) {
             out.putIfAbsent(Manifest.permission.CALL_PHONE, s(R.string.perm_sos_call))
             if (BuildConfig.SEND_SMS) out[Manifest.permission.SEND_SMS] = s(R.string.perm_sos_sms)
@@ -58,6 +65,10 @@ object Permissions {
             Special("badges", context.getString(R.string.special_badges), context.getString(R.string.special_badges_why),
                 Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS),
         )
+        if (cfg.phone.homeButton) add(
+            Special("overlay", context.getString(R.string.special_overlay), context.getString(R.string.special_overlay_why),
+                Settings.ACTION_MANAGE_OVERLAY_PERMISSION),
+        )
         if (cfg.phone.ringerLock) add(
             Special("dnd", context.getString(R.string.special_dnd), context.getString(R.string.special_dnd_why),
                 Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS),
@@ -68,12 +79,18 @@ object Permissions {
         when (it.key) {
             "badges" -> !Badges.isEnabled(context)
             "dnd" -> !context.getSystemService(NotificationManager::class.java).isNotificationPolicyAccessGranted
+            "overlay" -> !Settings.canDrawOverlays(context)
             else -> false
         }
     }
 
     fun openSpecial(context: Context, s: Special) {
-        runCatching { context.startActivity(Intent(s.settingsAction).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+        val intent = Intent(s.settingsAction).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        // La pagina della sovrapposizione va aperta direttamente sull'app, non sull'elenco.
+        if (s.key == "overlay") intent.data = android.net.Uri.parse("package:${context.packageName}")
+        runCatching { context.startActivity(intent) }.onFailure {
+            runCatching { context.startActivity(Intent(s.settingsAction).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+        }
     }
 
     fun granted(context: Context, permission: String): Boolean =

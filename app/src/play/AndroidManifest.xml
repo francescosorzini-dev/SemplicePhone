@@ -4,11 +4,14 @@
      - SEND_SMS: solo app SMS predefinite o eccezioni approvate. L'SOS apre Messaggi con
        destinatari, testo e posizione già pronti.
      - USE_EXACT_ALARM: solo sveglie e calendari. Al suo posto SCHEDULE_EXACT_ALARM, che
-       l'utente concede da «Sveglie e promemoria» (l'editor dei promemoria lo chiede). -->
+       l'utente concede da «Sveglie e promemoria» (l'editor dei promemoria lo chiede).
+     - READ_CALL_LOG: solo app telefono predefinite. Il riquadro «Chiamate perse» apre il
+       registro chiamate del telefono invece di mostrare l'elenco. -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.SEND_SMS" tools:node="remove" />
     <uses-permission android:name="android.permission.USE_EXACT_ALARM" tools:node="remove" />
+    <uses-permission android:name="android.permission.READ_CALL_LOG" tools:node="remove" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" tools:remove="android:maxSdkVersion" />
 </manifest>

@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -94,6 +95,7 @@ fun TileView(
         TileType.SOS -> SosTile(tile, sos, launcher, modifier)
         TileType.WEATHER -> WeatherTile(tile, launcher, modifier)
         TileType.PHOTOS -> PhotosTile(tile, launcher, modifier)
+        TileType.MISSED_CALLS -> MissedCallsTile(tile, sos, launcher, modifier)
         TileType.UNKNOWN -> Box(modifier.clip(TileShape).background(Color(0xFFD9D3C7)))
         else -> ActionTile(tile, sos, launcher, modifier, badge)
     }
@@ -489,4 +491,135 @@ private fun PhotosTile(tile: Tile, launcher: TileLauncher, modifier: Modifier) {
             }
         }
     }
+}
+
+/** Riga dell'elenco: chi ha chiamato (nome in rubrica o numero) e quando. */
+private data class MissedRow(val missed: app.semplicephone.data.Missed, val name: String)
+
+/**
+ * Chiamate perse non ancora richiamate, dalla più recente: un tocco su una riga richiama.
+ * Senza permesso sul registro chiamate (edizione Play) il riquadro apre il registro del telefono.
+ */
+@Composable
+private fun MissedCallsTile(tile: Tile, sos: SosConfig, launcher: TileLauncher, modifier: Modifier) {
+    val context = LocalContext.current
+    val readable = app.semplicephone.data.MissedCalls.canRead(context)
+    var rows by remember { mutableStateOf<List<MissedRow>>(emptyList()) }
+    var tick by remember { mutableStateOf(0) }
+    if (readable) {
+        androidx.compose.runtime.DisposableEffect(Unit) {
+            val observer = object : android.database.ContentObserver(android.os.Handler(android.os.Looper.getMainLooper())) {
+                override fun onChange(selfChange: Boolean) { tick++ }
+            }
+            runCatching { context.contentResolver.registerContentObserver(android.provider.CallLog.Calls.CONTENT_URI, true, observer) }
+            onDispose { runCatching { context.contentResolver.unregisterContentObserver(observer) } }
+        }
+        LaunchedEffect(tick) {
+            rows = withContext(Dispatchers.IO) {
+                app.semplicephone.data.MissedCalls.load(context).map { MissedRow(it, launcher.contacts.displayName(it.number)) }
+            }
+        }
+        // Ricarica periodica: orari («ieri») e chiamate che escono dalla finestra di 3 giorni.
+        LaunchedEffect(Unit) { while (true) { delay(5 * 60_000L); tick++ } }
+    }
+    val bg = parseColor(tile.color)
+    val fg = contentColorFor(bg)
+    val label = tile.label.ifBlank { stringResource(R.string.label_missed_calls) }
+    val spoken = if (!readable) label
+        else if (rows.isEmpty()) stringResource(R.string.missed_none)
+        else stringResource(R.string.missed_spoken, rows.size, rows.joinToString(", ") { it.name })
+    val base = modifier
+        .clip(TileShape)
+        .background(bg)
+        .border(if (bg.isLight()) 2.dp else 0.dp, Palette.Ink, TileShape)
+        .semantics { contentDescription = spoken }
+
+    if (!readable || rows.isEmpty()) {
+        Box(
+            base.combinedClickable(
+                role = Role.Button,
+                onLongClick = { launcher.speakText(spoken) },
+                onClick = { if (readable) launcher.speakText(spoken) else launcher.launch(tile, sos) },
+            ).padding(12.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            BoxWithConstraints(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                val icon = (minOf(maxWidth, maxHeight) * 0.42f).coerceAtMost(96.dp)
+                Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Icon(Symbols.get(if (readable) "check" else "missed"), null, Modifier.size(icon), tint = fg)
+                    TileLabel(label, fg, 22.dp.fixedSp(), TextAlign.Center, Modifier.fillMaxWidth())
+                    if (readable && maxHeight > 140.dp) {
+                        Text(stringResource(R.string.missed_none), color = fg, fontSize = 17.dp.fixedSp(), textAlign = TextAlign.Center)
+                    }
+                }
+            }
+        }
+        return
+    }
+
+    BoxWithConstraints(base.padding(8.dp)) {
+        val rowHeight = 64.dp
+        val headerHeight = 34.dp
+        val fit = ((maxHeight - headerHeight) / (rowHeight + 6.dp)).toInt().coerceAtLeast(1)
+        val shown = rows.take(fit)
+        Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(
+                Modifier.fillMaxWidth().padding(horizontal = 6.dp)
+                    .combinedClickable(onLongClick = { launcher.speakText(spoken) }, onClick = { launcher.speakText(spoken) }),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Icon(Symbols.get("missed"), null, Modifier.size(26.dp), tint = fg)
+                Text(
+                    "$label (${rows.size})", color = fg, fontSize = 19.dp.fixedSp(), fontWeight = FontWeight.Bold,
+                    maxLines = 1, overflow = TextOverflow.Ellipsis,
+                )
+            }
+            shown.forEach { row ->
+                val call = stringResource(R.string.missed_call_back_desc, row.name)
+                Row(
+                    Modifier.fillMaxWidth().height(rowHeight)
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(Color.White)
+                        .border(2.dp, Palette.Ink, RoundedCornerShape(14.dp))
+                        .combinedClickable(
+                            role = Role.Button,
+                            onClickLabel = call,
+                            onLongClick = { launcher.speakText(row.name) },
+                            onClick = { launcher.callBack(row.missed.number, row.name) },
+                        )
+                        .padding(horizontal = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    Column(Modifier.weight(1f)) {
+                        Text(row.name, color = Palette.Ink, fontSize = 20.dp.fixedSp(), fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(
+                            missedWhen(row.missed),
+                            color = Palette.Ink, fontSize = 15.dp.fixedSp(), maxLines = 1, overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                    Box(Modifier.size(44.dp).clip(CircleShape).background(Color(0xFF1E7B34)), contentAlignment = Alignment.Center) {
+                        Icon(Symbols.get("phone"), null, Modifier.size(26.dp), tint = Color.White)
+                    }
+                }
+            }
+        }
+    }
+}
+
+/** «oggi 10:42», «ieri 18:03» o «lun 9:15», più il numero di tentativi se più d'uno. */
+@Composable
+private fun missedWhen(m: app.semplicephone.data.Missed): String {
+    val locale = androidx.compose.ui.platform.LocalConfiguration.current.locales[0]
+    val zone = java.time.ZoneId.systemDefault()
+    val at = java.time.Instant.ofEpochMilli(m.at).atZone(zone)
+    val today = java.time.LocalDate.now(zone)
+    val time = at.format(DateTimeFormatter.ofLocalizedTime(java.time.format.FormatStyle.SHORT).withLocale(locale))
+    val day = when (at.toLocalDate()) {
+        today -> stringResource(R.string.missed_today, time)
+        today.minusDays(1) -> stringResource(R.string.missed_yesterday, time)
+        else -> at.format(DateTimeFormatter.ofPattern("EEE", locale)) + " " + time
+    }
+    return if (m.count > 1) day + " · " + stringResource(R.string.missed_times, m.count) else day
 }

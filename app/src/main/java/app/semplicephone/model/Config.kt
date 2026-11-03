@@ -41,6 +41,8 @@ data class PhoneConfig(
     val voiceConfirm: Boolean = false,
     /** In carica e senza tocchi per un minuto: orologio grande a tutto schermo, schermo acceso. */
     val bedsideClock: Boolean = false,
+    /** Pulsante «Casa» sempre visibile sopra le altre app: un tocco riporta al launcher. */
+    val homeButton: Boolean = false,
 )
 
 /** Promemoria (farmaci, attività, appuntamenti) a orario fisso, con ripetizione finché non viene confermato. */
@@ -121,6 +123,8 @@ enum class TileType(val code: String) {
     WEATHER("weather"),
     /** Foto che scorrono, da [Tile.photos]. */
     PHOTOS("photos"),
+    /** Chiamate perse non ancora richiamate, con richiamata in un tocco. */
+    MISSED_CALLS("missed_calls"),
     UNKNOWN("unknown"),
 }
 

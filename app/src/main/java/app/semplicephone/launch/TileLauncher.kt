@@ -83,6 +83,7 @@ class TileLauncher(private val context: Context, val contacts: Contacts, private
                 TileType.SHORTCUT -> startShortcut(tile)
                 TileType.SOS -> if (sos.numbers.isEmpty()) toast(context.getString(R.string.launch_no_sos_numbers)) else onSos()
                 TileType.WA_VIDEO -> whatsAppVideo(tile)
+                TileType.MISSED_CALLS -> openCallLog()
                 TileType.CLOCK, TileType.WEATHER, TileType.PHOTOS, TileType.UNKNOWN -> Unit
             }
         } catch (e: ActivityNotFoundException) {
@@ -90,6 +91,25 @@ class TileLauncher(private val context: Context, val contacts: Contacts, private
         } catch (e: SecurityException) {
             Log.w(TAG, "avvio negato per ${tile.id}", e)
             notAvailable(tile)
+        }
+    }
+
+    /** Richiamata dal riquadro «Chiamate perse»: stessa conferma vocale e antirimbalzo dei riquadri. */
+    fun callBack(number: String, name: String) {
+        val now = SystemClock.elapsedRealtime()
+        if (now - lastLaunch < DEBOUNCE_MS) return
+        lastLaunch = now
+        val phone = app.semplicephone.data.ConfigRepository.get(context).config.value.phone
+        if (phone.voiceConfirm && name.isNotBlank()) app.semplicephone.ui.Voice.speak(context, context.getString(R.string.voice_call, name)) { call(number) }
+        else call(number)
+    }
+
+    /** Registro chiamate del telefono (edizione Play o permesso non concesso); in mancanza, il tastierino. */
+    fun openCallLog() {
+        try {
+            start(Intent(Intent.ACTION_VIEW).setType(android.provider.CallLog.Calls.CONTENT_TYPE))
+        } catch (e: ActivityNotFoundException) {
+            start(Intent(Intent.ACTION_DIAL))
         }
     }
 

@@ -224,6 +224,25 @@ class RemoteClient(private val context: Context) {
      * Al massimo una volta l'ora, salvo novità o controllo manuale: il contatto ogni 15 minuti
      * basta già al server per sapere che il telefono è vivo.
      */
+    /**
+     * Accessi che servono alle funzioni attive e che si concedono solo sul telefono: il portale
+     * avvisa il familiare se mancano (pulsante Casa, chiamate perse, filtro chiamate).
+     */
+    private fun accessReport(): JSONObject {
+        val cfg = app.semplicephone.data.ConfigRepository.readCurrent(context)
+        val out = JSONObject()
+        if (cfg.phone.homeButton) out.put("overlay", android.provider.Settings.canDrawOverlays(context))
+        if (app.semplicephone.data.MissedCalls.supported() &&
+            cfg.pages.any { p -> p.tiles.any { it.type == app.semplicephone.model.TileType.MISSED_CALLS } }
+        ) out.put("callLog", app.semplicephone.data.MissedCalls.canRead(context))
+        if (cfg.phone.blockUnknown) {
+            val roles = context.getSystemService(android.app.role.RoleManager::class.java)
+            out.put("screening", runCatching { roles.isRoleHeld(android.app.role.RoleManager.ROLE_CALL_SCREENING) }.getOrDefault(false))
+            out.put("contacts", app.semplicephone.launch.Permissions.granted(context, android.Manifest.permission.READ_CONTACTS))
+        }
+        return out
+    }
+
     private fun report(force: Boolean) {
         if (!settings.enabled || !settings.resolvedUrl().startsWith("https://")) return
         val battery = context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
@@ -265,6 +284,7 @@ class RemoteClient(private val context: Context) {
             .put("reminderEvents", events)
             .put("edition", BuildConfig.EDITION)
             .apply { if (BuildConfig.FULL) put("badgesAccess", app.semplicephone.phone.Badges.isEnabled(context)) }
+            .put("access", accessReport())
             .apply {
                 if (appsChanged) put("apps", JSONArray().also { a -> apps.forEach { a.put(JSONObject().put("pkg", it.target).put("label", it.label)) } })
             }
