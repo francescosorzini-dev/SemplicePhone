@@ -39,8 +39,12 @@ reset phone unlocks the locked notification shade, install blocking and factory-
 
 - **SOS**: long press → cancellable countdown → SMS with location to all numbers → call to the
   first one. The Play edition opens Messages ready to send instead of sending SMS by itself.
-- **Medication reminders**: full-screen alarm even on the lock screen, "TAKEN" / snooze, repeats
-  until confirmed.
+- **Reminders** for medicines and activities (shower, shopping, appointments, card games…), recurring
+  or on one date, with symbol and photo: full-screen alarm even on the lock screen, repeats until confirmed.
+- **Calls**: block unknown numbers (system call screening), automatic speakerphone at full volume.
+- **Voice**: long press reads a tile aloud; optional spoken confirmation before calling or opening.
+- **Weather** tile (Open-Meteo, no account), **family photos** tile, **bedside clock** while charging.
+- **"Where is it?"**: the family can ask for the phone location from the portal, if allowed on the phone.
 - **Apps from the start**: tapping a tile opens the app on its first screen (chat list, messages…), not the last page viewed (phone-wide setting, overridable per tile). Contact photos can fill the whole tile.
 - **Protected ringer**, **low-battery alert**, **PIN-protected settings**.
 - **Remote management**: a single-file PHP portal ([`tools/remote-server`](tools/remote-server))

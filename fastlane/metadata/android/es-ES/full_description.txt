@@ -12,7 +12,11 @@ SemplicePhone sustituye la pantalla de inicio por unos pocos mosaicos grandes y 
 
 <b>SOS</b>: pulsación larga, cuenta atrás cancelable, después llamada al primer número y ubicación enviada a la familia.
 
-<b>Recordatorios de medicamentos</b>: alarma a pantalla completa incluso con el teléfono bloqueado, con «Tomada» y posponer; se repite hasta que se confirma.
+<b>Recordatorios de medicamentos y actividades</b>: ducha, compra, citas, cartas — cada día, en días elegidos o en una fecha, con símbolo y foto. Alarma a pantalla completa incluso con el teléfono bloqueado; se repite hasta que se confirma.
+
+<b>Llamadas más seguras</b>: bloqueo de números desconocidos, altavoz automático, confirmación por voz antes de llamar.
+
+<b>Tiempo, fotos, mesilla</b>: mosaico del tiempo, mosaico de fotos de familia, reloj grande mientras carga.
 
 <b>Protección</b>: ajustes protegidos con PIN, tono que vuelve al volumen elegido, aviso de batería baja.
 

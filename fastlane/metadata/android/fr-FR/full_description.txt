@@ -12,7 +12,11 @@ SemplicePhone remplace l'écran d'accueil par quelques grandes tuiles claires, p
 
 <b>SOS</b> : appui long, compte à rebours annulable, puis appel au premier numéro et position envoyée à la famille.
 
-<b>Rappels de médicaments</b> : alarme plein écran même téléphone verrouillé, avec « Pris » et report ; elle se répète jusqu'à confirmation.
+<b>Rappels pour médicaments et activités</b> : douche, courses, rendez-vous, cartes — chaque jour, certains jours ou à une date, avec symbole et photo. Alarme plein écran même téléphone verrouillé ; elle se répète jusqu'à confirmation.
+
+<b>Appels plus sûrs</b> : blocage des numéros inconnus, haut-parleur automatique, confirmation vocale avant d'appeler.
+
+<b>Météo, photos, chevet</b> : tuile météo, tuile de photos de famille, grande horloge en charge.
 
 <b>Protection</b> : paramètres protégés par code PIN, sonnerie qui revient au volume choisi, alerte batterie faible.
 

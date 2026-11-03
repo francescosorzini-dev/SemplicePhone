@@ -1,0 +1,5 @@
+- Promemoria anche per attività (doccia, spesa, visita, carte…), in una sola data, con simbolo e foto
+- Blocco dei numeri sconosciuti, vivavoce automatico
+- Voce: lettura dei riquadri e conferma prima di chiamare
+- Riquadri meteo e foto di famiglia, orologio da comodino
+- «Dov'è?» dal portale, con consenso sul telefono

@@ -1,6 +1,6 @@
 # Informativa sulla privacy – SemplicePhone
 
-*Ultimo aggiornamento: 2 novembre 2026*
+*Ultimo aggiornamento: 3 novembre 2026*
 
 SemplicePhone è un launcher (schermata Home) per Android, software libero distribuito
 gratuitamente da Francesco Sorzini. Non ha pubblicità, analisi statistiche o account e non
@@ -15,6 +15,9 @@ invia dati allo sviluppatore.
 | Elenco delle app installate | scegliere l'app da mettere in un riquadro | solo se è attiva la gestione da remoto, verso il portale del familiare |
 | Promemoria ed esiti (preso, rinviato, non confermato) | allarmi dei farmaci | solo se è attiva la gestione da remoto |
 | Livello della batteria, versione dell'app | avviso di batteria scarica | solo se è attiva la gestione da remoto |
+| Numeri delle chiamate bloccate | blocco dei numeri sconosciuti (se attivato) | solo se è attiva la gestione da remoto, verso il portale del familiare |
+| Foto scelte per i riquadri o i promemoria | foto di famiglia, foto del farmaco | no (le foto caricate dal portale vengono scaricate dal telefono) |
+| Coordinate della località del meteo | riquadro meteo | sì, al servizio Open-Meteo (open-meteo.com) per ottenere le previsioni; nessun dato personale |
 
 ## Gestione da remoto (facoltativa, disattivata all'installazione)
 
@@ -25,7 +28,8 @@ non ne riceve i dati.
 Il telefono invia al portale:
 - un identificativo casuale del telefono;
 - i dati della tabella marcati «gestione da remoto»;
-- gli avvisi di SOS (con la posizione) e di promemoria non confermati.
+- gli avvisi di SOS (con la posizione), di promemoria non confermati e di chiamate bloccate;
+- la posizione su richiesta del familiare («Dov'è?»), solo se sul telefono è stata consentita.
 
 Il collegamento usa HTTPS. Le configurazioni ricevute devono essere firmate con la chiave del
 portale. Per interrompere l'invio basta spegnere «Gestione da remoto» o disinstallare l'app; i

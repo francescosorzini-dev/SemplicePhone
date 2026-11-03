@@ -1,0 +1,5 @@
+- Recordatorios también para actividades (ducha, compra, citas, cartas…), en una fecha, con símbolo y foto
+- Bloqueo de números desconocidos, altavoz automático
+- Voz: lectura de los mosaicos y confirmación antes de llamar
+- Mosaicos de tiempo y fotos de familia, reloj de mesilla
+- «¿Dónde está?» desde el portal, con permiso en el teléfono

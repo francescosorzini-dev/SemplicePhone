@@ -12,7 +12,11 @@ SemplicePhone replaces the home screen with a few large, clear tiles for people 
 
 <b>SOS</b>: long press, cancellable countdown, then a call to the first number and the location sent to family.
 
-<b>Medication reminders</b>: full-screen alarm even on the lock screen, with "taken" and snooze; repeats until confirmed.
+<b>Reminders for medicines and activities</b>: shower, shopping, appointments, card games — every day, on chosen days or on one date, with symbol and photo. Full-screen alarm even on the lock screen; repeats until confirmed.
+
+<b>Safer calls</b>: block unknown numbers, automatic speakerphone, spoken confirmation before calling.
+
+<b>Weather, photos, bedside</b>: weather tile, family photo slideshow tile, big clock while charging.
 
 <b>Protection</b>: PIN-protected settings, ringer volume that restores itself, low-battery alert.
 

@@ -12,7 +12,11 @@ SemplicePhone ersetzt den Startbildschirm durch wenige große, klare Kacheln fü
 
 <b>SOS</b>: gedrückt halten, abbrechbarer Countdown, dann Anruf bei der ersten Nummer und Standort an die Familie.
 
-<b>Medikamenten-Erinnerungen</b>: Wecker im Vollbild auch bei gesperrtem Telefon, mit „Genommen“ und „Später“; wiederholt sich, bis bestätigt wird.
+<b>Erinnerungen für Medikamente und Tätigkeiten</b>: Duschen, Einkaufen, Arzttermin, Kartenspiel — täglich, an gewählten Tagen oder an einem Datum, mit Symbol und Foto. Wecker im Vollbild auch bei gesperrtem Telefon; wiederholt sich bis zur Bestätigung.
+
+<b>Sicherere Anrufe</b>: unbekannte Nummern blockieren, automatisches Freisprechen, Sprachbestätigung vor dem Anruf.
+
+<b>Wetter, Fotos, Nachttisch</b>: Wetterkachel, Kachel mit Familienfotos, große Uhr beim Laden.
 
 <b>Schutz</b>: Einstellungen mit PIN, Klingelton stellt sich selbst wieder ein, Hinweis bei schwachem Akku.
 

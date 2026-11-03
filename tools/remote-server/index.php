@@ -28,14 +28,17 @@ const MAX_REPORT = 262144;
 const HISTORY_KEEP = 30;
 const SOURCE_URL = 'https://github.com/francescosorzini-dev/SemplicePhone';
 const VERSION = '0.5.1'; // aggiornata in automatico nelle release
-const TILE_TYPES = ['app', 'call', 'wa_video', 'sms', 'url', 'shortcut', 'clock', 'sos'];
-const EVENT_TYPES = ['sos', 'reminder_missed', 'battery', 'offline', 'online', 'test'];
+const TILE_TYPES = ['app', 'call', 'wa_video', 'sms', 'url', 'shortcut', 'clock', 'sos', 'weather', 'photos'];
+const MEDIA_MAX = 8 * 1024 * 1024;
+// Versione dell'app che conosce meteo, foto e promemoria in una data: le precedenti li ignorano o scartano.
+const APP_FEATURES_090 = '0.9.0';
+const EVENT_TYPES = ['sos', 'reminder_missed', 'battery', 'offline', 'online', 'test', 'call_blocked', 'location'];
 // Testi delle lingue: nelle release sono incorporati qui (file unico); in sviluppo si leggono da lang/*.json.
 const LANG_DATA = null;
 
 // ---------------------------------------------------------------- bootstrap
 if (!extension_loaded('sodium')) { http_response_code(500); exit('ext-sodium mancante'); }
-foreach ([DATA, DATA . '/devices', DATA . '/reports', DATA . '/events', DATA . '/history'] as $d) if (!is_dir($d)) mkdir($d, 0700, true);
+foreach ([DATA, DATA . '/devices', DATA . '/reports', DATA . '/events', DATA . '/history', DATA . '/media'] as $d) if (!is_dir($d)) mkdir($d, 0700, true);
 if (!is_file(DATA . '/.htaccess')) file_put_contents(DATA . '/.htaccess',
     "<IfModule mod_authz_core.c>\n  Require all denied\n</IfModule>\n<IfModule !mod_authz_core.c>\n  Deny from all\n</IfModule>\n");
 if (!is_file(DATA . '/signing.key')) {
@@ -47,6 +50,17 @@ function public_key_b64(): string { return base64_encode(sodium_crypto_sign_publ
 
 function valid_id(string $id): bool { return (bool)preg_match('/^[a-z0-9]{6,32}$/', $id); }
 function dev_path(string $id, string $ext): string { return DATA . "/devices/$id.$ext"; }
+function media_path(string $hash): ?string { return preg_match('/^[0-9a-f]{64}$/', $hash) ? DATA . "/media/$hash.img" : null; }
+function serve_media(string $hash): void {
+    $f = media_path($hash);
+    if (!$f || !is_file($f)) { http_response_code(404); exit; }
+    $info = @getimagesize($f);
+    header('Content-Type: ' . ($info['mime'] ?? 'application/octet-stream'));
+    header('Content-Length: ' . filesize($f));
+    header('Cache-Control: private, max-age=31536000, immutable');
+    readfile($f);
+    exit;
+}
 function read_json(string $file, $default = null) {
     if (!is_file($file)) return $default;
     $v = json_decode((string)file_get_contents($file), true);
@@ -81,7 +95,7 @@ function device_name(string $id): string {
 function settings(): array {
     return array_replace_recursive([
         'telegramToken' => '', 'telegramChat' => '', 'emailTo' => '', 'emailFrom' => '', 'panelUrl' => '',
-        'notify' => ['sos' => true, 'reminder_missed' => true, 'battery' => true, 'offline' => true],
+        'notify' => ['sos' => true, 'reminder_missed' => true, 'battery' => true, 'offline' => true, 'call_blocked' => false, 'location' => true],
         'offlineHours' => 24,
         // Lingua degli avvisi: quella con cui l'amministratore usa il pannello.
         'lang' => 'it',
@@ -224,6 +238,12 @@ if (isset($_GET['device'])) {
         return $r;
     };
 
+    // Immagini della config (foto di famiglia, foto dei promemoria): il telefono ne verifica l'hash.
+    if (isset($_GET['media'])) {
+        write_atomic(dev_path($id, 'meta.json'), json_encode($meta));
+        serve_media((string)$_GET['media']);
+    }
+
     if (isset($_GET['report']) && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $r = $readBody();
         if (isset($r['apps']) && is_array($r['apps'])) {
@@ -260,6 +280,7 @@ if (isset($_GET['device'])) {
             $seenKeys[] = $key;
             $ev['receivedAt'] = time();
             append_jsonl(DATA . "/events/$id.jsonl", $ev);
+            if ($type === 'location') unset($meta['locateRequest']);
             if (in_array($type, EVENT_TYPES, true) && !empty($s['notify'][$type])) {
                 send_alert(ev_title($type), mb_substr((string)($ev['text'] ?? ''), 0, 600), $id);
             }
@@ -274,6 +295,8 @@ if (isset($_GET['device'])) {
     write_atomic(dev_path($id, 'meta.json'), json_encode($meta));
     if ($backOnline) send_alert(ev_title('online'), t('back_online_text'), $id);
     run_checks();
+    // «Dov'è?»: richiesta valida per un'ora, il telefono risponde con un evento «location».
+    if (time() - (int)($meta['locateRequest'] ?? 0) < 3600) header('X-Locate: 1');
     $env = dev_path($id, 'envelope.json');
     if (!is_file($env)) { http_response_code(404); exit('{"error":"none"}'); }
     // ETag = versione pubblicata. Tollerante al suffisso "-gzip" che Apache aggiunge con mod_deflate.
@@ -318,6 +341,8 @@ function validate_config($cfg): array {
     }
     foreach (($cfg->reminders ?? []) as $rem) {
         if (!preg_match('/^([01]?\d|2[0-3]):[0-5]\d$/', (string)($rem->time ?? ''))) $err[] = t('v_rem_time', $rem->title ?? '?');
+        $date = (string)($rem->date ?? '');
+        if ($date !== '' && !(preg_match('/^\d{4}-\d{2}-\d{2}$/', $date) && checkdate((int)substr($date, 5, 2), (int)substr($date, 8, 2), (int)substr($date, 0, 4)))) $err[] = t('v_rem_date', $rem->title ?? '?');
     }
     return $err;
 }
@@ -409,7 +434,7 @@ session_set_cookie_params(['httponly' => true, 'samesite' => 'Strict', 'secure' 
 session_start();
 $nonce = base64_encode(random_bytes(16));
 header('X-Frame-Options: DENY');
-header("Content-Security-Policy: default-src 'self'; style-src 'unsafe-inline'; script-src 'nonce-$nonce'");
+header("Content-Security-Policy: default-src 'self'; style-src 'unsafe-inline'; script-src 'nonce-$nonce'; connect-src 'self' https://geocoding-api.open-meteo.com; img-src 'self' blob:");
 $adminFile = DATA . '/admin.json';
 $admin = read_json($adminFile);
 $csrf = $_SESSION['csrf'] ??= bin2hex(random_bytes(16));
@@ -427,6 +452,21 @@ function ago(?int $t): string {
 }
 function base_url(): string {
     return (!empty($_SERVER['HTTPS']) ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'host') . strtok($_SERVER['REQUEST_URI'] ?? '/', '?');
+}
+
+// Immagini per l'editor (anteprime) e caricamento: solo con il pannello aperto.
+if (!empty($_SESSION['ok']) && isset($_GET['thumb'])) serve_media((string)$_GET['thumb']);
+if (!empty($_SESSION['ok']) && isset($_GET['upload']) && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    check_csrf($csrf);
+    header('Content-Type: application/json; charset=utf-8');
+    $f = $_FILES['file'] ?? null;
+    $info = $f && $f['error'] === UPLOAD_ERR_OK && $f['size'] <= MEDIA_MAX ? @getimagesize($f['tmp_name']) : false;
+    if (!$info || !in_array($info['mime'], ['image/jpeg', 'image/png', 'image/webp'], true)) {
+        http_response_code(400); exit(json_encode(['error' => t('upload_failed')]));
+    }
+    $hash = hash_file('sha256', $f['tmp_name']);
+    if (!is_file(media_path($hash))) move_uploaded_file($f['tmp_name'], media_path($hash));
+    exit(json_encode(['ref' => 'media:' . $hash]));
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -480,6 +520,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif ($act === 'forget') {
             @unlink(dev_path($id, 'secret'));
             $msg = t('m_forgot');
+        } elseif ($act === 'locate') {
+            $meta = read_json(dev_path($id, 'meta.json'), []);
+            $meta['locateRequest'] = time();
+            write_atomic(dev_path($id, 'meta.json'), json_encode($meta));
+            header('Location: ?edit=' . urlencode($id) . '#where'); exit;
         } elseif ($act === 'ignore') {
             $meta = read_json(dev_path($id, 'meta.json'), []);
             $meta['ignoreOffline'] = empty($meta['ignoreOffline']);
@@ -605,7 +650,7 @@ details summary{cursor:pointer;font-weight:600}
   <p class="lead"><?= th('alerts_lead') ?></p>
   <form method="post" class="card"><input type="hidden" name="csrf" value="<?= h($csrf) ?>"><input type="hidden" name="act" value="settings">
     <h3><?= th('when_alert') ?></h3>
-    <?php foreach (['sos', 'reminder_missed', 'battery', 'offline'] as $k): $label = t('n_' . $k); ?>
+    <?php foreach (['sos', 'reminder_missed', 'battery', 'offline', 'call_blocked', 'location'] as $k): $label = t('n_' . $k); ?>
       <label style="font-weight:400"><input type="checkbox" name="notify_<?= $k ?>" <?= !empty($s['notify'][$k]) ? 'checked' : '' ?>> <?= h($label) ?></label>
     <?php endforeach; ?>
     <div class="row"><div><label for="oh"><?= th('offline_hours') ?></label><input id="oh" type="number" name="offlineHours" min="1" max="168" value="<?= (int)$s['offlineHours'] ?>"></div><div></div></div>
@@ -716,7 +761,7 @@ details summary{cursor:pointer;font-weight:600}
 
   <?php if ($loaded): ?><div class="msg warn"><?= h($loaded) ?></div><?php endif; ?>
   <?php if (isset($meta['badgesAccess']) && !$meta['badgesAccess']): ?><div class="msg warn"><?= th('no_notif_access') ?></div><?php endif; ?>
-  <form method="post" id="pubform" data-dirty="<?= $loaded ? '1' : '0' ?>" data-edition="<?= h($meta['edition'] ?? '') ?>">
+  <form method="post" id="pubform" data-dirty="<?= $loaded ? '1' : '0' ?>" data-edition="<?= h($meta['edition'] ?? '') ?>" data-app="<?= h($meta['appVersion'] ?? '') ?>" data-csrf="<?= h($csrf) ?>">
     <input type="hidden" name="csrf" value="<?= h($csrf) ?>"><input type="hidden" name="act" value="publish"><input type="hidden" name="id" value="<?= h($edit) ?>">
     <div class="row">
       <div><label for="name"><?= th('name') ?> <span class="hint"><?= th('name_hint') ?></span></label><input id="name" type="text" name="name" value="<?= h($meta['name'] ?? '') ?>"></div>
@@ -748,11 +793,30 @@ details summary{cursor:pointer;font-weight:600}
     </section>
 
     <div class="issues" id="issues" role="alert"></div>
+    <div class="msg warn" id="warns" hidden></div>
     <div class="sticky">
       <button id="pubbtn"><?= th('publish') ?></button>
       <span class="hint" id="dirty"></span>
     </div>
   </form>
+
+  <?php
+    $lastLoc = null;
+    foreach ($urgent as $ev) if (($ev['type'] ?? '') === 'location') { $lastLoc = $ev; break; }
+    $pending = time() - (int)($meta['locateRequest'] ?? 0) < 3600;
+  ?>
+  <h2 id="where"><?= th('locate_title') ?></h2>
+  <div class="card">
+    <?php if ($lastLoc): $la = $lastLoc['lat'] ?? null; $lo = $lastLoc['lon'] ?? null; ?>
+      <p><b><?= th('locate_last', date('d/m H:i', (int)(($lastLoc['at'] ?? 0) / 1000))) ?></b>
+      <?php if ($la !== null && $lo !== null): ?> · <a href="https://www.openstreetmap.org/?mlat=<?= (float)$la ?>&amp;mlon=<?= (float)$lo ?>#map=17/<?= (float)$la ?>/<?= (float)$lo ?>" target="_blank" rel="noopener"><?= th('locate_map') ?></a><?php endif; ?></p>
+      <p class="hint"><?= h($lastLoc['text'] ?? '') ?></p>
+    <?php else: ?><p class="hint"><?= th('locate_none') ?></p><?php endif; ?>
+    <?php if ($pending): ?><p class="msg warn"><?= th('locate_pending') ?></p><?php endif; ?>
+    <form method="post"><input type="hidden" name="csrf" value="<?= h($csrf) ?>"><input type="hidden" name="act" value="locate"><input type="hidden" name="id" value="<?= h($edit) ?>">
+      <button class="sec"><?= th('locate_button') ?></button></form>
+    <p class="hint"><?= th('locate_hint') ?></p>
+  </div>
 
   <h2><?= th('alerts_from_phone') ?></h2>
   <div class="card">
@@ -840,7 +904,36 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
   const ta = document.getElementById('config');
   if (!ta) return;
 
-  const TYPES = Object.fromEntries(['app', 'call', 'wa_video', 'sms', 'url', 'shortcut', 'clock', 'sos'].map(k => [k, T('type_' + k)]));
+  const TYPES = Object.fromEntries(['app', 'call', 'wa_video', 'sms', 'url', 'shortcut', 'clock', 'weather', 'photos', 'sos'].map(k => [k, T('type_' + k)]));
+  const FORM = document.getElementById('pubform');
+  // Caricamento di un'immagine nel portale: restituisce «media:<sha256>».
+  async function upload(file) {
+    const fd = new FormData(); fd.append('file', file); fd.append('csrf', FORM.dataset.csrf);
+    const res = await fetch('?upload=1', {method: 'POST', body: fd, credentials: 'same-origin'});
+    const j = await res.json().catch(() => ({}));
+    if (!res.ok || !j.ref) { alert(j.error || T('upload_failed')); return null; }
+    return j.ref;
+  }
+  function thumb(ref, onRemove) {
+    const h = (ref || '').replace('media:', '');
+    return el('div', {style: 'position:relative;display:inline-block;margin:0 8px 8px 0'},
+      el('img', {src: '?thumb=' + h, alt: '', style: 'width:84px;height:84px;object-fit:cover;border-radius:10px;border:2px solid #1A1A1A'}),
+      onRemove ? el('button', {type: 'button', class: 'small danger', style: 'position:absolute;top:-8px;right:-8px;min-height:28px;padding:2px 8px', 'aria-label': T('remove'), onclick: onRemove}, '✕') : '');
+  }
+  function fileInput(multiple, onRefs) {
+    return el('input', {type: 'file', accept: 'image/jpeg,image/png,image/webp', multiple, onchange: async e => {
+      const refs = [];
+      for (const f of e.target.files) { const r = await upload(f); if (r) refs.push(r); }
+      if (refs.length) onRefs(refs);
+    }});
+  }
+  // Ricerca località (Open-Meteo) per il riquadro meteo.
+  async function searchPlace(q) {
+    const lang = (document.documentElement.lang || 'en').slice(0, 2);
+    const res = await fetch('https://geocoding-api.open-meteo.com/v1/search?count=6&format=json&language=' + lang + '&name=' + encodeURIComponent(q));
+    const j = await res.json().catch(() => ({}));
+    return (j.results || []).map(o => ({name: o.name, area: [o.admin1, o.country].filter(Boolean).join(', '), target: o.latitude.toFixed(4) + ',' + o.longitude.toFixed(4)}));
+  }
   const APPS = [['@dialer', T('role_dialer')], ['@sms', T('role_sms')], ['@camera', T('role_camera')],
     ['@gallery', T('role_gallery')], ['@browser', T('role_browser')], ['com.whatsapp', 'WhatsApp'],
     ['org.telegram.messenger', 'Telegram'], ['com.google.android.youtube', 'YouTube'], ['com.google.android.apps.maps', 'Google Maps'],
@@ -850,7 +943,9 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
     'com.google.android.apps.maps': T('lbl_maps'), 'com.google.android.gm': T('lbl_mail'), 'com.android.chrome': T('def_internet')};
   const ICONS = Object.fromEntries(['auto', 'app', 'symbol', 'photo', 'none'].map(k => [k, T('icon_' + k)]));
   const SYMBOLS = Object.fromEntries(['phone', 'message', 'video', 'photo', 'camera', 'weather', 'web', 'person', 'alert', 'pill', 'home',
-    'heart', 'music', 'radio', 'grid'].map(k => [k, T('sym_' + k)]));
+    'heart', 'music', 'radio', 'grid', 'shower', 'cart', 'doctor', 'cards', 'calendar', 'walk', 'food', 'bed', 'water'].map(k => [k, T('sym_' + k)]));
+  const PRESETS = [['pill', 'preset_medicine'], ['shower', 'preset_shower'], ['cart', 'preset_shopping'], ['doctor', 'preset_visit'],
+    ['cards', 'preset_cards'], ['walk', 'preset_walk'], ['water', 'preset_water'], ['food', 'preset_meal']];
   const PALETTE = [['#1F4FA8', T('c_blue')], ['#0B6E4F', T('c_green')], ['#6A1B9A', T('c_purple')], ['#1A1A1A', T('c_black')], ['#B71C1C', T('c_red')],
     ['#A84300', T('c_orange')], ['#00695C', T('c_teal')], ['#FFFFFF', T('c_white')], ['#FFF3C4', T('c_light_yellow')]];
   const DAYS = T('days_initials').split(',');
@@ -919,7 +1014,16 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
     cfg.reminders.forEach(r => { if (!/^([01]?\d|2[0-3]):[0-5]\d$/.test(r.time || '')) out.push(T('p_rem_time', r.title || '')); });
     return out;
   }
+  function newer(v, min) {
+    const a = (v || '0').split(/[.-]/).map(n => parseInt(n, 10) || 0), b = min.split('.').map(Number);
+    for (let i = 0; i < 3; i++) { if ((a[i] || 0) !== b[i]) return (a[i] || 0) > b[i]; }
+    return true;
+  }
   function issues() {
+    const app = FORM.dataset.app, warn = document.getElementById('warns');
+    const usesNew = cfg.pages.some(p => p.tiles.some(t => ['weather', 'photos'].includes(t.type))) || cfg.reminders.some(r => r.date || r.photo);
+    warn.hidden = !(app && usesNew && !newer(app, '0.9.0'));
+    warn.textContent = T('old_app_warn', app || '?');
     const p = problems(), box = document.getElementById('issues');
     box.replaceChildren(...(p.length ? [el('b', {}, T('p_title')), el('ul', {}, p.map(x => el('li', {}, x)))] : []));
     document.getElementById('pubbtn').disabled = p.length > 0;
@@ -971,7 +1075,7 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
         class: 'tile' + (t.id === selId ? ' sel' : '') + (isL ? ' light' : ''), role: 'button', tabindex: '0',
         style: 'grid-column:' + (t.col + 1) + ' / span ' + w + ';grid-row:' + (t.row + 1) + ' / span ' + h + ';background:' + (t.color || '#1F4FA8') + ';color:' + (isL ? '#1A1A1A' : '#fff'),
         onclick: () => { selId = t.id; render(); }, onkeydown: e => { if (e.key === 'Enter') { selId = t.id; render(); } }
-      }, t.type === 'clock' ? '🕑 ' + T('clock') : t.type === 'sos' ? '⚠ ' + (t.label || 'SOS') : name(t)));
+      }, t.type === 'clock' ? '🕑 ' + T('clock') : t.type === 'weather' ? '☀ ' + (t.label || T('type_weather')) : t.type === 'photos' ? '🖼 ' + (t.label || T('type_photos')) : t.type === 'sos' ? '⚠ ' + (t.label || 'SOS') : name(t)));
     });
     for (let r = 0; r < p.rows; r++) for (let c = 0; c < p.cols; c++) if (!occ[r][c]) {
       kids.push(el('button', {type: 'button', class: 'cell', title: T('add_tile_here'), 'aria-label': T('add_tile_at', r + 1, c + 1),
@@ -996,6 +1100,7 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
       field(T('what_it_does'), select(TYPES, t.type, v => {
         t.type = v;
         if (v === 'clock') { t.color = '#FFFFFF'; delete t.label; }
+        if (v === 'photos' && !t.label) t.label = T('def_photos');
         if (v === 'sos') { t.color = '#B71C1C'; t.label = 'SOS'; t.w = Math.min(2, p.cols); }
         if (['call', 'wa_video', 'sms'].includes(v) && t.icon.kind === 'symbol') t.icon = {kind: 'auto', ref: ''};
         changed(); render();
@@ -1019,11 +1124,29 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
       if (t.type === 'wa_video') parts.push(el('p', {class: 'hint'}, T('wa_hint')));
       if (t.type === 'sms') parts.push(field(T('msg_text'), el('input', {type: 'text', value: t.body || '', onchange: e => upd('body', e.target.value)})));
     }
+    if (t.type === 'weather') {
+      const q = el('input', {type: 'text', value: t.label || '', placeholder: T('weather_search')});
+      const out = el('div', {});
+      parts.push(field(T('weather_place'), q, t.target ? '(' + t.target + ')' : ''),
+        el('p', {}, el('button', {type: 'button', class: 'small sec', onclick: async () => {
+          out.replaceChildren(T('loading'));
+          const list = await searchPlace(q.value).catch(() => []);
+          out.replaceChildren(...(list.length ? list.map(pl => el('p', {}, el('button', {type: 'button', class: 'small sec', onclick: () => {
+            t.target = pl.target; t.label = pl.name; changed(); render();
+          }}, pl.name + (pl.area ? ' (' + pl.area + ')' : '')))) : [el('p', {class: 'hint'}, T('weather_no_results'))]));
+        }}, T('weather_search'))), out);
+    }
+    if (t.type === 'photos') {
+      t.photos = t.photos || [];
+      parts.push(el('label', {}, T('photos_label')), el('p', {class: 'hint'}, T('photos_hint')),
+        el('div', {}, t.photos.map(ref => thumb(ref, () => { t.photos = t.photos.filter(x => x !== ref); changed(); render(); }))),
+        field(T('upload_photos'), fileInput(true, refs => { t.photos = [...new Set(t.photos.concat(refs))]; changed(); render(); })));
+    }
     if (t.type === 'url') parts.push(field(T('address'), el('input', {type: 'url', value: t.target || '', placeholder: 'https://', onchange: e => upd('target', e.target.value.trim())})));
     if (t.type === 'shortcut') parts.push(field(T('shortcut'), el('input', {type: 'text', value: t.target || '', placeholder: T('shortcut_placeholder'), onchange: e => upd('target', e.target.value.trim())}), T('experts')));
     if (t.type !== 'clock') parts.push(field(T('tile_text'), el('input', {type: 'text', value: t.label || '', maxlength: '30', onchange: e => upd('label', e.target.value)})));
 
-    if (!['clock', 'sos'].includes(t.type)) {
+    if (!['clock', 'sos', 'weather', 'photos'].includes(t.type)) {
       parts.push(field(T('icon'), select(ICONS, t.icon.kind || 'auto', v => { t.icon = {kind: v, ref: v === 'symbol' ? (t.icon.ref && SYMBOLS[t.icon.ref] ? t.icon.ref : 'phone') : (v === 'photo' || v === 'auto' ? (t.icon.ref || '').startsWith('contact:') ? t.icon.ref : '' : '')}; changed(); render(); })));
       if (t.icon.kind === 'symbol') parts.push(field(T('symbol'), select(SYMBOLS, t.icon.ref || 'phone', v => { t.icon.ref = v; changed(); render(); })));
       if (t.icon.kind === 'photo' || (t.icon.kind === 'auto' && ['call', 'wa_video', 'sms'].includes(t.type)))
@@ -1076,18 +1199,31 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
     const items = cfg.reminders.slice().sort((a, b) => (a.time || '').localeCompare(b.time || '')).map(r => {
       const set = (k, v) => { r[k] = v; changed(); };
       const all = !r.days || !r.days.length;
+      const oneDay = !!r.date;
       return el('div', {class: 'rem'},
+        el('div', {style: 'display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px'}, PRESETS.map(([ic, key]) =>
+          el('button', {type: 'button', class: 'small sec', onclick: () => { r.icon = ic; r.title = T(key); changed(); renderRem(); }}, T(key)))),
         el('div', {class: 'row'},
           field(T('hour'), el('input', {type: 'time', value: r.time || '08:00', onchange: e => { set('time', e.target.value); renderRem(); }})),
           field(T('rem_title'), el('input', {type: 'text', value: r.title || '', onchange: e => set('title', e.target.value)})),
           field(T('detail'), el('input', {type: 'text', value: r.detail || '', placeholder: T('detail_placeholder'), onchange: e => set('detail', e.target.value)}))),
-        el('label', {}, T('days')),
-        el('div', {class: 'days'}, DAYS.map((d, i) => el('label', {}, el('input', {type: 'checkbox', checked: all || r.days.includes(i + 1), onchange: e => {
+        el('div', {class: 'row'},
+          field(T('rem_icon'), select(SYMBOLS, r.icon || 'pill', v => { set('icon', v); renderRem(); })),
+          el('div', {}, el('label', {style: 'font-weight:600'}, el('input', {type: 'checkbox', checked: oneDay, onchange: e => {
+            if (e.target.checked) { const d = new Date(Date.now() + 86400000); set('date', d.toISOString().slice(0, 10)); } else { delete r.date; changed(); }
+            renderRem();
+          }}), ' ' + T('rem_one_day')),
+          oneDay ? el('input', {type: 'date', value: r.date, onchange: e => set('date', e.target.value)}) : '')),
+        oneDay ? '' : el('label', {}, T('days')),
+        oneDay ? '' : el('div', {class: 'days'}, DAYS.map((d, i) => el('label', {}, el('input', {type: 'checkbox', checked: all || r.days.includes(i + 1), onchange: e => {
           let ds = all ? [1, 2, 3, 4, 5, 6, 7] : r.days.slice();
           ds = e.target.checked ? ds.concat(i + 1) : ds.filter(x => x !== i + 1);
           ds = [...new Set(ds)].sort();
           set('days', ds.length === 7 || !ds.length ? [] : ds);
         }}), d))),
+        el('label', {}, T('rem_photo')),
+        el('div', {}, r.photo ? thumb(r.photo, () => { delete r.photo; changed(); renderRem(); }) : '',
+          fileInput(false, refs => { r.photo = refs[0]; changed(); renderRem(); })),
         el('div', {class: 'row'},
           field(T('snooze_after'), select({5: '5 min', 10: '10 min', 15: '15 min', 30: '30 min'}, String(r.snoozeMinutes || 10), v => set('snoozeMinutes', +v))),
           field(T('repeat_every'), select({2: '2 min', 5: '5 min', 10: '10 min'}, String(r.repeatMinutes || 5), v => set('repeatMinutes', +v))),
@@ -1103,7 +1239,7 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
       el('p', {}, T('rem_intro')),
       ...(items.length ? items : [el('p', {class: 'hint'}, T('no_reminders'))]),
       el('p', {}, el('button', {type: 'button', class: 'sec', onclick: () => {
-        cfg.reminders.push({id: uid('r'), time: '08:00', days: [], title: T('def_reminder_title'), detail: '', snoozeMinutes: 10, repeatMinutes: 5, maxRepeats: 6, enabled: true});
+        cfg.reminders.push({id: uid('r'), time: '08:00', days: [], title: T('def_reminder_title'), detail: '', icon: 'pill', snoozeMinutes: 10, repeatMinutes: 5, maxRepeats: 6, enabled: true});
         changed(); renderRem();
       }}, T('add_reminder'))));
     // Nomi leggibili nella tabella esiti
@@ -1118,6 +1254,11 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
       el('label', {style: 'font-weight:600'}, el('input', {type: 'checkbox', checked: !!p[k], onchange: e => set(k, e.target.checked)}), ' ' + label),
       el('div', {class: 'hint'}, hint));
     box.replaceChildren(
+      check('blockUnknown', T('block_unknown'), T('block_unknown_hint')),
+      check('speakerCalls', T('speaker_calls'), T('speaker_calls_hint')),
+      check('speakTiles', T('speak_tiles'), T('speak_tiles_hint')),
+      check('voiceConfirm', T('voice_confirm'), T('voice_confirm_hint')),
+      check('bedsideClock', T('bedside'), T('bedside_hint')),
       check('freshStart', T('fresh_start'), T('fresh_start_hint')),
       check('ringerLock', T('ringer_lock'), T('ringer_lock_hint')),
       p.ringerLock ? field(T('min_volume'), select({30: '30%', 50: '50%', 70: '70%', 80: '80%', 90: '90%', 100: '100%'}, String(p.ringVolumePercent), v => set('ringVolumePercent', +v))) : '',

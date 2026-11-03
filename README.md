@@ -127,9 +127,13 @@ Ogni opzione si toglie da Impostazioni › Protezione, compreso il ruolo di Devi
 | **Pallini** | chiamate perse e messaggi non letti sui riquadri delle app (accesso alle notifiche) |
 | **Suoneria protetta** | silenzioso e volume basso tornano al livello scelto, anche per le sveglie |
 | **Batteria** | avviso in Home e SMS ai numeri SOS sotto soglia, una volta per scarica |
-| **Promemoria** | allarme a schermo intero anche a telefono bloccato, «PRESO» / rinvio, ripetizione fino a conferma, registro esiti |
+| **Promemoria** | farmaci e attività (doccia, spesa, visita, carte…), ricorrenti o in una sola data, con simbolo e foto; allarme a schermo intero anche a telefono bloccato, «PRESO»/«FATTO» / rinvio, ripetizione fino a conferma, registro esiti |
+| **Chiamate** | blocco dei numeri sconosciuti (filtro chiamate di sistema: passano rubrica, SOS e riquadri), vivavoce e volume massimo automatici |
+| **Voce** | pressione lunga: il riquadro viene letto ad alta voce; conferma vocale prima di chiamare o aprire («Chiamo Maria») |
+| **Meteo e foto** | riquadro meteo (Open-Meteo, senza account) e riquadro con le foto di famiglia che scorrono, scelte sul telefono o caricate dal portale |
+| **Comodino** | in carica: orologio grande a luminosità bassa dopo un minuto senza tocchi |
 | **Editor** | protetto da PIN (PBKDF2, blocco dopo 5 errori); bozza applicata solo dopo validazione; riquadri trascinabili; scorciatoie guidate; esporta/importa su file |
-| **Remoto** | busta firmata Ed25519, anti-replay, PIN impostabile, controllo ogni 15 min (ETag), SMS «#AGGIORNA», eventi urgenti; portale con editor visuale, avvisi Telegram/email, storico versioni: [`tools/remote-server`](tools/remote-server) |
+| **Remoto** | busta firmata Ed25519, anti-replay, PIN impostabile, controllo ogni 15 min (ETag), SMS «#AGGIORNA», eventi urgenti, «Dov'è?» (posizione su richiesta, con consenso sul telefono); portale con editor visuale, avvisi Telegram/email, storico versioni: [`tools/remote-server`](tools/remote-server) |
 | **Aggiornamenti** | `update.json` + verifica SHA-256 + PackageInstaller |
 
 ## Build
@@ -178,6 +182,7 @@ validazione.
 | M7 – release firmata, aggiornamento in-app | ✅ |
 | M8 – edizioni per F-Droid (build riproducibile) e Google Play | 🔧 |
 | M9 – app e portale in 5 lingue, pronti per Weblate | ✅ |
+| M10 – promemoria per attività, filtro chiamate, voce, meteo, foto, comodino, «Dov'è?» | ✅ |
 
 ## Limiti noti
 

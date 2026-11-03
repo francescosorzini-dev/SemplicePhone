@@ -1,0 +1,5 @@
+- Reminders also for activities (shower, shopping, appointments, cards…), on one date, with symbol and photo
+- Block unknown numbers, automatic speakerphone
+- Voice: tiles read aloud and confirmation before calling
+- Weather and family photo tiles, bedside clock
+- "Where is it?" from the portal, with consent on the phone

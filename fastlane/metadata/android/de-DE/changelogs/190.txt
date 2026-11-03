@@ -1,0 +1,5 @@
+- Erinnerungen auch für Tätigkeiten (Duschen, Einkaufen, Termine, Karten…), an einem Datum, mit Symbol und Foto
+- Unbekannte Nummern blockieren, automatisches Freisprechen
+- Sprache: Kacheln vorlesen und Bestätigung vor dem Anruf
+- Wetter- und Familienfoto-Kacheln, Nachttischuhr
+- „Wo ist es?“ über das Portal, mit Zustimmung am Telefon

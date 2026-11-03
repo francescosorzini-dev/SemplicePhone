@@ -1,0 +1,5 @@
+- Rappels aussi pour les activités (douche, courses, rendez-vous, cartes…), à une date, avec symbole et photo
+- Blocage des numéros inconnus, haut-parleur automatique
+- Voix : lecture des tuiles et confirmation avant d'appeler
+- Tuiles météo et photos de famille, horloge de chevet
+- « Où est-il ? » depuis le portail, avec accord sur le téléphone

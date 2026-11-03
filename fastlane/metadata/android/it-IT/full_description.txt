@@ -14,8 +14,14 @@ Per ogni riquadro si scelgono testo, icona, colore e dimensione; la griglia può
 <b>SOS</b>
 Si tiene premuto, parte un conto alla rovescia annullabile, poi la chiamata al primo numero e la posizione inviata ai familiari.
 
-<b>Promemoria farmaci</b>
-Allarme a schermo intero anche a telefono bloccato, con «PRESO» e rinvio. Se nessuno conferma, l'allarme si ripete.
+<b>Promemoria per farmaci e attività</b>
+Medicine, doccia, spesa, visita, partita a carte: ogni giorno, in giorni scelti o in una sola data, con simbolo e foto. Allarme a schermo intero anche a telefono bloccato, con «PRESO»/«FATTO» e rinvio; si ripete finché nessuno conferma.
+
+<b>Chiamate più semplici e sicure</b>
+Blocco dei numeri sconosciuti (passano solo rubrica e familiari), vivavoce automatico, conferma vocale prima di chiamare.
+
+<b>Meteo, foto e comodino</b>
+Riquadro meteo, riquadro con le foto di famiglia che scorrono, orologio grande quando il telefono è in carica.
 
 <b>Telefono protetto</b>
 <ul>
