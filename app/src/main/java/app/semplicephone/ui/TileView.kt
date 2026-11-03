@@ -545,10 +545,11 @@ private fun MissedCallsTile(tile: Tile, sos: SosConfig, launcher: TileLauncher, 
         ) {
             BoxWithConstraints(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 val icon = (minOf(maxWidth, maxHeight) * 0.42f).coerceAtMost(96.dp)
+                val tall = maxHeight > 140.dp
                 Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Icon(Symbols.get(if (readable) "check" else "missed"), null, Modifier.size(icon), tint = fg)
                     TileLabel(label, fg, 22.dp.fixedSp(), TextAlign.Center, Modifier.fillMaxWidth())
-                    if (readable && maxHeight > 140.dp) {
+                    if (readable && tall) {
                         Text(stringResource(R.string.missed_none), color = fg, fontSize = 17.dp.fixedSp(), textAlign = TextAlign.Center)
                     }
                 }
