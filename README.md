@@ -133,7 +133,7 @@ Ogni opzione si toglie da Impostazioni › Protezione, compreso il ruolo di Devi
 | **Meteo e foto** | riquadro meteo (Open-Meteo, senza account) e riquadro con le foto di famiglia che scorrono, scelte sul telefono o caricate dal portale |
 | **Comodino** | in carica: orologio grande a luminosità bassa dopo un minuto senza tocchi |
 | **Chiamate perse** | riquadro con chi ha chiamato e non è stato richiamato (ultimi 3 giorni), richiamata in un tocco; nell'edizione Play apre il registro chiamate |
-| **Pulsante «Casa»** | sopra le altre app (permesso «Mostra sopra altre app»): un tocco torna alla Home; si sposta trascinandolo, si nasconde durante le chiamate |
+| **Pulsante «Casa»** | sopra le altre app (permesso «Mostra sopra altre app»): un tocco torna alla Home; si sposta trascinandolo, si nasconde durante le chiamate; si può escludere per singoli riquadri (giochi, app a tutto schermo) |
 | **Editor** | protetto da PIN (PBKDF2, blocco dopo 5 errori); bozza applicata solo dopo validazione; riquadri trascinabili; scorciatoie guidate; esporta/importa su file |
 | **Remoto** | busta firmata Ed25519, anti-replay, PIN impostabile, controllo ogni 15 min (ETag), SMS «#AGGIORNA», eventi urgenti, «Dov'è?» (posizione su richiesta, con consenso sul telefono); portale con editor visuale, avvisi Telegram/email, riepilogo settimanale, avviso dei permessi mancanti sul telefono, storico versioni: [`tools/remote-server`](tools/remote-server) |
 | **Aggiornamenti** | `update.json` + verifica SHA-256 + PackageInstaller |
