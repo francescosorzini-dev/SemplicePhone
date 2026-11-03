@@ -118,6 +118,7 @@ class ConfigRepository(private val context: Context) {
             cfg.pages.forEachIndexed { pi, page -> out += validatePage(pi, page) }
             cfg.reminders.forEach { r ->
                 if (ReminderTime.parse(r.time) == null) out += "reminder \"${r.title}\": invalid time"
+                if (r.date.isNotBlank() && ReminderTime.parseDate(r.date) == null) out += "reminder \"${r.title}\": invalid date"
             }
             cfg.reminders.groupingBy { it.id }.eachCount().filter { it.value > 1 }.keys.forEach { out += "duplicate reminder $it" }
             return out

@@ -67,7 +67,11 @@ class LocationFetcher(private val context: Context) {
 /** Invio degli SMS SOS. Restituisce quanti numeri sono stati raggiunti dall'invio. */
 object SosSms {
 
-    fun text(context: Context, cfg: SosConfig, location: Location?): String {
+    fun text(context: Context, cfg: SosConfig, location: Location?): String =
+        "SOS - ${cfg.message.trim()}\n" + locationText(context, location)
+
+    /** «Posizione: https://maps… (±20 m, ore 10:30)» o «Posizione non disponibile.». */
+    fun locationText(context: Context, location: Location?): String {
         val pos = if (location == null) context.getString(R.string.sms_no_location)
         else {
             val time = DateTimeFormatter.ofPattern("HH:mm", Locale.ROOT)
@@ -76,7 +80,7 @@ object SosSms {
                 else context.getString(R.string.sms_location_time, time)
             context.getString(R.string.sms_location, "https://maps.google.com/?q=%.6f,%.6f".format(Locale.ROOT, location.latitude, location.longitude)) + acc
         }
-        return "SOS - ${cfg.message.trim()}\n$pos"
+        return pos
     }
 
     /** Apre l'app Messaggi con destinatari e testo già pronti (resta da premere «Invia»). */

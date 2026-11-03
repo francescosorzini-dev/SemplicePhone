@@ -75,6 +75,10 @@ class RemoteSettings(context: Context) {
         get() = prefs.getString("last_result", "").orEmpty()
         set(v) = prefs.edit().putString("last_result", v).apply()
     /** Esito dell'ultimo controllo: configurazione applicata o già aggiornata. */
+    /** Consenso, dato sul telefono, alle richieste di posizione dal portale («Dov'è?»). */
+    var allowLocate: Boolean
+        get() = prefs.getBoolean("allow_locate", false)
+        set(v) = prefs.edit().putBoolean("allow_locate", v).apply()
     var lastOk: Boolean
         get() = prefs.getBoolean("last_ok", false)
         set(v) = prefs.edit().putBoolean("last_ok", v).apply()
@@ -154,6 +158,14 @@ class RemoteClient(private val context: Context) {
         result
     }
 
+    /** Posizione attuale (o l'ultima nota) inviata al portale come evento «location». */
+    private suspend fun sendLocation() {
+        val fetcher = app.semplicephone.sos.LocationFetcher(context)
+        val loc = fetcher.current(20_000) ?: fetcher.lastKnown()
+        val text = app.semplicephone.sos.SosSms.locationText(context, loc)
+        RemoteEvents.enqueue(context, "location", text, mapOf("lat" to loc?.latitude, "lon" to loc?.longitude, "acc" to loc?.accuracy))
+    }
+
     private suspend fun syncInternal(force: Boolean): SyncResult {
         if (!settings.enabled) return r(R.string.remote_r_disabled)
         val url = settings.resolvedUrl()
@@ -169,6 +181,8 @@ class RemoteClient(private val context: Context) {
             if (!force && settings.etag.isNotBlank()) setRequestProperty("If-None-Match", settings.etag)
         }
         val code = conn.responseCode
+        // «Dov'è?» dal portale: arriva come intestazione anche con 304. Solo se consentito sul telefono.
+        if (conn.getHeaderField("X-Locate") == "1" && settings.allowLocate) sendLocation()
         if (code == 304) return r(R.string.remote_r_up_to_date, settings.lastSeq, ok = true)
         if (code == 404) return r(R.string.remote_r_not_found, settings.deviceId)
         if (code != 200) return SyncResult(context.getString(R.string.remote_r_http, code), error = code >= 500)
@@ -190,6 +204,9 @@ class RemoteClient(private val context: Context) {
             val problems = ConfigRepository.validate(cfg)
             if (problems.isNotEmpty()) return r(R.string.remote_r_invalid, problems.first())
             ConfigRepository.get(context).save(cfg)
+            // Immagini della config (foto di famiglia, foto dei promemoria): scaricate e verificate con l'hash.
+            app.semplicephone.data.Media.fetchMissing(context, cfg, settings.resolvedUrl(), settings.deviceSecret)
+            app.semplicephone.data.Media.cleanup(context, cfg)
             ReminderScheduler(context).scheduleAll(cfg)
             app.semplicephone.admin.Protection(context)
                 .grantRuntimePermissions(app.semplicephone.launch.Permissions.required(context, cfg).map { n -> n.permission })

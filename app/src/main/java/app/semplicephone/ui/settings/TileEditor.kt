@@ -1,5 +1,7 @@
 package app.semplicephone.ui.settings
 
+import kotlinx.coroutines.launch
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.heightIn
 import android.content.Context
 import androidx.compose.ui.platform.LocalContext
@@ -68,6 +70,8 @@ private val TypeLabels = linkedMapOf(
     TileType.URL to R.string.type_url,
     TileType.SHORTCUT to R.string.type_shortcut,
     TileType.CLOCK to R.string.label_clock,
+    TileType.WEATHER to R.string.type_weather,
+    TileType.PHOTOS to R.string.type_photos,
     TileType.SOS to 0,
 )
 
@@ -184,12 +188,35 @@ fun TileEditor(
                     Hint(stringResource(R.string.tile_shortcut_hint))
                 }
                 TileType.CLOCK -> Hint(stringResource(R.string.tile_clock_hint))
+                TileType.WEATHER -> WeatherPlaceField(t.target, t.label) { place ->
+                    t = t.copy(target = place.target, label = place.name)
+                }
+                TileType.PHOTOS -> {
+                    SectionLabel(stringResource(R.string.tile_photos))
+                    Hint(stringResource(R.string.tile_photos_hint))
+                    Row(
+                        Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        t.photos.forEach { ref ->
+                            Box {
+                                MediaThumb(ref, 84.dp)
+                                TextButton(
+                                    onClick = { t = t.copy(photos = t.photos - ref) },
+                                    modifier = Modifier.align(Alignment.TopEnd),
+                                ) { Text("✕", color = Palette.Sos, fontSize = 18.sp, fontWeight = FontWeight.Bold) }
+                            }
+                        }
+                    }
+                    MediaPickButtons(onPicked = { ref -> if (ref !in t.photos) t = t.copy(photos = t.photos + ref) }, onExternalStart = onExternalStart, multiple = true)
+                }
+                TileType.UNKNOWN -> Hint(stringResource(R.string.tile_unknown_hint))
                 TileType.SOS -> Hint(stringResource(R.string.tile_sos_hint))
             }
 
             if (t.type != TileType.CLOCK) Field(stringResource(R.string.tile_label), t.label) { t = t.copy(label = it) }
 
-            if (t.type != TileType.CLOCK && t.type != TileType.SOS) {
+            if (t.type !in setOf(TileType.CLOCK, TileType.SOS, TileType.WEATHER, TileType.PHOTOS, TileType.UNKNOWN)) {
                 OptionPicker(stringResource(R.string.tile_icon), IconLabels.keys.toList(), t.icon.kind, { context.getString(IconLabels.getValue(it)) }) { k ->
                     t = t.copy(icon = TileIcon(k, if (k == IconKind.SYMBOL) t.icon.ref.ifBlank { Symbols.defaultFor(t.type) } else ""))
                 }
@@ -267,6 +294,9 @@ fun defaultLabel(context: Context, type: TileType): String = when (type) {
     TileType.URL -> context.getString(R.string.label_internet)
     TileType.SHORTCUT -> context.getString(R.string.label_shortcut)
     TileType.CLOCK -> ""
+    TileType.WEATHER -> ""
+    TileType.PHOTOS -> context.getString(R.string.label_photos)
+    TileType.UNKNOWN -> ""
     TileType.SOS -> "SOS"
 }
 
@@ -303,4 +333,38 @@ private fun Field(label: String, value: String, keyboard: KeyboardType = Keyboar
 @Composable
 private fun Hint(text: String) {
     Text(text, fontSize = 15.sp, color = Color(0xFF4A4A4A))
+}
+
+/** Ricerca della località per il meteo (Open-Meteo), con la scelta tra i risultati. */
+@Composable
+private fun WeatherPlaceField(target: String, label: String, onPick: (app.semplicephone.data.Weather.Place) -> Unit) {
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
+    val lang = androidx.compose.ui.platform.LocalConfiguration.current.locales[0].language
+    var query by remember { mutableStateOf(label) }
+    var results by remember { mutableStateOf<List<app.semplicephone.data.Weather.Place>?>(null) }
+    var busy by remember { mutableStateOf(false) }
+    SectionLabel(stringResource(R.string.weather_place))
+    if (target.isNotBlank()) Hint(stringResource(R.string.weather_current_place, label.ifBlank { target }))
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        OutlinedTextField(query, { query = it }, singleLine = true, label = { Text(stringResource(R.string.weather_search)) }, modifier = Modifier.weight(1f))
+        OutlinedButton(
+            onClick = {
+                busy = true
+                scope.launch {
+                    results = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { app.semplicephone.data.Weather.search(query, lang) }
+                    busy = false
+                }
+            },
+            enabled = query.isNotBlank() && !busy,
+            modifier = Modifier.heightIn(min = 52.dp),
+        ) { Text(stringResource(if (busy) R.string.loading else R.string.search)) }
+    }
+    results?.let { list ->
+        if (list.isEmpty()) Hint(stringResource(R.string.weather_no_results))
+        list.forEach { p ->
+            OutlinedButton(onClick = { onPick(p); results = null }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
+                Text(if (p.area.isNotBlank()) "${p.name} (${p.area})" else p.name, color = Palette.Ink)
+            }
+        }
+    }
 }

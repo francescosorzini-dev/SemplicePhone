@@ -88,6 +88,24 @@ fun RemoteScreen(onBack: () -> Unit) {
                 Text(stringResource(R.string.remote_enable), fontSize = 17.sp, modifier = Modifier.weight(1f))
                 Switch(checked = enabled, onCheckedChange = { enabled = it })
             }
+            var allowLocate by remember { mutableStateOf(settings.allowLocate) }
+            val askBackground = androidx.activity.compose.rememberLauncherForActivityResult(
+                androidx.activity.result.contract.ActivityResultContracts.RequestPermission(),
+            ) { }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f).padding(end = 12.dp)) {
+                    Text(stringResource(R.string.remote_allow_locate), fontSize = 17.sp)
+                    Text(stringResource(R.string.remote_allow_locate_detail), fontSize = 14.sp, color = Color(0xFF4A4A4A))
+                }
+                Switch(checked = allowLocate, onCheckedChange = {
+                    allowLocate = it
+                    settings.allowLocate = it
+                    // Fuori dalla Home serve la posizione «sempre»: solo nell'edizione completa.
+                    if (it && BuildConfig.FULL &&
+                        !app.semplicephone.launch.Permissions.granted(context, android.Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+                    ) runCatching { askBackground.launch(android.Manifest.permission.ACCESS_BACKGROUND_LOCATION) }
+                })
+            }
             SectionLabel(stringResource(R.string.remote_device_id))
             SelectionContainer {
                 Text(settings.deviceId, fontFamily = FontFamily.Monospace, fontSize = 22.sp, fontWeight = FontWeight.Bold,

@@ -1,5 +1,8 @@
 package app.semplicephone.reminders
 
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.ui.res.stringResource
 import android.os.Bundle
@@ -60,7 +63,19 @@ class ReminderActivity : ComponentActivity() {
                     Spacer(Modifier.height(24.dp))
                     Text(r.time, fontSize = 72.sp, fontWeight = FontWeight.Bold, color = Palette.Ink)
                     Text(r.title, fontSize = 32.sp, fontWeight = FontWeight.Bold, color = Palette.Ink, textAlign = TextAlign.Center)
-                    Icon(Symbols.get("pill"), null, Modifier.size(120.dp), tint = Palette.Ink)
+                    val photo = androidx.compose.runtime.remember(r.photo) {
+                        app.semplicephone.data.Media.bitmap(this@ReminderActivity, r.photo, 900)?.asImageBitmap()
+                    }
+                    if (photo != null) {
+                        androidx.compose.foundation.Image(
+                            photo, contentDescription = null,
+                            contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                            modifier = Modifier.fillMaxWidth().heightIn(max = 260.dp).aspectRatio(4f / 3f)
+                                .clip(RoundedCornerShape(20.dp)),
+                        )
+                    } else {
+                        Icon(Symbols.get(r.icon.takeIf { it in Symbols.names } ?: "pill"), null, Modifier.size(120.dp), tint = Palette.Ink)
+                    }
                     if (r.detail.isNotBlank()) Text(r.detail, fontSize = 26.sp, color = Palette.Ink, textAlign = TextAlign.Center)
                     Spacer(Modifier.weight(1f))
                     Button(
@@ -68,7 +83,7 @@ class ReminderActivity : ComponentActivity() {
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1B6E34)),
                         shape = RoundedCornerShape(24.dp),
                         modifier = Modifier.fillMaxWidth().heightIn(min = 120.dp),
-                    ) { Text(stringResource(R.string.reminder_taken_big), fontSize = 44.sp, fontWeight = FontWeight.Bold) }
+                    ) { Text(stringResource(if (r.icon == "pill") R.string.reminder_taken_big else R.string.reminder_done_big), fontSize = 44.sp, fontWeight = FontWeight.Bold) }
                     OutlinedButton(
                         onClick = { ReminderReceiver.snooze(this@ReminderActivity, id); finish() },
                         shape = RoundedCornerShape(20.dp),

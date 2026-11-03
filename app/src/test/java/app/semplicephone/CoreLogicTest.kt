@@ -198,3 +198,37 @@ class OpenModeTest {
         assertTrue(f(t.copy(open = "valore-futuro"), true))
     }
 }
+
+class Features090Test {
+    @Test fun unknownTileTypeDoesNotRejectConfig() {
+        val cfg = ConfigRepository.parse(
+            """{"pages":[{"cols":2,"rows":5,"tiles":[{"id":"x","col":0,"row":0,"type":"hologram"},{"id":"w","col":1,"row":0,"type":"weather","target":"44.49,11.34","label":"Bologna"}]}]}""",
+            "test",
+        )!!
+        assertEquals(TileType.UNKNOWN, cfg.pages[0].tiles[0].type)
+        assertEquals(TileType.WEATHER, cfg.pages[0].tiles[1].type)
+        assertEquals(listOf(44.49, 11.34), app.semplicephone.data.Weather.parseTarget("44.49,11.34")!!.toList())
+        org.junit.Assert.assertNull(app.semplicephone.data.Weather.parseTarget("abc"))
+    }
+
+    @Test fun oneDayReminder() {
+        val zone = java.time.ZoneId.of("Europe/Rome")
+        val now = java.time.ZonedDateTime.of(2026, 11, 3, 9, 0, 0, 0, zone)
+        val r = Reminder(id = "v", time = "10:30", date = "2026-11-05", icon = "doctor")
+        assertEquals(java.time.ZonedDateTime.of(2026, 11, 5, 10, 30, 0, 0, zone), ReminderTime.next(r, now))
+        org.junit.Assert.assertNull(ReminderTime.next(r, now.plusDays(3)))
+        assertTrue(ConfigRepository.validate(LauncherConfig(pages = listOf(Page()), reminders = listOf(r.copy(date = "2026-13-40")))).any { "invalid date" in it })
+    }
+
+    @Test fun callFilter() {
+        val cfg = LauncherConfig(
+            pages = listOf(Page(tiles = listOf(Tile(id = "m", col = 0, row = 0, type = TileType.CALL, target = "+39 333 1234567")))),
+            sos = app.semplicephone.model.SosConfig(numbers = listOf("3477654321")),
+        )
+        val known = app.semplicephone.phone.CallFilter.knownNumbers(cfg)
+        assertTrue(app.semplicephone.phone.CallFilter.allowed("3331234567", known))
+        assertTrue(app.semplicephone.phone.CallFilter.allowed("+393477654321", known))
+        assertFalse(app.semplicephone.phone.CallFilter.allowed("+390212345678", known))
+        assertFalse(app.semplicephone.phone.CallFilter.allowed("", known))
+    }
+}

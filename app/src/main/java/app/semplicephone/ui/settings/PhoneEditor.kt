@@ -1,5 +1,6 @@
 package app.semplicephone.ui.settings
 
+import androidx.compose.foundation.layout.heightIn
 import app.semplicephone.R
 import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
@@ -32,8 +33,23 @@ import app.semplicephone.ui.Palette
 
 /** Suoneria protetta, avviso batteria, pallini e comando SMS (si applica con Salva). */
 @Composable
-fun PhoneEditor(initial: PhoneConfig, hasSosNumbers: Boolean, onSave: (PhoneConfig) -> Unit, onCancel: () -> Unit) {
+fun PhoneEditor(
+    initial: PhoneConfig, hasSosNumbers: Boolean, onSave: (PhoneConfig) -> Unit, onCancel: () -> Unit,
+    onExternalStart: () -> Unit = {},
+) {
     var p by remember { mutableStateOf(initial) }
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val roles = remember { context.getSystemService(android.app.role.RoleManager::class.java) }
+    var screening by remember { mutableStateOf(roles.isRoleHeld(android.app.role.RoleManager.ROLE_CALL_SCREENING)) }
+    val askScreening = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult(),
+    ) { screening = roles.isRoleHeld(android.app.role.RoleManager.ROLE_CALL_SCREENING) }
+    fun requestScreening() {
+        if (!screening && roles.isRoleAvailable(android.app.role.RoleManager.ROLE_CALL_SCREENING)) {
+            onExternalStart()
+            askScreening.launch(roles.createRequestRoleIntent(android.app.role.RoleManager.ROLE_CALL_SCREENING))
+        }
+    }
     val never = stringResource(R.string.phone_never)
     val keyword = stringResource(R.string.sms_keyword)
 
@@ -51,6 +67,24 @@ fun PhoneEditor(initial: PhoneConfig, hasSosNumbers: Boolean, onSave: (PhoneConf
             if (p.ringerLock) {
                 Stepper(stringResource(R.string.phone_min_volume), p.ringVolumePercent / 10, 3..10, { p = p.copy(ringVolumePercent = it * 10) }, format = { "${it * 10}%" })
             }
+
+            SectionLabel(stringResource(R.string.phone_calls))
+            Toggle(stringResource(R.string.phone_block_unknown), stringResource(R.string.phone_block_unknown_detail), p.blockUnknown) {
+                p = p.copy(blockUnknown = it)
+                if (it) requestScreening()
+            }
+            if (p.blockUnknown && !screening) {
+                Text(stringResource(R.string.phone_block_needs_role), fontSize = 15.sp, color = Palette.Sos)
+                androidx.compose.material3.OutlinedButton(onClick = ::requestScreening, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
+                    Text(stringResource(R.string.phone_block_grant))
+                }
+            }
+            Toggle(stringResource(R.string.phone_speaker), stringResource(R.string.phone_speaker_detail), p.speakerCalls) { p = p.copy(speakerCalls = it) }
+
+            SectionLabel(stringResource(R.string.phone_voice_screen))
+            Toggle(stringResource(R.string.phone_speak_tiles), stringResource(R.string.phone_speak_tiles_detail), p.speakTiles) { p = p.copy(speakTiles = it) }
+            Toggle(stringResource(R.string.phone_voice_confirm), stringResource(R.string.phone_voice_confirm_detail), p.voiceConfirm) { p = p.copy(voiceConfirm = it) }
+            Toggle(stringResource(R.string.phone_bedside), stringResource(R.string.phone_bedside_detail), p.bedsideClock) { p = p.copy(bedsideClock = it) }
 
             Toggle(
                 stringResource(R.string.phone_fresh_start),

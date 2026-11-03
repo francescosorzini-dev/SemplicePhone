@@ -94,7 +94,7 @@ class ReminderReceiver : BroadcastReceiver() {
                 .setAutoCancel(false)
                 .setFullScreenIntent(full, true)
                 .setContentIntent(full)
-                .addAction(0, context.getString(R.string.reminder_taken), action(ACTION_TAKEN, 1))
+                .addAction(0, context.getString(if (r.icon == "pill") R.string.reminder_taken else R.string.reminder_done), action(ACTION_TAKEN, 1))
                 .addAction(0, context.resources.getQuantityString(R.plurals.reminder_snooze_short, r.snoozeMinutes, r.snoozeMinutes), action(ACTION_SNOOZE, 2))
                 .build()
             runCatching { context.getSystemService(NotificationManager::class.java).notify(nid, n) }

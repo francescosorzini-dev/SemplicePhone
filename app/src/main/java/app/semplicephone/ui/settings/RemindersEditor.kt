@@ -1,5 +1,8 @@
 package app.semplicephone.ui.settings
 
+import app.semplicephone.ui.Symbols
+import androidx.compose.material3.Icon
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.heightIn
 import app.semplicephone.R
 import androidx.compose.ui.res.stringResource
@@ -65,6 +68,7 @@ fun RemindersEditor(
 
     editing?.let { r ->
         ReminderForm(
+            onExternalStart = onExternalStart,
             initial = r,
             isNew = list.none { it.id == r.id },
             onDone = { updated -> list = if (list.any { it.id == updated.id }) list.map { if (it.id == updated.id) updated else it } else list + updated; editing = null },
@@ -103,11 +107,12 @@ fun RemindersEditor(
                         .padding(14.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
+                    Icon(Symbols.get(r.icon.takeIf { it in Symbols.names } ?: "pill"), null, Modifier.size(30.dp).padding(end = 6.dp), tint = Palette.Ink)
                     Text(r.time, fontSize = 26.sp, fontWeight = FontWeight.Bold, color = if (r.enabled) Palette.Ink else Color(0xFF8A8A8A))
                     Column(Modifier.weight(1f).padding(start = 14.dp)) {
                         Text(r.title, fontSize = 17.sp, fontWeight = FontWeight.Bold)
                         Text(
-                            listOfNotNull(r.detail.takeIf { it.isNotBlank() }, daysSummary(r.days), if (!r.enabled) stringResource(R.string.reminder_disabled) else null).joinToString(" · "),
+                            listOfNotNull(r.detail.takeIf { it.isNotBlank() }, if (r.date.isNotBlank()) r.date else daysSummary(r.days), if (!r.enabled) stringResource(R.string.reminder_disabled) else null).joinToString(" · "),
                             fontSize = 14.sp, color = Color(0xFF4A4A4A),
                         )
                     }
@@ -122,7 +127,11 @@ fun RemindersEditor(
 }
 
 @Composable
-private fun ReminderForm(initial: Reminder, isNew: Boolean, onDone: (Reminder) -> Unit, onDelete: () -> Unit, onCancel: () -> Unit) {
+private fun ReminderForm(
+    initial: Reminder, isNew: Boolean, onDone: (Reminder) -> Unit, onDelete: () -> Unit, onCancel: () -> Unit,
+    onExternalStart: () -> Unit,
+) {
+    val context = LocalContext.current
     var r by remember { mutableStateOf(initial) }
     val t = ReminderTime.parse(r.time) ?: java.time.LocalTime.of(8, 0)
     fun setTime(h: Int, m: Int) { r = r.copy(time = "%02d:%02d".format(h, m)) }
@@ -133,13 +142,52 @@ private fun ReminderForm(initial: Reminder, isNew: Boolean, onDone: (Reminder) -
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
+            // Modelli rapidi: titolo e simbolo in un tocco (farmaco, doccia, spesa, visita…)
+            SectionLabel(stringResource(R.string.reminder_presets))
+            Row(
+                Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                ReminderPresets.forEach { (icon, label) ->
+                    val text = stringResource(label)
+                    OutlinedButton(
+                        onClick = { r = r.copy(title = text, icon = icon) },
+                        modifier = Modifier.heightIn(min = 48.dp),
+                    ) {
+                        Icon(Symbols.get(icon), null, Modifier.size(22.dp), tint = Palette.Ink)
+                        Text(" $text", color = Palette.Ink)
+                    }
+                }
+            }
             Text(r.time, fontSize = 56.sp, fontWeight = FontWeight.Bold, color = Palette.Ink)
             Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
                 Stepper(stringResource(R.string.reminder_hour), t.hour, 0..23, { setTime(it, t.minute) }, format = { "%02d".format(it) })
                 Stepper(stringResource(R.string.reminder_minutes), t.minute / 5, 0..11, { setTime(t.hour, it * 5) }, format = { "%02d".format(it * 5) })
             }
-            SectionLabel(stringResource(R.string.reminder_days))
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Toggle(
+                stringResource(R.string.reminder_one_day), stringResource(R.string.reminder_one_day_detail), r.date.isNotBlank(),
+            ) { on ->
+                r = r.copy(date = if (on) java.time.LocalDate.now().plusDays(1).toString() else "")
+            }
+            if (r.date.isNotBlank()) {
+                val d = ReminderTime.parseDate(r.date) ?: java.time.LocalDate.now()
+                val locale = androidx.compose.ui.platform.LocalConfiguration.current.locales[0]
+                OutlinedButton(
+                    onClick = {
+                        android.app.DatePickerDialog(context, { _, y, m, day ->
+                            r = r.copy(date = java.time.LocalDate.of(y, m + 1, day).toString())
+                        }, d.year, d.monthValue - 1, d.dayOfMonth).show()
+                    },
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
+                ) {
+                    Text(
+                        d.format(java.time.format.DateTimeFormatter.ofLocalizedDate(java.time.format.FormatStyle.FULL).withLocale(locale)),
+                        fontSize = 17.sp, color = Palette.Ink,
+                    )
+                }
+            }
+            if (r.date.isBlank()) SectionLabel(stringResource(R.string.reminder_days))
+            if (r.date.isBlank()) Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 val locale = androidx.compose.ui.platform.LocalConfiguration.current.locales[0]
                 (1..7).forEach { day ->
                     val label = ReminderTime.dayInitial(day, locale)
@@ -161,9 +209,14 @@ private fun ReminderForm(initial: Reminder, isNew: Boolean, onDone: (Reminder) -
                     ) { Text(label, color = if (on) Color.White else Palette.Ink, fontWeight = FontWeight.Bold, fontSize = 17.sp) }
                 }
             }
-            Text(daysSummary(r.days), fontSize = 15.sp, color = Color(0xFF4A4A4A))
+            if (r.date.isBlank()) Text(daysSummary(r.days), fontSize = 15.sp, color = Color(0xFF4A4A4A))
             OutlinedTextField(r.title, { r = r.copy(title = it) }, label = { Text(stringResource(R.string.reminder_title)) }, modifier = Modifier.fillMaxWidth())
             OutlinedTextField(r.detail, { r = r.copy(detail = it) }, label = { Text(stringResource(R.string.reminder_detail)) }, modifier = Modifier.fillMaxWidth())
+            SectionLabel(stringResource(R.string.tile_icon))
+            SymbolGrid(r.icon) { r = r.copy(icon = it) }
+            SectionLabel(stringResource(R.string.reminder_photo))
+            Text(stringResource(R.string.reminder_photo_hint), fontSize = 14.sp, color = Color(0xFF4A4A4A))
+            SinglePhotoField(r.photo, { r = r.copy(photo = it) }, onExternalStart)
             Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
                 Stepper(stringResource(R.string.reminder_snooze), r.snoozeMinutes, 5..60, { r = r.copy(snoozeMinutes = it) })
                 Stepper(stringResource(R.string.reminder_repeat), r.repeatMinutes, 1..30, { r = r.copy(repeatMinutes = it) })
@@ -197,4 +250,16 @@ private fun Warning(text: String, onFix: () -> Unit) {
 private fun daysSummary(days: List<Int>): String = ReminderTime.daysSummary(
     days, stringResource(R.string.days_every), stringResource(R.string.days_weekdays),
     androidx.compose.ui.platform.LocalConfiguration.current.locales[0],
+)
+
+/** Modelli rapidi: simbolo e titolo (tradotto). */
+private val ReminderPresets = listOf(
+    "pill" to R.string.preset_medicine,
+    "shower" to R.string.preset_shower,
+    "cart" to R.string.preset_shopping,
+    "doctor" to R.string.preset_visit,
+    "cards" to R.string.preset_cards,
+    "walk" to R.string.preset_walk,
+    "water" to R.string.preset_water,
+    "food" to R.string.preset_meal,
 )

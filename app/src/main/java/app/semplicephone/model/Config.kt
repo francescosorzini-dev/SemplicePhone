@@ -31,9 +31,19 @@ data class PhoneConfig(
     val smsUpdateCommand: Boolean = false,
     /** Le app si aprono sempre dalla schermata iniziale (chat, messaggi…), non dall'ultima pagina vista. */
     val freshStart: Boolean = true,
+    /** Squillano solo rubrica, numeri SOS e numeri dei riquadri; gli altri vengono rifiutati (filtro chiamate). */
+    val blockUnknown: Boolean = false,
+    /** Le chiamate dai riquadri partono in vivavoce e con il volume della chiamata al massimo. */
+    val speakerCalls: Boolean = false,
+    /** Pressione lunga su un riquadro: il telefono ne legge il nome ad alta voce. */
+    val speakTiles: Boolean = false,
+    /** Prima di aprire un riquadro il telefono dice cosa sta per fare («Chiamo Maria»). */
+    val voiceConfirm: Boolean = false,
+    /** In carica e senza tocchi per un minuto: orologio grande a tutto schermo, schermo acceso. */
+    val bedsideClock: Boolean = false,
 )
 
-/** Promemoria (farmaci o altro) a orario fisso, con ripetizione finché non viene confermato. */
+/** Promemoria (farmaci, attività, appuntamenti) a orario fisso, con ripetizione finché non viene confermato. */
 @Serializable
 data class Reminder(
     val id: String,
@@ -48,6 +58,12 @@ data class Reminder(
     val repeatMinutes: Int = 5,
     val maxRepeats: Int = 6,
     val enabled: Boolean = true,
+    /** Simbolo mostrato nell'allarme (vedi Symbols): "pill" per i farmaci, "shower", "cart", "cards"… */
+    val icon: String = "pill",
+    /** "AAAA-MM-GG": promemoria di un solo giorno (visita, torneo); vuoto = ricorrente secondo [days]. */
+    val date: String = "",
+    /** Foto mostrata nell'allarme (la pastiglia, il luogo…): "media:<sha256>", vedi Media. */
+    val photo: String = "",
 )
 
 @Serializable
@@ -80,6 +96,8 @@ data class Tile(
     val color: String = "#1F4FA8",
     /** Solo per SMS: testo precompilato. */
     val body: String = "",
+    /** Solo per PHOTOS: immagini che scorrono ("media:<sha256>", vedi Media). */
+    val photos: List<String> = emptyList(),
     /**
      * Solo per APP: «default» segue l'impostazione del telefono (PhoneConfig.freshStart),
      * «fresh» riparte sempre dalla schermata iniziale, «resume» riprende dall'ultima pagina.
@@ -91,16 +109,28 @@ const val OPEN_DEFAULT = "default"
 const val OPEN_FRESH = "fresh"
 const val OPEN_RESUME = "resume"
 
-@Serializable
-enum class TileType {
-    @SerialName("app") APP,
-    @SerialName("call") CALL,
-    @SerialName("wa_video") WA_VIDEO,
-    @SerialName("sms") SMS,
-    @SerialName("url") URL,
-    @SerialName("shortcut") SHORTCUT,
-    @SerialName("clock") CLOCK,
-    @SerialName("sos") SOS,
+/**
+ * Tipo di riquadro. Un tipo sconosciuto (introdotto da una versione più recente) diventa UNKNOWN
+ * invece di far scartare tutta la configurazione: il riquadro resta vuoto finché l'app si aggiorna.
+ */
+@Serializable(with = TileTypeSerializer::class)
+enum class TileType(val code: String) {
+    APP("app"), CALL("call"), WA_VIDEO("wa_video"), SMS("sms"), URL("url"), SHORTCUT("shortcut"),
+    CLOCK("clock"), SOS("sos"),
+    /** target = "lat,lon", label = località (Open-Meteo). */
+    WEATHER("weather"),
+    /** Foto che scorrono, da [Tile.photos]. */
+    PHOTOS("photos"),
+    UNKNOWN("unknown"),
+}
+
+object TileTypeSerializer : kotlinx.serialization.KSerializer<TileType> {
+    override val descriptor = kotlinx.serialization.descriptors.PrimitiveSerialDescriptor("TileType", kotlinx.serialization.descriptors.PrimitiveKind.STRING)
+    override fun serialize(encoder: kotlinx.serialization.encoding.Encoder, value: TileType) = encoder.encodeString(value.code)
+    override fun deserialize(decoder: kotlinx.serialization.encoding.Decoder): TileType {
+        val s = decoder.decodeString()
+        return TileType.entries.firstOrNull { it.code == s } ?: TileType.UNKNOWN
+    }
 }
 
 @Serializable

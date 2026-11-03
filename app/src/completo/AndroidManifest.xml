@@ -5,6 +5,9 @@
 
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <uses-permission android:name="android.permission.RECEIVE_SMS" />
+    <!-- «Dov'è?» dal portale anche con l'app non in primo piano; chiesto solo se lo si attiva. Le altre
+         edizioni mandano la posizione attuale se la Home è aperta, altrimenti l'ultima nota. -->
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
 
     <application>
         <service

@@ -227,6 +227,7 @@ class MainActivity : ComponentActivity() {
                             hasSosNumbers = d.sos.numbers.isNotEmpty(),
                             onSave = { draft = d.copy(phone = it); screen = Screen.Layout },
                             onCancel = { screen = Screen.Layout },
+                            onExternalStart = { externalActivity = true },
                         )
                     }
                     Screen.Protection -> ProtectionScreen(protection, onBack = { screen = Screen.Layout })
@@ -309,6 +310,7 @@ class MainActivity : ComponentActivity() {
                     withContext(Dispatchers.IO) {
                         ShortcutPins.sync(applicationContext, d)
                         PhoneGuard.checkAll(applicationContext)
+                        app.semplicephone.data.Media.cleanup(applicationContext, d)
                     }
                     askPermissions(d)
                     closeSettings()

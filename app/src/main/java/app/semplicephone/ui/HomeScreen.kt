@@ -1,5 +1,7 @@
 package app.semplicephone.ui
 
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.input.pointer.pointerInput
 import app.semplicephone.R
 import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
@@ -63,6 +65,31 @@ fun HomeScreen(
     // Tasto Home premuto mentre si è già nel launcher → torna alla prima pagina.
     LaunchedEffect(homePressCount) { if (homePressCount > 0) pagerState.animateScrollToPage(0) }
 
+    // Modalità comodino: in carica e senza tocchi per un minuto → orologio grande, schermo acceso.
+    val battery by PhoneGuard.battery.collectAsState()
+    val bedsideOn = config.phone.bedsideClock && battery?.charging == true
+    var lastTouch by remember { androidx.compose.runtime.mutableLongStateOf(android.os.SystemClock.elapsedRealtime()) }
+    var bedside by remember { androidx.compose.runtime.mutableStateOf(false) }
+    LaunchedEffect(bedsideOn, lastTouch) {
+        bedside = false
+        if (bedsideOn) { kotlinx.coroutines.delay(60_000); bedside = true }
+    }
+    val view = androidx.compose.ui.platform.LocalView.current
+    androidx.compose.runtime.DisposableEffect(bedsideOn) {
+        view.keepScreenOn = bedsideOn
+        onDispose { view.keepScreenOn = false }
+    }
+
+    Box(
+        Modifier.fillMaxSize().pointerInput(Unit) {
+            awaitPointerEventScope {
+                while (true) {
+                    awaitPointerEvent(androidx.compose.ui.input.pointer.PointerEventPass.Initial)
+                    lastTouch = android.os.SystemClock.elapsedRealtime()
+                }
+            }
+        },
+    ) {
     Column(
         Modifier
             .fillMaxSize()
@@ -72,7 +99,6 @@ fun HomeScreen(
         verticalArrangement = Arrangement.spacedBy(Gap),
     ) {
         if (showSetHomeBanner) SetHomeBanner(onSetHome)
-        val battery by PhoneGuard.battery.collectAsState()
         val threshold = config.phone.batteryAlertPercent.takeIf { it > 0 } ?: 15
         battery?.let { b -> if (!b.charging && b.level in 0..threshold) BatteryBanner(b.level) }
 
@@ -85,6 +111,39 @@ fun HomeScreen(
         }
 
         if (pages.size > 1) PageDots(pages.size, pagerState.currentPage)
+    }
+    if (bedside) BedsideClock { bedside = false; lastTouch = android.os.SystemClock.elapsedRealtime() }
+    }
+}
+
+/** Orologio da comodino: grande, grigio su nero, luminosità bassa. Un tocco torna alla Home. */
+@Composable
+private fun BedsideClock(onDismiss: () -> Unit) {
+    var now by remember { androidx.compose.runtime.mutableStateOf(java.time.LocalDateTime.now()) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            kotlinx.coroutines.delay(60_000L - System.currentTimeMillis() % 60_000L)
+            now = java.time.LocalDateTime.now()
+        }
+    }
+    val activity = androidx.compose.ui.platform.LocalContext.current as? android.app.Activity
+    androidx.compose.runtime.DisposableEffect(Unit) {
+        val w = activity?.window
+        val before = w?.attributes?.screenBrightness
+        w?.attributes = w?.attributes?.apply { screenBrightness = 0.08f }
+        onDispose { w?.attributes = w?.attributes?.apply { screenBrightness = before ?: -1f } }
+    }
+    val locale = androidx.compose.ui.platform.LocalConfiguration.current.locales[0]
+    val date = now.format(java.time.format.DateTimeFormatter.ofPattern(android.text.format.DateFormat.getBestDateTimePattern(locale, "EEEEdMMMM"), locale))
+        .replaceFirstChar { it.titlecase(locale) }
+    Box(
+        Modifier.fillMaxSize().background(Color.Black).clickable(onClick = onDismiss),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(now.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm")), color = Color(0xFFB8B8B8), fontSize = 120.sp, fontWeight = FontWeight.Bold)
+            Text(date, color = Color(0xFF8A8A8A), fontSize = 34.sp, fontWeight = FontWeight.Bold)
+        }
     }
 }
 

@@ -13,8 +13,15 @@ object ReminderTime {
     }.getOrNull()
 
     /** Prossima occorrenza strettamente dopo [now], rispettando i giorni (ISO 1=lun…7=dom). */
+    fun parseDate(date: String): java.time.LocalDate? = runCatching { java.time.LocalDate.parse(date.trim()) }.getOrNull()
+
     fun next(r: Reminder, now: ZonedDateTime): ZonedDateTime? {
         val t = parse(r.time) ?: return null
+        // Promemoria di un solo giorno: quell'occorrenza, se non è già passata.
+        if (r.date.isNotBlank()) {
+            val d = parseDate(r.date) ?: return null
+            return d.atTime(t).atZone(now.zone).takeIf { it.isAfter(now) }
+        }
         val days = r.days.filter { it in 1..7 }.toSet()
         for (offset in 0..7) {
             val day = now.toLocalDate().plusDays(offset.toLong())

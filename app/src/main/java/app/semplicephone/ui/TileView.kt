@@ -1,5 +1,6 @@
 package app.semplicephone.ui
 
+import androidx.compose.foundation.combinedClickable
 import app.semplicephone.R
 import androidx.compose.ui.res.stringResource
 import android.widget.Toast
@@ -91,6 +92,9 @@ fun TileView(
     when (tile.type) {
         TileType.CLOCK -> ClockTile(tile, modifier, onSecretTap)
         TileType.SOS -> SosTile(tile, sos, launcher, modifier)
+        TileType.WEATHER -> WeatherTile(tile, launcher, modifier)
+        TileType.PHOTOS -> PhotosTile(tile, launcher, modifier)
+        TileType.UNKNOWN -> Box(modifier.clip(TileShape).background(Color(0xFFD9D3C7)))
         else -> ActionTile(tile, sos, launcher, modifier, badge)
     }
 }
@@ -108,7 +112,12 @@ private fun ActionTile(tile: Tile, sos: SosConfig, launcher: TileLauncher, modif
             .clip(TileShape)
             .background(bg)
             .border(if (bg.isLight()) 2.dp else 0.dp, Palette.Ink, TileShape)
-            .clickable(role = Role.Button, onClickLabel = tile.label) { launcher.launch(tile, sos) }
+            .combinedClickable(
+                role = Role.Button,
+                onClickLabel = tile.label,
+                onLongClick = { launcher.speakLabel(tile) },
+                onClick = { launcher.launch(tile, sos) },
+            )
             .semantics { if (badge > 0) stateDescription = badgeDesc },
         contentAlignment = Alignment.Center,
     ) {
@@ -377,4 +386,107 @@ fun Modifier.secretTaps(taps: ArrayDeque<Long>, onTrigger: () -> Unit): Modifier
             onTrigger()
         }
     })
+}
+
+/** Meteo della località del riquadro: simbolo, temperatura, minima e massima. Aggiornato ogni 30 minuti. */
+@Composable
+private fun WeatherTile(tile: Tile, launcher: TileLauncher, modifier: Modifier) {
+    val context = LocalContext.current
+    var now by remember { mutableStateOf<app.semplicephone.data.Weather.Now?>(null) }
+    LaunchedEffect(tile.target) {
+        while (true) {
+            now = withContext(Dispatchers.IO) { app.semplicephone.data.Weather.current(context, tile.target) }
+            delay(30 * 60_000L)
+        }
+    }
+    val bg = parseColor(tile.color)
+    val fg = contentColorFor(bg)
+    val w = now
+    val spoken = w?.let {
+        stringResource(R.string.weather_spoken, tile.label, it.temp, stringResource(app.semplicephone.data.Weather.description(it.code)))
+    } ?: tile.label
+    Box(
+        modifier
+            .clip(TileShape)
+            .background(bg)
+            .border(if (bg.isLight()) 2.dp else 0.dp, Palette.Ink, TileShape)
+            .combinedClickable(onLongClick = { launcher.speakText(spoken) }, onClick = { launcher.speakText(spoken) })
+            .semantics { contentDescription = spoken }
+            .padding(12.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        BoxWithConstraints(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            val wide = maxWidth > maxHeight
+            val icon = (minOf(maxWidth, maxHeight) * if (wide) 0.7f else 0.42f).coerceAtMost(110.dp)
+            val sym = Symbols.get(w?.let { app.semplicephone.data.Weather.symbol(it.code) } ?: "weather")
+            val tempText = w?.let { "${it.temp}°" } ?: "–"
+            val range = w?.let { "${it.min}° / ${it.max}°" }.orEmpty()
+            if (wide) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                    Icon(sym, null, Modifier.size(icon), tint = fg)
+                    Column {
+                        Text(tempText, color = fg, fontSize = 44.dp.fixedSp(), fontWeight = FontWeight.Bold)
+                        if (range.isNotEmpty()) Text(range, color = fg, fontSize = 18.dp.fixedSp())
+                        TileLabel(tile.label, fg, 20.dp.fixedSp(), TextAlign.Start, Modifier)
+                    }
+                }
+            } else {
+                Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Icon(sym, null, Modifier.size(icon), tint = fg)
+                    Text(tempText, color = fg, fontSize = 30.dp.fixedSp(), fontWeight = FontWeight.Bold)
+                    TileLabel(tile.label, fg, 18.dp.fixedSp(), TextAlign.Center, Modifier.fillMaxWidth())
+                }
+            }
+        }
+    }
+}
+
+/** Foto di famiglia che scorrono ogni 8 secondi; un tocco passa alla successiva. */
+@Composable
+private fun PhotosTile(tile: Tile, launcher: TileLauncher, modifier: Modifier) {
+    val context = LocalContext.current
+    val photos = tile.photos.filter { app.semplicephone.data.Media.exists(context, it) }
+    var index by remember(photos) { mutableStateOf(0) }
+    LaunchedEffect(photos) {
+        while (photos.size > 1) {
+            delay(8_000)
+            index = (index + 1) % photos.size
+        }
+    }
+    val bg = parseColor(tile.color)
+    val fg = contentColorFor(bg)
+    Box(
+        modifier
+            .clip(TileShape)
+            .background(bg)
+            .combinedClickable(
+                onLongClick = { launcher.speakLabel(tile) },
+                onClick = { if (photos.isNotEmpty()) index = (index + 1) % photos.size },
+            ),
+        contentAlignment = Alignment.Center,
+    ) {
+        if (photos.isEmpty()) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Icon(Symbols.get("photo"), null, Modifier.size(56.dp), tint = fg)
+                TileLabel(tile.label, fg, 22.dp.fixedSp(), TextAlign.Center, Modifier.fillMaxWidth())
+            }
+        } else {
+            BoxWithConstraints(Modifier.fillMaxSize()) {
+                val px = with(LocalDensity.current) { maxOf(maxWidth, maxHeight).roundToPx() }
+                androidx.compose.animation.Crossfade(photos[index % photos.size], label = "foto") { ref ->
+                    val bmp by produceState<ImageBitmap?>(null, ref, px) {
+                        value = withContext(Dispatchers.IO) { app.semplicephone.data.Media.bitmap(context, ref, px)?.asImageBitmap() }
+                    }
+                    bmp?.let { Image(it, null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize()) }
+                }
+                if (tile.label.isNotBlank()) {
+                    Box(
+                        Modifier.fillMaxWidth().align(Alignment.BottomCenter)
+                            .background(androidx.compose.ui.graphics.Brush.verticalGradient(listOf(Color.Transparent, Color(0xD9000000))))
+                            .padding(start = 10.dp, end = 10.dp, top = 28.dp, bottom = 10.dp),
+                    ) { TileLabel(tile.label, Color.White, 22.dp.fixedSp(), TextAlign.Center, Modifier.fillMaxWidth()) }
+                }
+            }
+        }
+    }
 }

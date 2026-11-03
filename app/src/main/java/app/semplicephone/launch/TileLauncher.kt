@@ -33,6 +33,37 @@ class TileLauncher(private val context: Context, val contacts: Contacts, private
         val now = SystemClock.elapsedRealtime()
         if (tile.type != TileType.SOS && now - lastLaunch < DEBOUNCE_MS) return
         lastLaunch = now
+        val phone = app.semplicephone.data.ConfigRepository.get(context).config.value.phone
+        val announce = if (phone.voiceConfirm) announcement(tile) else null
+        if (announce != null) app.semplicephone.ui.Voice.speak(context, announce) { perform(tile, sos) }
+        else perform(tile, sos)
+    }
+
+    /** Frase detta prima dell'azione («Chiamo Maria»), null per i riquadri senza azione. */
+    fun announcement(tile: Tile): String? {
+        val name = tile.label.ifBlank { return null }
+        return when (tile.type) {
+            TileType.CALL -> context.getString(R.string.voice_call, name)
+            TileType.WA_VIDEO -> context.getString(R.string.voice_video, name)
+            TileType.SMS -> context.getString(R.string.voice_sms, name)
+            TileType.APP, TileType.URL, TileType.SHORTCUT -> context.getString(R.string.voice_open, name)
+            else -> null
+        }
+    }
+
+    /** Legge [text] se «leggi i riquadri» è attivo (meteo, foto…). */
+    fun speakText(text: String) {
+        if (app.semplicephone.data.ConfigRepository.get(context).config.value.phone.speakTiles) app.semplicephone.ui.Voice.speak(context, text)
+    }
+
+    /** Pressione lunga con «leggi i riquadri» attivo: dice il nome del riquadro. */
+    fun speakLabel(tile: Tile): Boolean {
+        if (!app.semplicephone.data.ConfigRepository.get(context).config.value.phone.speakTiles) return false
+        app.semplicephone.ui.Voice.speak(context, tile.label)
+        return true
+    }
+
+    private fun perform(tile: Tile, sos: SosConfig) {
         try {
             when (tile.type) {
                 TileType.APP -> {
@@ -52,7 +83,7 @@ class TileLauncher(private val context: Context, val contacts: Contacts, private
                 TileType.SHORTCUT -> startShortcut(tile)
                 TileType.SOS -> if (sos.numbers.isEmpty()) toast(context.getString(R.string.launch_no_sos_numbers)) else onSos()
                 TileType.WA_VIDEO -> whatsAppVideo(tile)
-                TileType.CLOCK -> Unit
+                TileType.CLOCK, TileType.WEATHER, TileType.PHOTOS, TileType.UNKNOWN -> Unit
             }
         } catch (e: ActivityNotFoundException) {
             notAvailable(tile)
@@ -66,8 +97,25 @@ class TileLauncher(private val context: Context, val contacts: Contacts, private
     fun call(number: String) {
         if (number.isBlank()) return toast(context.getString(R.string.launch_no_number))
         val uri = Uri.parse("tel:${Uri.encode(number)}")
-        val action = if (Permissions.granted(context, Manifest.permission.CALL_PHONE)) Intent.ACTION_CALL else Intent.ACTION_DIAL
-        start(Intent(action, uri))
+        val speaker = app.semplicephone.data.ConfigRepository.get(context).config.value.phone.speakerCalls
+        if (Permissions.granted(context, Manifest.permission.CALL_PHONE)) {
+            if (speaker) {
+                // Volume della chiamata al massimo e vivavoce chiesto al sistema (extra ufficiale di Telecom).
+                runCatching {
+                    val am = context.getSystemService(android.media.AudioManager::class.java)
+                    am.setStreamVolume(android.media.AudioManager.STREAM_VOICE_CALL, am.getStreamMaxVolume(android.media.AudioManager.STREAM_VOICE_CALL), 0)
+                }
+                val extras = android.os.Bundle().apply { putBoolean(android.telecom.TelecomManager.EXTRA_START_CALL_WITH_SPEAKERPHONE, true) }
+                val ok = runCatching {
+                    @Suppress("MissingPermission")
+                    context.getSystemService(android.telecom.TelecomManager::class.java).placeCall(uri, extras)
+                }.isSuccess
+                if (ok) return
+            }
+            start(Intent(Intent.ACTION_CALL, uri))
+        } else {
+            start(Intent(Intent.ACTION_DIAL, uri).putExtra(android.telecom.TelecomManager.EXTRA_START_CALL_WITH_SPEAKERPHONE, speaker))
+        }
     }
 
     private fun whatsAppVideo(tile: Tile) {

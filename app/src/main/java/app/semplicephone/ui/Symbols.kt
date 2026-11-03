@@ -48,6 +48,20 @@ object Symbols {
         "music" to listOf("M9 18V6l10-2v12", "M5 18a2 2 0 1 0 4 0a2 2 0 1 0-4 0", "M15 16a2 2 0 1 0 4 0a2 2 0 1 0-4 0"),
         "radio" to listOf("M4 9h16v11H4z", "M7 9l10-5", "M9 14.5a2 2 0 1 0 4 0a2 2 0 1 0-4 0", "M16 13h1M16 16h1"),
         "grid" to listOf("M5 5h6v6H5zM13 5h6v6h-6zM5 13h6v6H5zM13 13h6v6h-6z"),
+        "shower" to listOf("M5 21V7a3 3 0 0 1 6 0", "M8 9h8a4 4 0 0 0-8 0", "M9 13v1M12 13v1M15 13v1M10.5 16.5v1M13.5 16.5v1M12 20v1"),
+        "cart" to listOf("M3 4h2l2.5 11h10L20 7H6", "M9 19.5a1 1 0 1 0 2 0a1 1 0 1 0-2 0", "M16 19.5a1 1 0 1 0 2 0a1 1 0 1 0-2 0"),
+        "doctor" to listOf("M6 3v6a4 4 0 0 0 8 0V3", "M10 13v2a4 4 0 0 0 8 0v-1", "M16 12a2 2 0 1 0 4 0a2 2 0 1 0-4 0"),
+        "cards" to listOf("M4 7l7-2.5 3.5 12L7.5 19z", "M14 4.5l5.5 1.5-3.5 13"),
+        "calendar" to listOf("M4 6h16v14H4z", "M4 10h16", "M8 3v4M16 3v4", "M8 14h2M14 14h2M8 17h2"),
+        "walk" to listOf("M13 4.5a1.5 1.5 0 1 0 0.01 0", "M12 8l-2 5 3 2.5 1 5.5", "M10 13l-3 7", "M12 8l3 3h3"),
+        "food" to listOf("M7 3v7a2 2 0 0 0 2 2v9", "M11 3v7a2 2 0 0 1-2 2", "M9 3v5", "M17 3c-2.5 2-2.5 7 0 9v9"),
+        "bed" to listOf("M3 19V7", "M3 15h18v4", "M21 15v-3a3 3 0 0 0-3-3h-7v6", "M7 11.5a1.5 1.5 0 1 0 0.01 0"),
+        "water" to listOf("M6 4h12l-1.5 16h-9z", "M7 9h10"),
+        "cloud" to listOf("M7 18h10a4 4 0 0 0 0-8a5.5 5.5 0 0 0-10.6 1.5A3.3 3.3 0 0 0 7 18z"),
+        "rain" to listOf("M7 14h10a4 4 0 0 0 0-8a5.5 5.5 0 0 0-10.6 1.5A3.3 3.3 0 0 0 7 14z", "M8 17l-1 3M12 17l-1 3M16 17l-1 3"),
+        "snow" to listOf("M7 14h10a4 4 0 0 0 0-8a5.5 5.5 0 0 0-10.6 1.5A3.3 3.3 0 0 0 7 14z", "M8 18h.01M12 18h.01M16 18h.01M10 21h.01M14 21h.01"),
+        "storm" to listOf("M7 14h10a4 4 0 0 0 0-8a5.5 5.5 0 0 0-10.6 1.5A3.3 3.3 0 0 0 7 14z", "M12 14l-2 4h4l-2 4"),
+        "fog" to listOf("M4 9h16M6 13h12M4 17h16"),
     )
 
     private val cache = mutableMapOf<String, ImageVector>()
@@ -62,6 +76,8 @@ object Symbols {
         TileType.SMS -> "message"
         TileType.URL -> "web"
         TileType.SOS -> "alert"
+        TileType.WEATHER -> "weather"
+        TileType.PHOTOS -> "photo"
         else -> "grid"
     }
 
