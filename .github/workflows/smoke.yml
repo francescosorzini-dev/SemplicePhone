@@ -3,6 +3,9 @@ name: smoke
 # Prova su emulatore (Android 14) di funzioni che i test unitari non coprono; risultati sul ramo «smoke».
 on:
   workflow_dispatch:
+  # Anche con un push sul ramo «smoke-run» (il dispatch funziona solo dal ramo principale).
+  push:
+    branches: [smoke-run]
 
 permissions:
   contents: write
