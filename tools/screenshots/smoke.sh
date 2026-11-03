@@ -23,7 +23,7 @@ contact() {
   adb shell content insert --uri content://com.android.contacts/data --bind raw_contact_id:i:$id \
     --bind mimetype:s:vnd.android.cursor.item/phone_v2 --bind data1:s:"$2" --bind data2:i:2
 }
-contact "Maria Rossi" +393331234567
+contact Maria +393331234567
 contact "Luca" +393477654321
 
 NOW=$(( $(date +%s) * 1000 ))
@@ -70,7 +70,7 @@ shot 3_after_tap 3; focus
 R=$(python3 - "$OUT/3_after_tap.xml" <<'PY'
 import re,sys
 x=open(sys.argv[1]).read()
-m=re.search(r'text="Maria Rossi"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"',x)
+m=re.search(r'text="Maria"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"',x)
 print(f"{(int(m[1])+int(m[3]))//2} {(int(m[2])+int(m[4]))//2}" if m else "")
 PY
 )
