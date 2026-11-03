@@ -266,6 +266,7 @@ class Features0100Test {
         assertFalse(hb.shouldShow(enabled = true, canDraw = false, appVisible = false, inCall = false))
         assertFalse(hb.shouldShow(enabled = true, canDraw = true, appVisible = false, inCall = true))
         assertFalse(hb.shouldShow(enabled = false, canDraw = true, appVisible = false, inCall = false))
+        assertFalse(hb.shouldShow(enabled = true, canDraw = true, appVisible = false, inCall = false, suppressed = true))
     }
 
     @Test fun missedCallsTileType() {
@@ -275,5 +276,8 @@ class Features0100Test {
         )!!
         assertEquals(TileType.MISSED_CALLS, cfg.pages[0].tiles[0].type)
         assertTrue(cfg.phone.homeButton)
+        assertTrue(cfg.pages[0].tiles[0].homeButton)
+        val off = ConfigRepository.parse("""{"pages":[{"cols":2,"rows":5,"tiles":[{"id":"g","col":0,"row":0,"type":"app","target":"x.y","homeButton":false}]}]}""", "test")!!
+        assertFalse(off.pages[0].tiles[0].homeButton)
     }
 }

@@ -271,6 +271,8 @@
     <string name="phone_home_grant">Concedi il permesso</string>
     <string name="home_button_label">CASA</string>
     <string name="home_button_desc">Torna alla schermata principale</string>
+    <string name="tile_home_button">Pulsante «Casa» in questa app</string>
+    <string name="tile_home_button_detail">Spento: aprendo questo riquadro il pulsante non compare (per esempio in un gioco o in un\'app che usa tutto lo schermo). Torna appena si rientra nella Home.</string>
     <string name="color_blue">Blu</string>
     <string name="color_green">Verde</string>
     <string name="color_purple">Viola</string>

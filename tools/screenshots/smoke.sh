@@ -13,7 +13,7 @@ for L0 in com.google.android.apps.nexuslauncher com.android.launcher3; do adb sh
 adb shell settings put global hide_error_dialogs 1 || true
 for perm in READ_CONTACTS READ_CALL_LOG CALL_PHONE; do adb shell pm grant $P android.permission.$perm; done
 adb shell appops set $P SYSTEM_ALERT_WINDOW allow
-adb shell cmd locale set-app-locales $P --locales it
+adb shell cmd locale set-app-locales $P --locales ${SMOKE_LANG:-fr}
 
 contact() {
   adb shell content insert --uri content://com.android.contacts/raw_contacts --bind account_type:n: --bind account_name:n:
@@ -39,7 +39,8 @@ cat > /tmp/c.json <<'J'
 {"version":1,"pages":[{"cols":2,"rows":5,"tiles":[
  {"id":"clock","col":0,"row":0,"w":2,"h":1,"type":"clock","color":"#FFFFFF"},
  {"id":"missed","col":0,"row":1,"w":2,"h":3,"type":"missed_calls","label":"Chiamate perse","color":"#FFE7A8"},
- {"id":"set","col":0,"row":4,"w":2,"h":1,"type":"app","target":"com.android.settings","label":"Impostazioni","color":"#1F4FA8"}]}],
+ {"id":"set","col":0,"row":4,"w":1,"h":1,"type":"app","target":"com.android.settings","label":"Impostazioni","color":"#1F4FA8"},
+ {"id":"con","col":1,"row":4,"w":1,"h":1,"type":"app","target":"com.google.android.contacts","label":"Rubrica","color":"#1E7B34","homeButton":false}]}],
  "phone":{"homeButton":true}}
 J
 adb push /tmp/c.json /data/local/tmp/c.json >/dev/null
@@ -76,5 +77,17 @@ PY
 )
 echo "riga: '$R'" | tee -a "$OUT/button.txt"
 if [ -n "$R" ]; then adb shell input tap $R; shot 4_callback 5; focus; fi
+# Riquadro con «Pulsante Casa» spento: l'app si apre senza pulsante
+adb shell input keyevent KEYCODE_ENDCALL; sleep 2; home; sleep 2
+adb shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1; adb shell cat /sdcard/ui.xml > "$OUT/5_home.xml"
+C=$(python3 - "$OUT/5_home.xml" <<'PY'
+import re,sys
+x=open(sys.argv[1]).read()
+m=re.search(r'text="Rubrica"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"',x)
+print(f"{(int(m[1])+int(m[3]))//2} {(int(m[2])+int(m[4]))//2}" if m else "")
+PY
+)
+echo "rubrica: '$C'" | tee -a "$OUT/button.txt"
+if [ -n "$C" ]; then adb shell input tap $C; shot 6_tile_no_button 4; focus; adb shell dumpsys window windows | grep -c "APPLICATION_OVERLAY.*semplicephone\|semplicephone.*APPLICATION_OVERLAY" > "$OUT/overlay_after_tile.txt" || true; fi
 adb shell dumpsys telecom | grep -iE "Call TC|state" | head -5 > "$OUT/telecom.txt" || true
 adb logcat -d -s HomeButton:* MissedCalls:* | grep -v "^-" > "$OUT/logcat.txt" || true

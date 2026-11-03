@@ -1,0 +1,2 @@
+- Botón «Inicio» más grande, con el texto siempre completo en cada idioma
+- El botón «Inicio» se puede ocultar en mosaicos concretos

@@ -1,0 +1,2 @@
+- Größere Schaltfläche „Start“, Beschriftung in jeder Sprache vollständig sichtbar
+- Die Schaltfläche „Start“ lässt sich für einzelne Kacheln ausblenden

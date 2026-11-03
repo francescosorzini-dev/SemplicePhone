@@ -271,6 +271,8 @@
     <string name="phone_home_grant">Accorder l\'autorisation</string>
     <string name="home_button_label">ACCUEIL</string>
     <string name="home_button_desc">Retour à l\'écran d\'accueil</string>
+    <string name="tile_home_button">Bouton « Accueil » dans cette appli</string>
+    <string name="tile_home_button_detail">Désactivé : en ouvrant cette tuile, le bouton n\'apparaît pas (par exemple dans un jeu ou une appli plein écran). Il revient dès le retour à l\'écran d\'accueil.</string>
     <string name="color_blue">Bleu</string>
     <string name="color_green">Vert</string>
     <string name="color_purple">Violet</string>

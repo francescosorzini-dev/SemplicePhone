@@ -393,5 +393,8 @@
  "weekly_last_seen": "Último contacto: {0}",
  "weekly_none": "sin datos",
  "weekly_enable": "Cada lunes por la mañana, un resumen de la semana de cada teléfono",
- "weekly_hint": "Recordatorios, SOS, llamadas bloqueadas, batería y contactos perdidos, por los mismos canales que los avisos."
+ "weekly_hint": "Recordatorios, SOS, llamadas bloqueadas, batería y contactos perdidos, por los mismos canales que los avisos.",
+ "tile_home_button": "Botón «Inicio» en esta app",
+ "tile_home_button_hint": "Desmarque para ocultarlo en la app abierta por este mosaico (juegos, apps a pantalla completa).",
+ "old_app_warn_0101": "El teléfono tiene la app {0}: ocultar el botón «Inicio» para un mosaico necesita la versión 0.10.1 o posterior."
 }

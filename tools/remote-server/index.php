@@ -1097,9 +1097,9 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
     const app = FORM.dataset.app, warn = document.getElementById('warns');
     const usesNew = cfg.pages.some(p => p.tiles.some(t => ['weather', 'photos'].includes(t.type))) || cfg.reminders.some(r => r.date || r.photo);
     const usesNew0100 = cfg.pages.some(p => p.tiles.some(t => t.type === 'missed_calls')) || !!cfg.phone.homeButton;
-    const old090 = usesNew && !newer(app, '0.9.0'), old0100 = usesNew0100 && !newer(app, '0.10.0');
-    warn.hidden = !(app && (old090 || old0100));
-    warn.textContent = old090 ? T('old_app_warn', app || '?') : T('old_app_warn_0100', app || '?');
+    const old090 = usesNew && !newer(app, '0.9.0'), old0100 = usesNew0100 && !newer(app, '0.10.0'), old0101 = cfg.pages.some(p => p.tiles.some(t => t.homeButton === false)) && !newer(app, '0.10.1');
+    warn.hidden = !(app && (old090 || old0100 || old0101));
+    warn.textContent = old090 ? T('old_app_warn', app || '?') : old0100 ? T('old_app_warn_0100', app || '?') : T('old_app_warn_0101', app || '?');
     const p = problems(), box = document.getElementById('issues');
     box.replaceChildren(...(p.length ? [el('b', {}, T('p_title')), el('ul', {}, p.map(x => el('li', {}, x)))] : []));
     document.getElementById('pubbtn').disabled = p.length > 0;
@@ -1237,6 +1237,10 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
           el('div', {class: 'hint'}, T('photo_fill_hint')));
     }
 
+    if (cfg.phone.homeButton && ['app', 'shortcut', 'url', 'sms', 'wa_video'].includes(t.type))
+      parts.push(el('label', {style: 'font-weight:400'}, el('input', {type: 'checkbox', checked: t.homeButton !== false,
+        onchange: e => { if (e.target.checked) delete t.homeButton; else t.homeButton = false; changed(); render(); }}), ' ' + T('tile_home_button')),
+        el('div', {class: 'hint'}, T('tile_home_button_hint')));
     parts.push(el('label', {}, T('color')), el('div', {class: 'swatches'}, PALETTE.map(([hex, nm]) =>
       el('button', {type: 'button', class: 'sw', title: nm, 'aria-label': nm, 'aria-pressed': String((t.color || '').toUpperCase() === hex), style: 'background:' + hex, onclick: () => upd('color', hex)}))));
 

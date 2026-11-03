@@ -64,6 +64,7 @@ class TileLauncher(private val context: Context, val contacts: Contacts, private
     }
 
     private fun perform(tile: Tile, sos: SosConfig) {
+        if (tile.type in HOME_BUTTON_TYPES) HomeButton.forNextApp(tile.homeButton)
         try {
             when (tile.type) {
                 TileType.APP -> {
@@ -209,6 +210,8 @@ class TileLauncher(private val context: Context, val contacts: Contacts, private
     companion object {
         private const val TAG = "TileLauncher"
         private const val DEBOUNCE_MS = 1200L
+        /** Riquadri che aprono un'altra app: per questi si può nascondere il pulsante «Casa». */
+        val HOME_BUTTON_TYPES = setOf(TileType.APP, TileType.SHORTCUT, TileType.URL, TileType.SMS, TileType.WA_VIDEO)
     }
 }
 

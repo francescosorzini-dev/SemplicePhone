@@ -271,6 +271,8 @@
     <string name="phone_home_grant">Conceder el permiso</string>
     <string name="home_button_label">INICIO</string>
     <string name="home_button_desc">Volver a la pantalla de inicio</string>
+    <string name="tile_home_button">Botón «Inicio» en esta app</string>
+    <string name="tile_home_button_detail">Apagado: al abrir este mosaico el botón no aparece (por ejemplo en un juego o una app a pantalla completa). Vuelve en cuanto se regresa a la pantalla de inicio.</string>
     <string name="color_blue">Azul</string>
     <string name="color_green">Verde</string>
     <string name="color_purple">Morado</string>

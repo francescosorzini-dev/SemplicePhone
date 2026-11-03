@@ -41,15 +41,24 @@ object HomeButton {
     private var started = 0
     private lateinit var app: Application
 
+    /**
+     * Nascosto per l'app aperta da un riquadro con «Pulsante Casa» spento; torna normale appena la
+     * Home è di nuovo visibile.
+     */
+    private var suppressed = false
+
     /** Pura (testabile): il pulsante va mostrato? */
-    fun shouldShow(enabled: Boolean, canDraw: Boolean, appVisible: Boolean, inCall: Boolean): Boolean =
-        enabled && canDraw && !appVisible && !inCall
+    fun shouldShow(enabled: Boolean, canDraw: Boolean, appVisible: Boolean, inCall: Boolean, suppressed: Boolean = false): Boolean =
+        enabled && canDraw && !appVisible && !inCall && !suppressed
+
+    /** Da chiamare subito prima di aprire l'app di un riquadro. */
+    fun forNextApp(show: Boolean) { suppressed = !show }
 
     /** Da chiamare una volta in Application.onCreate: segue le Activity del launcher e le chiamate. */
     fun install(application: Application) {
         app = application
         application.registerActivityLifecycleCallbacks(object : Application.ActivityLifecycleCallbacks {
-            override fun onActivityStarted(a: Activity) { started++; update(a) }
+            override fun onActivityStarted(a: Activity) { started++; suppressed = false; update(a) }
             override fun onActivityStopped(a: Activity) { started = (started - 1).coerceAtLeast(0); main.postDelayed({ update(application) }, 400) }
             override fun onActivityCreated(a: Activity, b: Bundle?) {}
             override fun onActivityResumed(a: Activity) {}
@@ -75,7 +84,7 @@ object HomeButton {
         if (!::app.isInitialized) return
         main.post {
             val enabled = ConfigRepository.get(app).config.value.phone.homeButton
-            val show = shouldShow(enabled, Settings.canDrawOverlays(app), started > 0, inCall(app))
+            val show = shouldShow(enabled, Settings.canDrawOverlays(app), started > 0, inCall(app), suppressed)
             if (show) attach() else detach()
         }
     }
@@ -93,38 +102,44 @@ object HomeButton {
         if (view != null) return
         val wm = app.getSystemService(WindowManager::class.java)
         val prefs = app.getSharedPreferences("home_button", Context.MODE_PRIVATE)
+        // Dimensione fissa e testo che si rimpicciolisce da solo: «CASA», «ACCUEIL», «INICIO»…
+        // entrano sempre, con qualsiasi carattere o dimensione di visualizzazione.
+        val width = dp(84f)
         val pill = LinearLayout(app).apply {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER
-            setPadding(dp(10f), dp(8f), dp(10f), dp(8f))
+            setPadding(dp(6f), dp(8f), dp(6f), dp(8f))
             background = GradientDrawable().apply {
                 cornerRadius = dp(18f).toFloat()
                 setColor(Color.parseColor("#1F4FA8"))
                 setStroke(dp(3f), Color.WHITE)
             }
-            elevation = dp(6f).toFloat()
             contentDescription = app.getString(R.string.home_button_desc)
             addView(android.widget.ImageView(app).apply {
                 setImageResource(R.drawable.ic_home_button)
-                layoutParams = LinearLayout.LayoutParams(dp(40f), dp(40f))
+                layoutParams = LinearLayout.LayoutParams(dp(42f), dp(42f))
             })
             addView(TextView(app).apply {
                 text = app.getString(R.string.home_button_label)
                 setTextColor(Color.WHITE)
-                setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15f)
                 setTypeface(typeface, android.graphics.Typeface.BOLD)
                 gravity = Gravity.CENTER
+                maxLines = 1
+                includeFontPadding = false
+                layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(24f)).apply { topMargin = dp(4f) }
+                setAutoSizeTextTypeUniformWithConfiguration(9, 17, 1, TypedValue.COMPLEX_UNIT_DIP)
             })
         }
         val lp = WindowManager.LayoutParams(
-            WindowManager.LayoutParams.WRAP_CONTENT,
+            width,
             WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+            // Niente FLAG_LAYOUT_NO_LIMITS: il pulsante resta dentro lo schermo (bordi curvi, angoli arrotondati).
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
             PixelFormat.TRANSLUCENT,
         ).apply {
             gravity = Gravity.END or Gravity.TOP
-            x = dp(6f)
+            x = dp(10f)
             y = prefs.getInt("y", (app.resources.displayMetrics.heightPixels * 0.55f).toInt())
         }
         // Trascinamento verticale; un tocco senza spostamento torna alla Home.

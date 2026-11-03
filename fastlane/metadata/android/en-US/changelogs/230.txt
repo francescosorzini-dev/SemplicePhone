@@ -1,0 +1,2 @@
+- Bigger "Home" button, its label always fully visible in every language
+- The "Home" button can be hidden for single tiles

@@ -1,0 +1,2 @@
+- Bouton « Accueil » plus grand, texte toujours entier dans chaque langue
+- Le bouton « Accueil » peut être masqué pour certaines tuiles

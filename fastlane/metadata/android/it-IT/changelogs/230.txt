@@ -1,0 +1,2 @@
+- Pulsante «Casa» più grande, con la scritta sempre intera in ogni lingua
+- Si può nascondere il pulsante «Casa» per singoli riquadri

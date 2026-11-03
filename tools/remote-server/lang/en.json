@@ -393,5 +393,8 @@
  "weekly_last_seen": "Last contact: {0}",
  "weekly_none": "no data",
  "weekly_enable": "Every Monday morning, a summary of the week for each phone",
- "weekly_hint": "Reminders, SOS, blocked calls, battery and missed contacts, on the same channels as the alerts."
+ "weekly_hint": "Reminders, SOS, blocked calls, battery and missed contacts, on the same channels as the alerts.",
+ "tile_home_button": "\"Home\" button in this app",
+ "tile_home_button_hint": "Untick to hide it in the app opened by this tile (games, full-screen apps).",
+ "old_app_warn_0101": "The phone has app {0}: hiding the \"Home\" button for a tile needs version 0.10.1 or later."
 }

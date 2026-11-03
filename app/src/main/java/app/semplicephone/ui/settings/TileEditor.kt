@@ -233,6 +233,12 @@ fun TileEditor(
                 ) { t = t.copy(icon = t.icon.copy(fill = it)) }
             }
 
+            if (t.type in TileLauncher.HOME_BUTTON_TYPES && ConfigRepository.get(context).config.value.phone.homeButton) {
+                Toggle(stringResource(R.string.tile_home_button), stringResource(R.string.tile_home_button_detail), t.homeButton) {
+                    t = t.copy(homeButton = it)
+                }
+            }
+
             SectionLabel(stringResource(R.string.tile_color))
             ColorSwatches(t.color) { t = t.copy(color = it) }
 

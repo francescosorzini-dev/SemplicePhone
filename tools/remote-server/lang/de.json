@@ -393,5 +393,8 @@
  "weekly_last_seen": "Letzter Kontakt: {0}",
  "weekly_none": "keine Daten",
  "weekly_enable": "Jeden Montagmorgen eine Wochenübersicht für jedes Telefon",
- "weekly_hint": "Erinnerungen, SOS, blockierte Anrufe, Akku und fehlende Kontakte, über dieselben Kanäle wie die Benachrichtigungen."
+ "weekly_hint": "Erinnerungen, SOS, blockierte Anrufe, Akku und fehlende Kontakte, über dieselben Kanäle wie die Benachrichtigungen.",
+ "tile_home_button": "Schaltfläche „Start“ in dieser App",
+ "tile_home_button_hint": "Haken entfernen, um sie in der von dieser Kachel geöffneten App auszublenden (Spiele, Vollbild-Apps).",
+ "old_app_warn_0101": "Das Telefon hat App {0}: die Schaltfläche „Start“ für eine Kachel auszublenden erfordert Version 0.10.1 oder neuer."
 }

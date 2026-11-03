@@ -105,6 +105,8 @@ data class Tile(
      * «fresh» riparte sempre dalla schermata iniziale, «resume» riprende dall'ultima pagina.
      */
     val open: String = OPEN_DEFAULT,
+    /** Pulsante «Casa» (se attivo sul telefono) dentro l'app aperta da questo riquadro. */
+    val homeButton: Boolean = true,
 )
 
 const val OPEN_DEFAULT = "default"
