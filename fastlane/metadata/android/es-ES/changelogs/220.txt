@@ -1,0 +1,3 @@
+- Mosaico «Llamadas perdidas»: quién llamó y no fue devuelto, devolución con un toque
+- Botón «Inicio» siempre visible sobre las otras apps
+- Portal: resumen semanal y aviso de permisos que faltan en el teléfono

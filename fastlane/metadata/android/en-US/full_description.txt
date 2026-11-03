@@ -14,9 +14,11 @@ SemplicePhone replaces the home screen with a few large, clear tiles for people 
 
 <b>Reminders for medicines and activities</b>: shower, shopping, appointments, card games — every day, on chosen days or on one date, with symbol and photo. Full-screen alarm even on the lock screen; repeats until confirmed.
 
-<b>Safer calls</b>: block unknown numbers, automatic speakerphone, spoken confirmation before calling.
+<b>Safer calls</b>: block unknown numbers, automatic speakerphone, spoken confirmation before calling, a missed-calls tile to call back with one tap.
 
 <b>Weather, photos, bedside</b>: weather tile, family photo slideshow tile, big clock while charging.
+
+<b>No getting lost</b>: a "Home" button stays visible inside other apps; one tap goes back to the simple screen.
 
 <b>Protection</b>: PIN-protected settings, ringer volume that restores itself, low-battery alert.
 

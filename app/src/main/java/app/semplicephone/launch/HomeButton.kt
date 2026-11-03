@@ -151,7 +151,7 @@ object HomeButton {
             }
             true
         }
-        runCatching { wm.addView(pill, lp) }.onSuccess { view = pill }
+        runCatching { wm.addView(pill, lp) }.onSuccess { view = pill }.onFailure { android.util.Log.w("HomeButton", "pulsante non mostrato", it) }
     }
 
     private fun goHome() {

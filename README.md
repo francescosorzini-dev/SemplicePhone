@@ -120,7 +120,7 @@ Ogni opzione si toglie da Impostazioni › Protezione, compreso il ruolo di Devi
 | | |
 |---|---|
 | **Home** | griglia per pagine (1–4 colonne × 1–8 righe), tile w×h, swipe tra pagine, tasto Home → pagina 1 |
-| **Tile** | `app` (package o ruoli `@dialer @sms @camera @gallery @browser`), `call`, `wa_video`, `sms`, `url`, `shortcut`, `clock`, `sos` |
+| **Tile** | `app` (package o ruoli `@dialer @sms @camera @gallery @browser`), `call`, `wa_video`, `sms`, `url`, `shortcut`, `clock`, `sos`, `weather`, `photos`, `missed_calls` |
 | **Contatti** | scelta dalla rubrica, foto in cerchio (o iniziali) oppure a tutto riquadro, chiamata diretta con `CALL_PHONE` |
 | **App dall'inizio** | toccando un riquadro l'app riparte dalla sua schermata iniziale (elenco chat, messaggi…), non dall'ultima pagina vista; si sceglie per tutto il telefono e per singolo riquadro |
 | **SOS** | pressione prolungata → conto alla rovescia annullabile → SMS con posizione a tutti i numeri → chiamata al primo |
@@ -132,8 +132,10 @@ Ogni opzione si toglie da Impostazioni › Protezione, compreso il ruolo di Devi
 | **Voce** | pressione lunga: il riquadro viene letto ad alta voce; conferma vocale prima di chiamare o aprire («Chiamo Maria») |
 | **Meteo e foto** | riquadro meteo (Open-Meteo, senza account) e riquadro con le foto di famiglia che scorrono, scelte sul telefono o caricate dal portale |
 | **Comodino** | in carica: orologio grande a luminosità bassa dopo un minuto senza tocchi |
+| **Chiamate perse** | riquadro con chi ha chiamato e non è stato richiamato (ultimi 3 giorni), richiamata in un tocco; nell'edizione Play apre il registro chiamate |
+| **Pulsante «Casa»** | sopra le altre app (permesso «Mostra sopra altre app»): un tocco torna alla Home; si sposta trascinandolo, si nasconde durante le chiamate |
 | **Editor** | protetto da PIN (PBKDF2, blocco dopo 5 errori); bozza applicata solo dopo validazione; riquadri trascinabili; scorciatoie guidate; esporta/importa su file |
-| **Remoto** | busta firmata Ed25519, anti-replay, PIN impostabile, controllo ogni 15 min (ETag), SMS «#AGGIORNA», eventi urgenti, «Dov'è?» (posizione su richiesta, con consenso sul telefono); portale con editor visuale, avvisi Telegram/email, storico versioni: [`tools/remote-server`](tools/remote-server) |
+| **Remoto** | busta firmata Ed25519, anti-replay, PIN impostabile, controllo ogni 15 min (ETag), SMS «#AGGIORNA», eventi urgenti, «Dov'è?» (posizione su richiesta, con consenso sul telefono); portale con editor visuale, avvisi Telegram/email, riepilogo settimanale, avviso dei permessi mancanti sul telefono, storico versioni: [`tools/remote-server`](tools/remote-server) |
 | **Aggiornamenti** | `update.json` + verifica SHA-256 + PackageInstaller |
 
 ## Build
@@ -183,6 +185,7 @@ validazione.
 | M8 – edizioni per F-Droid (build riproducibile) e Google Play | 🔧 |
 | M9 – app e portale in 5 lingue, pronti per Weblate | ✅ |
 | M10 – promemoria per attività, filtro chiamate, voce, meteo, foto, comodino, «Dov'è?» | ✅ |
+| M11 – chiamate perse, pulsante «Casa», riepilogo settimanale | ✅ |
 
 ## Limiti noti
 

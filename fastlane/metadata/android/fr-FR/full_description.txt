@@ -14,9 +14,11 @@ SemplicePhone remplace l'écran d'accueil par quelques grandes tuiles claires, p
 
 <b>Rappels pour médicaments et activités</b> : douche, courses, rendez-vous, cartes — chaque jour, certains jours ou à une date, avec symbole et photo. Alarme plein écran même téléphone verrouillé ; elle se répète jusqu'à confirmation.
 
-<b>Appels plus sûrs</b> : blocage des numéros inconnus, haut-parleur automatique, confirmation vocale avant d'appeler.
+<b>Appels plus sûrs</b> : blocage des numéros inconnus, haut-parleur automatique, confirmation vocale avant d'appeler, tuile des appels manqués à rappeler d'un appui.
 
 <b>Météo, photos, chevet</b> : tuile météo, tuile de photos de famille, grande horloge en charge.
+
+<b>Ne pas se perdre</b> : un bouton « Accueil » reste visible dans les autres applis ; un appui ramène à l'écran simple.
 
 <b>Protection</b> : paramètres protégés par code PIN, sonnerie qui revient au volume choisi, alerte batterie faible.
 

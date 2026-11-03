@@ -1,0 +1,3 @@
+- "Missed calls" tile: who called and was not called back, one tap to call back
+- Always-visible "Home" button over other apps
+- Portal: weekly summary and warning about missing permissions on the phone

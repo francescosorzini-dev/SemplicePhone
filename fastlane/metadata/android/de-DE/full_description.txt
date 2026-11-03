@@ -14,9 +14,11 @@ SemplicePhone ersetzt den Startbildschirm durch wenige große, klare Kacheln fü
 
 <b>Erinnerungen für Medikamente und Tätigkeiten</b>: Duschen, Einkaufen, Arzttermin, Kartenspiel — täglich, an gewählten Tagen oder an einem Datum, mit Symbol und Foto. Wecker im Vollbild auch bei gesperrtem Telefon; wiederholt sich bis zur Bestätigung.
 
-<b>Sicherere Anrufe</b>: unbekannte Nummern blockieren, automatisches Freisprechen, Sprachbestätigung vor dem Anruf.
+<b>Sicherere Anrufe</b>: unbekannte Nummern blockieren, automatisches Freisprechen, Sprachbestätigung vor dem Anruf, Kachel mit verpassten Anrufen zum Zurückrufen mit einem Tipp.
 
 <b>Wetter, Fotos, Nachttisch</b>: Wetterkachel, Kachel mit Familienfotos, große Uhr beim Laden.
+
+<b>Nicht verloren gehen</b>: eine Schaltfläche „Start“ bleibt in anderen Apps sichtbar; ein Tipp führt zum einfachen Bildschirm zurück.
 
 <b>Schutz</b>: Einstellungen mit PIN, Klingelton stellt sich selbst wieder ein, Hinweis bei schwachem Akku.
 

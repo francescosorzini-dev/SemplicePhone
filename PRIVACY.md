@@ -1,6 +1,6 @@
 # Informativa sulla privacy – SemplicePhone
 
-*Ultimo aggiornamento: 3 novembre 2026*
+*Ultimo aggiornamento: 3 novembre 2026 (0.10.0)*
 
 SemplicePhone è un launcher (schermata Home) per Android, software libero distribuito
 gratuitamente da Francesco Sorzini. Non ha pubblicità, analisi statistiche o account e non
@@ -17,6 +17,7 @@ invia dati allo sviluppatore.
 | Livello della batteria, versione dell'app | avviso di batteria scarica | solo se è attiva la gestione da remoto |
 | Numeri delle chiamate bloccate | blocco dei numeri sconosciuti (se attivato) | solo se è attiva la gestione da remoto, verso il portale del familiare |
 | Foto scelte per i riquadri o i promemoria | foto di famiglia, foto del farmaco | no (le foto caricate dal portale vengono scaricate dal telefono) |
+| Registro chiamate (numero, tipo, ora) | riquadro «Chiamate perse» (edizioni fuori da Google Play) | no |
 | Coordinate della località del meteo | riquadro meteo | sì, al servizio Open-Meteo (open-meteo.com) per ottenere le previsioni; nessun dato personale |
 
 ## Gestione da remoto (facoltativa, disattivata all'installazione)
@@ -28,6 +29,7 @@ non ne riceve i dati.
 Il telefono invia al portale:
 - un identificativo casuale del telefono;
 - i dati della tabella marcati «gestione da remoto»;
+- quali accessi mancano alle funzioni attive (es. «Mostra sopra altre app»), per avvisare il familiare;
 - gli avvisi di SOS (con la posizione), di promemoria non confermati e di chiamate bloccate;
 - la posizione su richiesta del familiare («Dov'è?»), solo se sul telefono è stata consentita.
 
@@ -38,7 +40,9 @@ dati già inviati si cancellano dal portale.
 ## Permessi
 
 - Telefono: per chiamare.
-- Contatti: per i riquadri.
+- Contatti: per i riquadri e per riconoscere i contatti nel filtro chiamate.
+- Registro chiamate: per il riquadro «Chiamate perse» (non nell'edizione Google Play).
+- Mostra sopra altre app: per il pulsante «Casa», se attivato.
 - Posizione: per l'SOS.
 - Notifiche e sveglie: per i promemoria.
 - «Non disturbare»: per togliere il silenzioso.

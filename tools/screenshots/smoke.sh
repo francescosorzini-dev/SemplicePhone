@@ -50,13 +50,17 @@ shot() { sleep "${2:-3}"; adb exec-out screencap -p > "$OUT/$1.png"; adb shell u
 focus() { adb shell dumpsys window | grep -m1 mCurrentFocus | tee -a "$OUT/focus.txt"; }
 
 home; shot 1_home 5; focus
-adb shell am start -W -n com.android.settings/.Settings >/dev/null; shot 2_settings 4; focus
-# Tocco sul pulsante «Casa» (cercato per descrizione)
-B=$(python3 - "$OUT/2_settings.xml" <<'PY'
+# Un'app qualsiasi (non Impostazioni: da Android 12 nasconde le sovrapposizioni delle altre app)
+adb shell am start -W -a android.intent.action.MAIN -c android.intent.category.APP_CONTACTS >/dev/null; shot 2_other_app 4; focus
+adb shell dumpsys window windows > "$OUT/windows.txt"
+# Finestra del pulsante: tipo APPLICATION_OVERLAY del nostro pacchetto, centro della sua cornice
+B=$(python3 - "$OUT/windows.txt" <<'PY'
 import re,sys
 x=open(sys.argv[1]).read()
-m=re.search(r'content-desc="Torna alla schermata principale"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"',x)
-print(f"{(int(m[1])+int(m[3]))//2} {(int(m[2])+int(m[4]))//2}" if m else "")
+for blk in re.split(r"\n  Window #", x):
+    if "app.semplicephone" in blk and "APPLICATION_OVERLAY" in blk:
+        m=re.search(r"frame=\[(-?\d+),(-?\d+)\]\[(-?\d+),(-?\d+)\]", blk)
+        if m: print(f"{(int(m[1])+int(m[3]))//2} {(int(m[2])+int(m[4]))//2}"); break
 PY
 )
 echo "pulsante: '$B'" | tee "$OUT/button.txt"
@@ -73,4 +77,4 @@ PY
 echo "riga: '$R'" | tee -a "$OUT/button.txt"
 if [ -n "$R" ]; then adb shell input tap $R; shot 4_callback 5; focus; fi
 adb shell dumpsys telecom | grep -iE "Call TC|state" | head -5 > "$OUT/telecom.txt" || true
-adb logcat -d -s AndroidRuntime:E HomeButton:* MissedCalls:* > "$OUT/logcat.txt" || true
+adb logcat -d -s HomeButton:* MissedCalls:* | grep -v "^-" > "$OUT/logcat.txt" || true

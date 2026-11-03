@@ -1,0 +1,3 @@
+- Riquadro «Chiamate perse»: chi ha chiamato e non è stato richiamato, richiamata in un tocco
+- Pulsante «Casa» sempre visibile sopra le altre app
+- Portale: riepilogo settimanale e avviso dei permessi mancanti sul telefono

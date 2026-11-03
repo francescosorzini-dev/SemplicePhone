@@ -99,16 +99,39 @@ class Contacts(private val context: Context) {
         }
     }
 
-    /** Nome in rubrica per [number], o il numero stesso se sconosciuto o senza permesso. */
+    /**
+     * Nome in rubrica per [number], o il numero stesso se sconosciuto o senza permesso.
+     * PhoneLookup abbina i formati secondo il paese del telefono; se non trova nulla si confrontano
+     * le ultime 9 cifre (3331234567 contro +39 333 123 4567, 0039…).
+     */
     fun displayName(number: String): String {
         if (!canRead() || number.isBlank()) return number
         return try {
             val filter = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(number))
             cr.query(filter, arrayOf(ContactsContract.PhoneLookup.DISPLAY_NAME), null, null, null)?.use { c ->
                 if (c.moveToFirst()) c.getString(0) else null
-            } ?: number
+            } ?: nameByDigits(number) ?: number
         } catch (e: Exception) {
             number
+        }
+    }
+
+    private fun nameByDigits(number: String): String? {
+        val n = app.semplicephone.remote.SmsCommand.normalize(number)
+        if (n.length < 6) return null
+        return cr.query(
+            ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+            arrayOf(
+                ContactsContract.CommonDataKinds.Phone.NUMBER,
+                ContactsContract.CommonDataKinds.Phone.NORMALIZED_NUMBER,
+                ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
+            ),
+            null, null, null,
+        )?.use { c ->
+            while (c.moveToNext()) {
+                if ((0..1).any { i -> c.getString(i)?.let { app.semplicephone.remote.SmsCommand.normalize(it) == n } == true }) return@use c.getString(2)
+            }
+            null
         }
     }
 

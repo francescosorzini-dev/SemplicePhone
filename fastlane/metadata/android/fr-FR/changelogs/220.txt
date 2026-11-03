@@ -1,0 +1,3 @@
+- Tuile « Appels manqués » : qui a appelé sans être rappelé, rappel d'un appui
+- Bouton « Accueil » toujours visible par-dessus les autres applis
+- Portail : résumé hebdomadaire et alerte sur les autorisations manquantes du téléphone

@@ -95,6 +95,8 @@ server suo (non dello sviluppatore). Per prudenza dichiararli come raccolti, fac
 | Sveglie esatte (`SCHEDULE_EXACT_ALARM`) | Di solito non serve dichiarazione. Se richiesta: «Promemoria impostati dall'utente a un orario preciso». |
 | Amministratore del dispositivo / Device Owner | «Facoltativo, attivato via ADB da un familiare per impedire disinstallazioni e modifiche accidentali su un telefono usato da un anziano. Nessuna attivazione automatica.» |
 | Ruolo «Filtro chiamate» (`CallScreeningService`) | Nessun permesso sensibile: il ruolo si concede dal dialogo di sistema. Nella scheda: «blocca le chiamate da numeri non in rubrica, per proteggere gli anziani dalle truffe telefoniche». |
+| Mostra sopra altre app (`SYSTEM_ALERT_WINDOW`) | Nessuna dichiarazione: è un accesso speciale che l'utente concede da Impostazioni. Nella scheda: «pulsante Casa sopra le altre app, perché una persona anziana possa sempre tornare alla schermata semplice; facoltativo, attivato dal familiare». |
+| Registro chiamate (`READ_CALL_LOG`) | **Non presente** nell'edizione Play (riservato alle app telefono predefinite): il riquadro «Chiamate perse» apre il registro chiamate del telefono. Il controllo nella release blocca l'AAB se compare. |
 | Accesso a «Non disturbare» | «Riattiva la suoneria se la persona anziana mette il telefono in silenzioso per errore; attivabile solo dalle impostazioni protette da PIN.» |
 
 ## 5. Pubblicazione

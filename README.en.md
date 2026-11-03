@@ -44,11 +44,12 @@ reset phone unlocks the locked notification shade, install blocking and factory-
 - **Calls**: block unknown numbers (system call screening), automatic speakerphone at full volume.
 - **Voice**: long press reads a tile aloud; optional spoken confirmation before calling or opening.
 - **Weather** tile (Open-Meteo, no account), **family photos** tile, **bedside clock** while charging.
+- **Missed calls** tile: who called and was not called back, one tap to call back. **"Home" button** over other apps to get back to the launcher.
 - **"Where is it?"**: the family can ask for the phone location from the portal, if allowed on the phone.
 - **Apps from the start**: tapping a tile opens the app on its first screen (chat list, messages…), not the last page viewed (phone-wide setting, overridable per tile). Contact photos can fill the whole tile.
 - **Protected ringer**, **low-battery alert**, **PIN-protected settings**.
 - **Remote management**: a single-file PHP portal ([`tools/remote-server`](tools/remote-server))
-  with a visual editor, Telegram/email alerts and version history.
+  with a visual editor, Telegram/email alerts, a weekly summary and version history.
 
 ## License
 

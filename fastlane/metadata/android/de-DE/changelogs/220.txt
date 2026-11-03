@@ -1,0 +1,3 @@
+- Kachel „Verpasste Anrufe“: wer angerufen hat und nicht zurückgerufen wurde, Rückruf mit einem Tipp
+- Immer sichtbare Schaltfläche „Start“ über anderen Apps
+- Portal: Wochenübersicht und Hinweis auf fehlende Berechtigungen am Telefon
