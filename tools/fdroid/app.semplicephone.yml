@@ -16,9 +16,9 @@ Binaries:
   https://github.com/francescosorzini-dev/SemplicePhone/releases/download/v%v/SemplicePhone-completo-%v.apk
 
 Builds:
-  - versionName: 0.10.0
-    versionCode: 220
-    commit: d998dd25b314c15f613bbac54ab28e1cdc116ab8
+  - versionName: 0.10.1
+    versionCode: 230
+    commit: 9a79b848dd2416ea187e213c704b12a401f6a5c5
     subdir: app
     gradle:
       - completo
@@ -27,5 +27,5 @@ AllowedAPKSigningKeys: 3871cf5b478aea297ec9aa665cebc98f7e62d9076fab62a548bac70e1
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
-CurrentVersion: 0.10.0
-CurrentVersionCode: 220
+CurrentVersion: 0.10.1
+CurrentVersionCode: 230
