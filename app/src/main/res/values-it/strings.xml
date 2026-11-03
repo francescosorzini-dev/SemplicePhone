@@ -248,6 +248,8 @@
     <string name="weather_no_results">Nessuna località trovata.</string>
     <string name="remote_allow_locate">Consenti «Dov\'è?»</string>
     <string name="remote_allow_locate_detail">Il portale può chiedere la posizione del telefono. Arriva solo a chi gestisce il portale.</string>
+    <string name="phone_block_needs_contacts">Per riconoscere i contatti della rubrica serve il permesso Contatti. Senza, il filtro non blocca nessuno.</string>
+    <string name="phone_block_contacts_grant">Consenti accesso ai contatti</string>
     <string name="color_blue">Blu</string>
     <string name="color_green">Verde</string>
     <string name="color_purple">Viola</string>

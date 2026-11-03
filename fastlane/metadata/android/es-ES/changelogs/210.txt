@@ -1,0 +1,1 @@
+- El bloqueo de desconocidos ahora comprueba de verdad la agenda: los contactos ya no se bloquean.

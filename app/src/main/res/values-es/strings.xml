@@ -248,6 +248,8 @@
     <string name="weather_no_results">No se encontró ningún lugar.</string>
     <string name="remote_allow_locate">Permitir «¿Dónde está?»</string>
     <string name="remote_allow_locate_detail">El portal puede pedir la ubicación del teléfono. Solo llega a quien gestiona el portal.</string>
+    <string name="phone_block_needs_contacts">Para reconocer sus contactos hace falta el permiso de Contactos. Sin él, el filtro no bloquea a nadie.</string>
+    <string name="phone_block_contacts_grant">Permitir acceso a los contactos</string>
     <string name="color_blue">Azul</string>
     <string name="color_green">Verde</string>
     <string name="color_purple">Morado</string>

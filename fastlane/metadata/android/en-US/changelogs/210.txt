@@ -1,0 +1,1 @@
+- Unknown-caller blocking now really checks the contacts: contacts are no longer blocked.

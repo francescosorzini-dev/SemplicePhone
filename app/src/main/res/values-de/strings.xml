@@ -248,6 +248,8 @@
     <string name="weather_no_results">Kein Ort gefunden.</string>
     <string name="remote_allow_locate">„Wo ist es?“ erlauben</string>
     <string name="remote_allow_locate_detail">Das Portal kann den Standort des Telefons abfragen. Er geht nur an den Betreiber des Portals.</string>
+    <string name="phone_block_needs_contacts">Um Ihre Kontakte zu erkennen, ist die Berechtigung „Kontakte“ nötig. Ohne sie blockiert der Filter niemanden.</string>
+    <string name="phone_block_contacts_grant">Zugriff auf Kontakte erlauben</string>
     <string name="color_blue">Blau</string>
     <string name="color_green">Grün</string>
     <string name="color_purple">Violett</string>

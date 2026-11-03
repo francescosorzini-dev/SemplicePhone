@@ -249,6 +249,8 @@
     <string name="weather_no_results">No place found.</string>
     <string name="remote_allow_locate">Allow \"Where is it?\"</string>
     <string name="remote_allow_locate_detail">The portal can ask for the phone location. It only reaches whoever runs the portal.</string>
+    <string name="phone_block_needs_contacts">To recognise your contacts, the Contacts permission is needed. Without it, the filter blocks nobody.</string>
+    <string name="phone_block_contacts_grant">Allow access to contacts</string>
     <string name="color_blue">Blue</string>
     <string name="color_green">Green</string>
     <string name="color_purple">Purple</string>

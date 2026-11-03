@@ -248,6 +248,8 @@
     <string name="weather_no_results">Aucun lieu trouvé.</string>
     <string name="remote_allow_locate">Autoriser « Où est-il ? »</string>
     <string name="remote_allow_locate_detail">Le portail peut demander la position du téléphone. Elle ne parvient qu\'à qui gère le portail.</string>
+    <string name="phone_block_needs_contacts">Pour reconnaître vos contacts, l\'autorisation Contacts est nécessaire. Sans elle, le filtre ne bloque personne.</string>
+    <string name="phone_block_contacts_grant">Autoriser l\'accès aux contacts</string>
     <string name="color_blue">Bleu</string>
     <string name="color_green">Vert</string>
     <string name="color_purple">Violet</string>

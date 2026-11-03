@@ -1,0 +1,1 @@
+- Sperre unbekannter Anrufer prüft jetzt wirklich das Adressbuch: Kontakte werden nicht mehr blockiert.

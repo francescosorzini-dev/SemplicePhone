@@ -1,0 +1,1 @@
+- Blocco sconosciuti: ora controlla davvero la rubrica, i contatti non vengono più bloccati.

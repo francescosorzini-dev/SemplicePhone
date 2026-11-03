@@ -50,6 +50,16 @@ fun PhoneEditor(
             askScreening.launch(roles.createRequestRoleIntent(android.app.role.RoleManager.ROLE_CALL_SCREENING))
         }
     }
+    fun contactsGranted() = androidx.core.content.ContextCompat.checkSelfPermission(
+        context, android.Manifest.permission.READ_CONTACTS,
+    ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+    var contacts by remember { mutableStateOf(contactsGranted()) }
+    val askContacts = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.RequestPermission(),
+    ) { contacts = contactsGranted() }
+    fun requestContacts() {
+        if (!contacts) { onExternalStart(); askContacts.launch(android.Manifest.permission.READ_CONTACTS) }
+    }
     val never = stringResource(R.string.phone_never)
     val keyword = stringResource(R.string.sms_keyword)
 
@@ -71,12 +81,18 @@ fun PhoneEditor(
             SectionLabel(stringResource(R.string.phone_calls))
             Toggle(stringResource(R.string.phone_block_unknown), stringResource(R.string.phone_block_unknown_detail), p.blockUnknown) {
                 p = p.copy(blockUnknown = it)
-                if (it) requestScreening()
+                if (it) { requestContacts(); requestScreening() }
             }
             if (p.blockUnknown && !screening) {
                 Text(stringResource(R.string.phone_block_needs_role), fontSize = 15.sp, color = Palette.Sos)
                 androidx.compose.material3.OutlinedButton(onClick = ::requestScreening, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
                     Text(stringResource(R.string.phone_block_grant))
+                }
+            }
+            if (p.blockUnknown && !contacts) {
+                Text(stringResource(R.string.phone_block_needs_contacts), fontSize = 15.sp, color = Palette.Sos)
+                androidx.compose.material3.OutlinedButton(onClick = ::requestContacts, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
+                    Text(stringResource(R.string.phone_block_contacts_grant))
                 }
             }
             Toggle(stringResource(R.string.phone_speaker), stringResource(R.string.phone_speaker_detail), p.speakerCalls) { p = p.copy(speakerCalls = it) }

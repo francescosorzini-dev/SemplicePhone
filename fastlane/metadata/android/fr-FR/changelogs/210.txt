@@ -1,0 +1,1 @@
+- Le blocage des inconnus vérifie vraiment le carnet d'adresses : les contacts ne sont plus bloqués.

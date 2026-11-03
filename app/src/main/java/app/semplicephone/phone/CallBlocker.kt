@@ -26,9 +26,11 @@ object CallFilter {
 }
 
 /**
- * Filtro chiamate (ruolo di sistema «app per filtrare le chiamate»). Android lo interpella solo per
- * i numeri che NON sono in rubrica: i contatti squillano sempre. Qui si lasciano passare anche i
- * numeri SOS e dei riquadri; gli altri vengono rifiutati senza squillo e segnalati al portale.
+ * Filtro chiamate (ruolo di sistema «app per filtrare le chiamate»). Android può interpellarlo anche
+ * per i contatti (dipende da versione e produttore), quindi la rubrica si controlla qui: passano
+ * contatti, numeri SOS e numeri dei riquadri; gli altri vengono rifiutati e segnalati al portale.
+ * Se la rubrica non è leggibile (permesso negato) non si blocca nessuno: meglio una chiamata
+ * indesiderata che un familiare respinto.
  */
 class CallBlocker : CallScreeningService() {
     override fun onScreenCall(details: Call.Details) {
@@ -39,6 +41,10 @@ class CallBlocker : CallScreeningService() {
         }
         val number = details.handle?.schemeSpecificPart.orEmpty()
         if (CallFilter.allowed(number, CallFilter.knownNumbers(cfg))) {
+            respondToCall(details, allow); return
+        }
+        val inContacts = if (number.isBlank()) false else app.semplicephone.data.Contacts(this).isInContacts(number)
+        if (inContacts != false) {
             respondToCall(details, allow); return
         }
         respondToCall(

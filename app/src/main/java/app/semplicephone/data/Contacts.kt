@@ -69,6 +69,36 @@ class Contacts(private val context: Context) {
         }
     }
 
+    /**
+     * Il numero è in rubrica? null = non si può sapere (manca READ_CONTACTS o errore).
+     * Prima la ricerca di sistema (PhoneLookup, gestisce prefissi e formati), poi un confronto
+     * sulle ultime 9 cifre di tutti i numeri salvati: copre i formati che PhoneLookup non abbina
+     * (0039…, spazi, numeri salvati senza prefisso o con prefisso diverso).
+     */
+    fun isInContacts(number: String): Boolean? {
+        if (!canRead()) return null
+        val n = app.semplicephone.remote.SmsCommand.normalize(number)
+        if (n.length < 6) return false
+        return try {
+            val filter = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(number))
+            val direct = cr.query(filter, arrayOf(ContactsContract.PhoneLookup._ID), null, null, null)?.use { it.moveToFirst() } ?: false
+            direct || (cr.query(
+                ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                arrayOf(ContactsContract.CommonDataKinds.Phone.NUMBER, ContactsContract.CommonDataKinds.Phone.NORMALIZED_NUMBER),
+                null, null, null,
+            )?.use { c ->
+                var found = false
+                while (!found && c.moveToNext()) {
+                    found = (0..1).any { i -> c.getString(i)?.let { app.semplicephone.remote.SmsCommand.normalize(it) == n } == true }
+                }
+                found
+            } ?: false)
+        } catch (e: Exception) {
+            Log.w(TAG, "ricerca in rubrica fallita", e)
+            null
+        }
+    }
+
     /** Nome in rubrica per [number], o il numero stesso se sconosciuto o senza permesso. */
     fun displayName(number: String): String {
         if (!canRead() || number.isBlank()) return number
