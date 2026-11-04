@@ -63,6 +63,7 @@ object Symbols {
         "storm" to listOf("M7 14h10a4 4 0 0 0 0-8a5.5 5.5 0 0 0-10.6 1.5A3.3 3.3 0 0 0 7 14z", "M12 14l-2 4h4l-2 4"),
         "fog" to listOf("M4 9h16M6 13h12M4 17h16"),
         "missed" to listOf("M5 6h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 15l5 2v3a2 2 0 0 1-2 2A16 16 0 0 1 3 8a2 2 0 0 1 2-2", "M15 3l5 5M20 3l-5 5"),
+        "search" to listOf("M4 10a6 6 0 1 0 12 0a6 6 0 1 0-12 0", "M14.5 14.5L20 20"),
         "check" to listOf("M3 12a9 9 0 1 0 18 0a9 9 0 1 0-18 0", "M8 12.5l2.5 2.5 5.5-6"),
     )
 
@@ -81,6 +82,7 @@ object Symbols {
         TileType.WEATHER -> "weather"
         TileType.PHOTOS -> "photo"
         TileType.MISSED_CALLS -> "missed"
+        TileType.SEARCH -> "search"
         else -> "grid"
     }
 

@@ -147,3 +147,18 @@ adb shell am start -W -a android.intent.action.MAIN -c android.intent.category.A
 setl it; sleep 5; step "altra app con pulsante Casa es->it"; shot crash_6_other 1
 adb logcat -d -b crash > "$OUT/logcat_crash.txt" || true
 adb logcat -d | grep -E "AndroidRuntime|FATAL|semplicephone" | grep -iE "fatal|exception|caused by|at app\.semplicephone|ANR" | head -80 > "$OUT/logcat_errors.txt" || true
+
+# ---- Riquadro «Cerca app»
+cat > /tmp/s.json <<'J'
+{"version":1,"pages":[{"cols":2,"rows":5,"tiles":[
+ {"id":"clock","col":0,"row":0,"w":2,"h":1,"type":"clock","color":"#FFFFFF"},
+ {"id":"cerca","col":0,"row":1,"w":2,"h":1,"type":"search","label":"Cerca app","color":"#1F4FA8"}]}],"phone":{}}
+J
+adb push /tmp/s.json /data/local/tmp/s.json >/dev/null
+adb shell cmd locale set-app-locales $P --locales it; adb shell am force-stop $P
+adb shell "run-as $P sh -c 'cp /data/local/tmp/s.json files/config.json'"
+home; sleep 3
+python3 tap.py "Cerca app" >/dev/null; shot search_1_open 3
+adb shell input text "impo"; shot search_2_typed 2
+grep -o 'text="[^"]\+"' "$OUT/search_2_typed.xml" | tr '\n' ' ' > "$OUT/search.txt"
+python3 tap.py "Settings" >/dev/null || python3 tap.py "Impostazioni" >/dev/null; sleep 3; focus >> "$OUT/search.txt"

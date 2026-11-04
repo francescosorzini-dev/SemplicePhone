@@ -275,6 +275,14 @@
     <string name="tile_home_button_detail">Aus: beim Öffnen dieser Kachel erscheint die Schaltfläche nicht (zum Beispiel in einem Spiel oder einer Vollbild-App). Sie kommt zurück, sobald man wieder auf dem Startbildschirm ist.</string>
     <string name="label_family">Familie</string>
     <string name="clock_spoken">Es ist %1$s Uhr, %2$s</string>
+    <string name="type_search">Apps suchen</string>
+    <string name="label_search">Apps suchen</string>
+    <string name="search_title">App suchen</string>
+    <string name="search_back">‹ Zurück</string>
+    <string name="search_placeholder">Teil des Namens eingeben</string>
+    <string name="search_voice">Sprechen</string>
+    <string name="search_none">Keine App mit „%1$s“</string>
+    <string name="tile_search_hint">Öffnet die App-Suche, ohne den Launcher zu verlassen: einen Teil des Namens tippen (oder sagen), auch die Anfangsbuchstaben, und ein Tipp öffnet die App.</string>
     <string name="color_blue">Blau</string>
     <string name="color_green">Grün</string>
     <string name="color_purple">Violett</string>

@@ -275,6 +275,14 @@
     <string name="tile_home_button_detail">Spento: aprendo questo riquadro il pulsante non compare (per esempio in un gioco o in un\'app che usa tutto lo schermo). Torna appena si rientra nella Home.</string>
     <string name="label_family">Famiglia</string>
     <string name="clock_spoken">Ore %1$s, %2$s</string>
+    <string name="type_search">Cerca app</string>
+    <string name="label_search">Cerca app</string>
+    <string name="search_title">Cerca un\'app</string>
+    <string name="search_back">‹ Indietro</string>
+    <string name="search_placeholder">Scrivi una parte del nome</string>
+    <string name="search_voice">Parla</string>
+    <string name="search_none">Nessuna app con «%1$s»</string>
+    <string name="tile_search_hint">Apre la ricerca delle app senza uscire dal launcher: si scrive (o si dice) una parte del nome, anche le iniziali, e un tocco apre l\'app.</string>
     <string name="color_blue">Blu</string>
     <string name="color_green">Verde</string>
     <string name="color_purple">Viola</string>

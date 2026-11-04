@@ -275,6 +275,14 @@
     <string name="tile_home_button_detail">Désactivé : en ouvrant cette tuile, le bouton n\'apparaît pas (par exemple dans un jeu ou une appli plein écran). Il revient dès le retour à l\'écran d\'accueil.</string>
     <string name="label_family">Famille</string>
     <string name="clock_spoken">Il est %1$s, %2$s</string>
+    <string name="type_search">Rechercher une appli</string>
+    <string name="label_search">Chercher une appli</string>
+    <string name="search_title">Trouver une appli</string>
+    <string name="search_back">‹ Retour</string>
+    <string name="search_placeholder">Tapez une partie du nom</string>
+    <string name="search_voice">Parler</string>
+    <string name="search_none">Aucune appli avec « %1$s »</string>
+    <string name="tile_search_hint">Ouvre la recherche d\'applis sans quitter le launcher : tapez (ou dites) une partie du nom, même les initiales, et un appui ouvre l\'appli.</string>
     <string name="color_blue">Bleu</string>
     <string name="color_green">Vert</string>
     <string name="color_purple">Violet</string>

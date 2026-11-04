@@ -281,3 +281,21 @@ class Features0100Test {
         assertFalse(off.pages[0].tiles[0].homeButton)
     }
 }
+
+class Features0120Test {
+    @Test fun appSearchRanking() {
+        val apps = listOf("Calcolatrice", "Google Maps", "Impostazioni", "Messaggi", "Ricette della nonna", "WhatsApp")
+            .map { app.semplicephone.data.AppEntry("p." + it.lowercase().replace(" ", ""), it) }
+        val s = { q: String -> app.semplicephone.data.AppCatalog.search(q, apps).map { it.label } }
+        assertEquals(listOf("Messaggi"), s("mess"))
+        assertEquals(listOf("Impostazioni"), s("IMPOST"))
+        assertEquals(listOf("Google Maps"), s("gm"))                 // iniziali
+        assertEquals("WhatsApp", s("app").first())                    // contenuto
+        assertEquals(listOf("Calcolatrice", "Ricette della nonna"), s("c").filter { it.startsWith("C") || it.startsWith("R") }) // prima chi inizia per «c»
+        assertEquals("Ricette della nonna", s("nonna").single())     // parola interna
+        assertTrue(s("zzz").isEmpty())
+        assertEquals(apps.size, s("  ").size)
+        val cfg = ConfigRepository.parse("""{"pages":[{"cols":2,"rows":5,"tiles":[{"id":"s","col":0,"row":0,"type":"search"}]}]}""", "test")!!
+        assertEquals(TileType.SEARCH, cfg.pages[0].tiles[0].type)
+    }
+}

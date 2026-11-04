@@ -23,7 +23,12 @@ import app.semplicephone.model.TileType
  * Traduce un tile in un Intent e lo avvia. Nessuna eccezione arriva alla UI.
  * [onSos] apre la schermata di conto alla rovescia (gestita dall'Activity).
  */
-class TileLauncher(private val context: Context, val contacts: Contacts, private val onSos: () -> Unit = {}) {
+class TileLauncher(
+    private val context: Context,
+    val contacts: Contacts,
+    private val onSos: () -> Unit = {},
+    private val onSearch: () -> Unit = {},
+) {
 
     private val pm: PackageManager = context.packageManager
     private var lastLaunch = 0L
@@ -46,7 +51,7 @@ class TileLauncher(private val context: Context, val contacts: Contacts, private
             TileType.CALL -> context.getString(R.string.voice_call, name)
             TileType.WA_VIDEO -> context.getString(R.string.voice_video, name)
             TileType.SMS -> context.getString(R.string.voice_sms, name)
-            TileType.APP, TileType.URL, TileType.SHORTCUT -> context.getString(R.string.voice_open, name)
+            TileType.APP, TileType.URL, TileType.SHORTCUT, TileType.SEARCH -> context.getString(R.string.voice_open, name)
             else -> null
         }
     }
@@ -85,6 +90,7 @@ class TileLauncher(private val context: Context, val contacts: Contacts, private
                 TileType.SOS -> if (sos.numbers.isEmpty()) toast(context.getString(R.string.launch_no_sos_numbers)) else onSos()
                 TileType.WA_VIDEO -> whatsAppVideo(tile)
                 TileType.MISSED_CALLS -> openCallLog()
+                TileType.SEARCH -> onSearch()
                 TileType.CLOCK, TileType.WEATHER, TileType.PHOTOS, TileType.UNKNOWN -> Unit
             }
         } catch (e: ActivityNotFoundException) {

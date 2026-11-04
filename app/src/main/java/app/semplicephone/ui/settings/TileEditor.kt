@@ -73,6 +73,7 @@ private val TypeLabels = linkedMapOf(
     TileType.WEATHER to R.string.type_weather,
     TileType.PHOTOS to R.string.type_photos,
     TileType.MISSED_CALLS to R.string.type_missed_calls,
+    TileType.SEARCH to R.string.type_search,
     TileType.SOS to 0,
 )
 
@@ -214,6 +215,7 @@ fun TileEditor(
                 TileType.MISSED_CALLS -> Hint(
                     stringResource(if (app.semplicephone.data.MissedCalls.supported()) R.string.tile_missed_hint else R.string.tile_missed_hint_play),
                 )
+                TileType.SEARCH -> Hint(stringResource(R.string.tile_search_hint))
                 TileType.UNKNOWN -> Hint(stringResource(R.string.tile_unknown_hint))
                 TileType.SOS -> Hint(stringResource(R.string.tile_sos_hint))
             }
@@ -307,6 +309,7 @@ fun defaultLabel(context: Context, type: TileType): String = when (type) {
     TileType.WEATHER -> ""
     TileType.PHOTOS -> context.getString(R.string.label_photos)
     TileType.MISSED_CALLS -> context.getString(R.string.label_missed_calls)
+    TileType.SEARCH -> context.getString(R.string.label_search)
     TileType.UNKNOWN -> ""
     TileType.SOS -> "SOS"
 }

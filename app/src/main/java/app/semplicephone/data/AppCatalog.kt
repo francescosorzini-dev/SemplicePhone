@@ -43,6 +43,18 @@ class AppCatalog(private val context: Context) {
         fun normalize(s: String): String =
             Normalizer.normalize(s, Normalizer.Form.NFD).replace(Regex("\\p{M}+"), "").lowercase(Locale.ROOT)
 
+        /**
+         * App che corrispondono a [query], prima quelle il cui nome (o una parola del nome) inizia
+         * con la ricerca, poi le altre; a parità resta l'ordine alfabetico di [entries].
+         */
+        fun search(query: String, entries: List<AppEntry>): List<AppEntry> {
+            val q = normalize(query.trim())
+            if (q.isEmpty()) return entries
+            fun startsWord(l: String) = normalize(l).split(Regex("[^\\p{L}\\p{N}]+")).any { it.startsWith(q) }
+            return entries.filter { matches(query, it.label) }
+                .sortedBy { e -> if (normalize(e.label).startsWith(q)) 0 else if (startsWord(e.label)) 1 else 2 }
+        }
+
         fun matches(query: String, label: String): Boolean {
             val q = normalize(query.trim())
             if (q.isEmpty()) return true

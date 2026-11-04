@@ -399,5 +399,9 @@
  "old_app_warn_0101": "Le téléphone a l'appli {0} : masquer le bouton « Accueil » pour une tuile nécessite la version 0.10.1 ou ultérieure.",
  "loaded_from_phone": "Configuration actuelle du téléphone chargée (modifiée sur le téléphone le {0}) : en publiant, vous la conservez avec vos modifications.",
  "use_published": "Utiliser plutôt la dernière publiée",
- "loaded_phone_current": "Configuration actuelle du téléphone chargée : en publiant, vous la conservez avec vos modifications."
+ "loaded_phone_current": "Configuration actuelle du téléphone chargée : en publiant, vous la conservez avec vos modifications.",
+ "type_search": "🔍 Rechercher une appli",
+ "def_search": "Chercher une appli",
+ "search_hint": "Ouvre la recherche d'applis sur le téléphone : tapez ou dites une partie du nom, un appui ouvre l'appli.",
+ "old_app_warn_0120": "Le téléphone a l'appli {0} : la tuile « Rechercher une appli » nécessite la version 0.12.0 ou ultérieure."
 }

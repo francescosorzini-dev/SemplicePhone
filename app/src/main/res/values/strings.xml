@@ -276,6 +276,14 @@
     <string name="tile_home_button_detail">Off: when this tile is opened the button does not appear (for example in a game or a full-screen app). It comes back as soon as you return to the home screen.</string>
     <string name="label_family">Family</string>
     <string name="clock_spoken">The time is %1$s, %2$s</string>
+    <string name="type_search">Search apps</string>
+    <string name="label_search">Search apps</string>
+    <string name="search_title">Find an app</string>
+    <string name="search_back">‹ Back</string>
+    <string name="search_placeholder">Type part of the name</string>
+    <string name="search_voice">Speak</string>
+    <string name="search_none">No app matching \"%1$s\"</string>
+    <string name="tile_search_hint">Opens app search without leaving the launcher: type (or say) part of the name, even the initials, and one tap opens the app.</string>
     <string name="color_blue">Blue</string>
     <string name="color_green">Green</string>
     <string name="color_purple">Purple</string>

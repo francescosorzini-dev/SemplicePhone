@@ -127,6 +127,8 @@ enum class TileType(val code: String) {
     PHOTOS("photos"),
     /** Chiamate perse non ancora richiamate, con richiamata in un tocco. */
     MISSED_CALLS("missed_calls"),
+    /** Ricerca delle app dentro il launcher: si scrive parte del nome e un tocco la apre. */
+    SEARCH("search"),
     UNKNOWN("unknown"),
 }
 

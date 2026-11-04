@@ -275,6 +275,14 @@
     <string name="tile_home_button_detail">Apagado: al abrir este mosaico el botón no aparece (por ejemplo en un juego o una app a pantalla completa). Vuelve en cuanto se regresa a la pantalla de inicio.</string>
     <string name="label_family">Familia</string>
     <string name="clock_spoken">Son las %1$s, %2$s</string>
+    <string name="type_search">Buscar apps</string>
+    <string name="label_search">Buscar apps</string>
+    <string name="search_title">Buscar una app</string>
+    <string name="search_back">‹ Atrás</string>
+    <string name="search_placeholder">Escriba parte del nombre</string>
+    <string name="search_voice">Hablar</string>
+    <string name="search_none">Ninguna app con «%1$s»</string>
+    <string name="tile_search_hint">Abre la búsqueda de apps sin salir del launcher: escriba (o diga) parte del nombre, incluso las iniciales, y un toque abre la app.</string>
     <string name="color_blue">Azul</string>
     <string name="color_green">Verde</string>
     <string name="color_purple">Morado</string>

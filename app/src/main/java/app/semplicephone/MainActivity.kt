@@ -43,6 +43,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.semplicephone.ui.AppSearchScreen
 import app.semplicephone.ui.HomeScreen
 import app.semplicephone.ui.SempliceTheme
 import app.semplicephone.ui.settings.LayoutEditor
@@ -69,6 +70,8 @@ sealed interface Screen {
     data object Reminders : Screen
     data object Remote : Screen
     data object Phone : Screen
+    /** Ricerca delle app (riquadro «Cerca app»): non serve il PIN. */
+    data object Search : Screen
 }
 
 class MainActivity : ComponentActivity() {
@@ -108,7 +111,7 @@ class MainActivity : ComponentActivity() {
         contacts = Contacts(applicationContext)
         protection = DeviceProtection(applicationContext)
         scheduler = ReminderScheduler(applicationContext)
-        launcher = TileLauncher(this, contacts, onSos = ::onSosRequested)
+        launcher = TileLauncher(this, contacts, onSos = ::onSosRequested, onSearch = ::openSearch)
         pins = PinStore(applicationContext)
         catalog = AppCatalog(applicationContext)
         apps = catalog.roles()
@@ -236,6 +239,13 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                     Screen.Protection -> ProtectionScreen(protection, onBack = { screen = Screen.Layout })
+                    Screen.Search -> AppSearchScreen(
+                        apps = searchApps,
+                        launcher = launcher,
+                        sos = config.sos,
+                        onClose = { screen = Screen.Home },
+                        onExternalStart = { externalActivity = true },
+                    )
                     Screen.SosCountdown -> SosScreen(
                         cfg = config.sos,
                         launcher = launcher,
@@ -302,7 +312,7 @@ class MainActivity : ComponentActivity() {
             is Screen.Pin -> if (draft != null) Screen.Layout else { closeSettings(); Screen.Home }
             Screen.Layout -> { closeSettings(); Screen.Home }
             is Screen.EditTile, Screen.Sos, Screen.Protection, Screen.Reminders, Screen.Remote, Screen.Phone -> Screen.Layout
-            Screen.SosCountdown -> Screen.Home
+            Screen.SosCountdown, Screen.Search -> Screen.Home
         }
     }
 
@@ -334,6 +344,17 @@ class MainActivity : ComponentActivity() {
         if (missing.isNotEmpty()) {
             externalActivity = true
             requestPermissions.launch(missing.toTypedArray())
+        }
+    }
+
+    /** App per la ricerca: elenco aggiornato a ogni apertura (app installate o tolte nel frattempo). */
+    private var searchApps by mutableStateOf<List<app.semplicephone.data.AppEntry>?>(null)
+
+    private fun openSearch() {
+        searchApps = null
+        screen = Screen.Search
+        lifecycleScope.launch {
+            searchApps = withContext(Dispatchers.IO) { catalog.load().filterNot { it.target.startsWith("@") } }
         }
     }
 
