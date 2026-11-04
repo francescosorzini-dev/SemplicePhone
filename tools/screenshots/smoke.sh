@@ -162,3 +162,35 @@ python3 tap.py "Cerca app" >/dev/null; shot search_1_open 3
 adb shell input text "sett"; shot search_2_typed 2
 grep -o 'text="[^"]\+"' "$OUT/search_2_typed.xml" | tr '\n' ' ' > "$OUT/search.txt"
 python3 tap.py "Settings" >/dev/null || python3 tap.py "Impostazioni" >/dev/null; sleep 3; focus >> "$OUT/search.txt"
+
+# ---- Risposta automatica dai numeri SOS e messaggio della famiglia (0.13.0)
+cat > /tmp/a.json <<'J'
+{"version":1,"pages":[{"cols":2,"rows":5,"tiles":[
+ {"id":"clock","col":0,"row":0,"w":2,"h":1,"type":"clock","color":"#FFFFFF"},
+ {"id":"sos","col":0,"row":4,"w":2,"h":1,"type":"sos","label":"SOS","color":"#B71C1C"}]}],
+ "sos":{"numbers":["3331234567"]},"phone":{"autoAnswer":true,"autoAnswerSeconds":5,"announceCaller":true}}
+J
+adb push /tmp/a.json /data/local/tmp/a.json >/dev/null
+adb shell am force-stop $P
+adb shell "run-as $P sh -c 'cp /data/local/tmp/a.json files/config.json'"
+adb shell pm grant $P android.permission.ANSWER_PHONE_CALLS
+adb shell cmd role add-role-holder android.app.role.CALL_SCREENING $P 0 || true
+home; sleep 3
+adb logcat -c
+adb emu gsm call 3331234567; sleep 3
+adb shell dumpsys telecom | grep -E "^\s+Call TC|state=|CallAudioRouteStateMachine|Current state" | head -12 > "$OUT/answer_before.txt"
+sleep 7
+adb shell dumpsys telecom | grep -E "^\s+Call TC|state=|Current state" | head -12 > "$OUT/answer_after.txt"
+shot answer_call 1
+adb shell dumpsys audio | grep -iE "mode|communication device|speaker" | head -15 > "$OUT/answer_audio.txt"
+adb emu gsm cancel 3331234567; sleep 2
+adb logcat -d -s TextToSpeech:* | tail -5 > "$OUT/answer_tts.txt" || true
+# Messaggio: file come lo scrive la sincronizzazione, poi la schermata a tutto schermo
+echo '{"device":"*","id":1,"text":"Passo da te alle 16, porto il pane.","from":"Anna","at":1}' > /tmp/m.json
+adb push /tmp/m.json /data/local/tmp/m.json >/dev/null
+adb shell "run-as $P sh -c 'cp /data/local/tmp/m.json files/family_message.json'"
+home; sleep 3; shot message_home 2
+adb shell am start -W -n $P/.remote.MessageActivity >/dev/null; shot message_screen 3
+python3 tap.py "HO LETTO" >/dev/null || python3 tap.py "GOT IT" >/dev/null; sleep 2
+adb shell "run-as $P ls files" > "$OUT/message_files.txt"
+home; shot message_after 2

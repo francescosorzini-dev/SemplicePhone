@@ -34,7 +34,10 @@ const MEDIA_MAX = 8 * 1024 * 1024;
 const APP_FEATURES_090 = '0.9.0';
 // Versione che conosce il riquadro chiamate perse e il pulsante «Casa».
 const APP_FEATURES_0100 = '0.10.0';
-const EVENT_TYPES = ['sos', 'reminder_missed', 'battery', 'offline', 'online', 'test', 'call_blocked', 'location'];
+const EVENT_TYPES = ['sos', 'reminder_missed', 'battery', 'offline', 'online', 'test', 'call_blocked', 'location', 'ring_done', 'message_read'];
+// Versione che riceve messaggi, «Fai squillare» e la risposta automatica.
+const APP_FEATURES_0130 = '0.13.0';
+const MESSAGE_MAX = 300;
 // Testi delle lingue: nelle release sono incorporati qui (file unico); in sviluppo si leggono da lang/*.json.
 const LANG_DATA = null;
 
@@ -97,7 +100,7 @@ function device_name(string $id): string {
 function settings(): array {
     return array_replace_recursive([
         'telegramToken' => '', 'telegramChat' => '', 'emailTo' => '', 'emailFrom' => '', 'panelUrl' => '',
-        'notify' => ['sos' => true, 'reminder_missed' => true, 'battery' => true, 'offline' => true, 'call_blocked' => false, 'location' => true],
+        'notify' => ['sos' => true, 'reminder_missed' => true, 'battery' => true, 'offline' => true, 'call_blocked' => false, 'location' => true, 'ring_done' => true, 'message_read' => true],
         'offlineHours' => 24,
         // Riepilogo settimanale il lunedì mattina (stessi canali degli avvisi).
         'weeklySummary' => true,
@@ -343,6 +346,15 @@ if (isset($_GET['device'])) {
         serve_media($hash);
     }
 
+    // Messaggio della famiglia, firmato come la configurazione.
+    if (isset($_GET['message'])) {
+        write_atomic(dev_path($id, 'meta.json'), json_encode($meta));
+        $mf = dev_path($id, 'message.json');
+        if (!is_file($mf)) { http_response_code(404); exit('{"error":"none"}'); }
+        readfile($mf);
+        exit;
+    }
+
     if (isset($_GET['report']) && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $r = $readBody();
         if (isset($r['apps']) && is_array($r['apps'])) {
@@ -394,6 +406,8 @@ if (isset($_GET['device'])) {
             $ev['receivedAt'] = time();
             append_jsonl(DATA . "/events/$id.jsonl", $ev);
             if ($type === 'location') unset($meta['locateRequest']);
+            if ($type === 'ring_done') unset($meta['ringRequest']);
+            if ($type === 'message_read' && isset($meta['message']) && (string)($ev['message'] ?? '') === (string)$meta['message']['id']) $meta['message']['readAt'] = time();
             if (in_array($type, EVENT_TYPES, true) && !empty($s['notify'][$type])) {
                 send_alert(ev_title($type), mb_substr((string)($ev['text'] ?? ''), 0, 600), $id);
             }
@@ -410,6 +424,9 @@ if (isset($_GET['device'])) {
     run_checks();
     // «Dov'è?»: richiesta valida per un'ora, il telefono risponde con un evento «location».
     if (time() - (int)($meta['locateRequest'] ?? 0) < 3600) header('X-Locate: 1');
+    // «Fai squillare» (valido un'ora) e messaggio non ancora letto: il telefono li riconosce dall'id.
+    if (time() - (int)($meta['ringRequest'] ?? 0) < 3600) header('X-Ring: ' . (int)$meta['ringRequest']);
+    if (isset($meta['message']) && empty($meta['message']['readAt'])) header('X-Message: ' . (int)$meta['message']['id']);
     $env = dev_path($id, 'envelope.json');
     if (!is_file($env)) { http_response_code(404); exit('{"error":"none"}'); }
     // ETag = versione pubblicata. Tollerante al suffisso "-gzip" che Apache aggiunge con mod_deflate.
@@ -639,6 +656,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $meta['locateRequest'] = time();
             write_atomic(dev_path($id, 'meta.json'), json_encode($meta));
             header('Location: ?edit=' . urlencode($id) . '#where'); exit;
+        } elseif ($act === 'ring') {
+            $meta = read_json(dev_path($id, 'meta.json'), []);
+            $meta['ringRequest'] = time();
+            write_atomic(dev_path($id, 'meta.json'), json_encode($meta));
+            header('Location: ?edit=' . urlencode($id) . '#family'); exit;
+        } elseif ($act === 'message') {
+            $text = trim(preg_replace('/\s+/u', ' ', (string)($_POST['text'] ?? '')));
+            $from = mb_substr(trim((string)($_POST['from'] ?? '')), 0, 40);
+            if ($text === '' || mb_strlen($text) > MESSAGE_MAX) { $err[] = t('e_message', MESSAGE_MAX); }
+            else {
+                $meta = read_json(dev_path($id, 'meta.json'), []);
+                $mid = (int)(microtime(true) * 1000);
+                $payload = json_encode(['device' => $id, 'id' => $mid, 'text' => $text, 'from' => $from, 'at' => $mid], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+                $sig = sodium_crypto_sign_detached($payload, sodium_crypto_sign_secretkey(keypair()));
+                write_atomic(dev_path($id, 'message.json'), json_encode(['v' => 1, 'payload' => base64_encode($payload), 'sig' => base64_encode($sig)]));
+                $meta['message'] = ['id' => $mid, 'text' => $text, 'from' => $from, 'at' => time()];
+                $meta['messageFrom'] = $from;
+                write_atomic(dev_path($id, 'meta.json'), json_encode($meta));
+                header('Location: ?edit=' . urlencode($id) . '#family'); exit;
+            }
         } elseif ($act === 'ignore') {
             $meta = read_json(dev_path($id, 'meta.json'), []);
             $meta['ignoreOffline'] = empty($meta['ignoreOffline']);
@@ -764,7 +801,7 @@ details summary{cursor:pointer;font-weight:600}
   <p class="lead"><?= th('alerts_lead') ?></p>
   <form method="post" class="card"><input type="hidden" name="csrf" value="<?= h($csrf) ?>"><input type="hidden" name="act" value="settings">
     <h3><?= th('when_alert') ?></h3>
-    <?php foreach (['sos', 'reminder_missed', 'battery', 'offline', 'call_blocked', 'location'] as $k): $label = t('n_' . $k); ?>
+    <?php foreach (['sos', 'reminder_missed', 'battery', 'offline', 'call_blocked', 'location', 'ring_done', 'message_read'] as $k): $label = t('n_' . $k); ?>
       <label style="font-weight:400"><input type="checkbox" name="notify_<?= $k ?>" <?= !empty($s['notify'][$k]) ? 'checked' : '' ?>> <?= h($label) ?></label>
     <?php endforeach; ?>
     <label style="font-weight:400"><input type="checkbox" name="weeklySummary" <?= !empty($s['weeklySummary']) ? 'checked' : '' ?>> <?= th('weekly_enable') ?></label>
@@ -892,6 +929,7 @@ details summary{cursor:pointer;font-weight:600}
       <div><label for="pin"><?= th('new_pin') ?> <span class="hint"><?= th('new_pin_hint') ?></span></label><input id="pin" type="text" name="pin" inputmode="numeric" pattern="\d{4,8}" autocomplete="off" placeholder="<?= th('pin_placeholder') ?>"></div>
     </div>
 
+    <details class="card" id="wizard" <?= is_file(dev_path($edit, 'config.json')) ? '' : 'open' ?>><summary><?= th('wiz_title') ?></summary><div id="wizbody"></div></details>
     <div class="tabs" role="tablist">
       <button type="button" role="tab" aria-selected="true" data-tab="t-screen"><?= th('tab_screen') ?></button>
       <button type="button" role="tab" aria-selected="false" data-tab="t-sos">SOS</button>
@@ -940,6 +978,28 @@ details summary{cursor:pointer;font-weight:600}
     <form method="post"><input type="hidden" name="csrf" value="<?= h($csrf) ?>"><input type="hidden" name="act" value="locate"><input type="hidden" name="id" value="<?= h($edit) ?>">
       <button class="sec"><?= th('locate_button') ?></button></form>
     <p class="hint"><?= th('locate_hint') ?></p>
+  </div>
+
+  <?php $fm = $meta['message'] ?? null; $ringing = time() - (int)($meta['ringRequest'] ?? 0) < 3600;
+    $oldApp = !empty($meta['appVersion']) && version_compare((string)$meta['appVersion'], APP_FEATURES_0130, '<'); ?>
+  <h2 id="family"><?= th('family_title') ?></h2>
+  <div class="card">
+    <?php if ($oldApp): ?><p class="msg warn"><?= th('family_old_app', $meta['appVersion']) ?></p><?php endif; ?>
+    <form method="post"><input type="hidden" name="csrf" value="<?= h($csrf) ?>"><input type="hidden" name="act" value="message"><input type="hidden" name="id" value="<?= h($edit) ?>">
+      <label for="mtext"><?= th('message_label') ?> <span class="hint"><?= th('message_hint', MESSAGE_MAX) ?></span></label>
+      <textarea id="mtext" name="text" maxlength="<?= MESSAGE_MAX ?>" rows="3" required placeholder="<?= th('message_placeholder') ?>"></textarea>
+      <div class="row" style="align-items:flex-end">
+        <div><label for="mfrom"><?= th('message_from_label') ?></label><input id="mfrom" type="text" name="from" maxlength="40" value="<?= h($meta['messageFrom'] ?? '') ?>" placeholder="<?= th('message_from_placeholder') ?>"></div>
+        <div style="flex:0 0 auto"><button><?= th('message_send') ?></button></div>
+      </div>
+    </form>
+    <?php if ($fm): ?><p class="hint"><?= th('message_last', date('d/m H:i', (int)$fm['at']), $fm['text']) ?> —
+      <b><?= !empty($fm['readAt']) ? th('message_read_at', date('d/m H:i', (int)$fm['readAt'])) : th('message_waiting') ?></b></p><?php endif; ?>
+    <hr style="border:0;border-top:1px solid #ddd;margin:16px 0">
+    <form method="post"><input type="hidden" name="csrf" value="<?= h($csrf) ?>"><input type="hidden" name="act" value="ring"><input type="hidden" name="id" value="<?= h($edit) ?>">
+      <button class="sec"><?= th('ring_button') ?></button></form>
+    <?php if ($ringing): ?><p class="msg warn"><?= th('ring_pending') ?></p><?php endif; ?>
+    <p class="hint"><?= th('family_hint') ?></p>
   </div>
 
   <h2><?= th('weekly_card') ?></h2>
@@ -1065,7 +1125,7 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
     ['@gallery', T('role_gallery')], ['@browser', T('role_browser')], ['com.whatsapp', 'WhatsApp'],
     ['org.telegram.messenger', 'Telegram'], ['com.google.android.youtube', 'YouTube'], ['com.google.android.apps.maps', 'Google Maps'],
     ['com.google.android.gm', 'Gmail'], ['com.android.chrome', 'Chrome']];
-  const APP_LABEL = {'@dialer': T('def_phone'), '@sms': T('def_messages'), '@camera': T('def_camera'), '@gallery': T('def_photos'), '@browser': T('def_internet'),
+  const APP_LABEL = {'@dialer': T('def_phone'), '@sms': T('def_messages'), '@camera': T('def_camera'), '@gallery': T('def_gallery'), '@browser': T('def_internet'),
     'com.whatsapp': 'WhatsApp', 'org.telegram.messenger': 'Telegram', 'com.google.android.youtube': 'YouTube',
     'com.google.android.apps.maps': T('lbl_maps'), 'com.google.android.gm': T('lbl_mail'), 'com.android.chrome': T('def_internet')};
   const ICONS = Object.fromEntries(['auto', 'app', 'symbol', 'photo', 'none'].map(k => [k, T('icon_' + k)]));
@@ -1151,9 +1211,10 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
     const usesNew = cfg.pages.some(p => p.tiles.some(t => ['weather', 'photos'].includes(t.type))) || cfg.reminders.some(r => r.date || r.photo);
     const usesNew0100 = cfg.pages.some(p => p.tiles.some(t => t.type === 'missed_calls')) || !!cfg.phone.homeButton;
     const old090 = usesNew && !newer(app, '0.9.0'), old0100 = usesNew0100 && !newer(app, '0.10.0'), old0101 = cfg.pages.some(p => p.tiles.some(t => t.homeButton === false)) && !newer(app, '0.10.1'),
-      old0120 = cfg.pages.some(p => p.tiles.some(t => t.type === 'search')) && !newer(app, '0.12.0');
-    warn.hidden = !(app && (old090 || old0100 || old0101 || old0120));
-    warn.textContent = old090 ? T('old_app_warn', app || '?') : old0100 ? T('old_app_warn_0100', app || '?') : old0101 ? T('old_app_warn_0101', app || '?') : T('old_app_warn_0120', app || '?');
+      old0120 = cfg.pages.some(p => p.tiles.some(t => t.type === 'search')) && !newer(app, '0.12.0'),
+      old0130 = (cfg.phone.autoAnswer || cfg.phone.announceCaller) && !newer(app, '0.13.0');
+    warn.hidden = !(app && (old090 || old0100 || old0101 || old0120 || old0130));
+    warn.textContent = old090 ? T('old_app_warn', app || '?') : old0100 ? T('old_app_warn_0100', app || '?') : old0101 ? T('old_app_warn_0101', app || '?') : old0120 ? T('old_app_warn_0120', app || '?') : T('old_app_warn_0130', app || '?');
     const p = problems(), box = document.getElementById('issues');
     box.replaceChildren(...(p.length ? [el('b', {}, T('p_title')), el('ul', {}, p.map(x => el('li', {}, x)))] : []));
     document.getElementById('pubbtn').disabled = p.length > 0;
@@ -1397,6 +1458,9 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
     box.replaceChildren(
       check('blockUnknown', T('block_unknown'), T('block_unknown_hint')),
       check('speakerCalls', T('speaker_calls'), T('speaker_calls_hint')),
+      check('autoAnswer', T('auto_answer'), T('auto_answer_hint')),
+      p.autoAnswer ? field(T('auto_answer_after'), select({5: '5 s', 10: '10 s', 15: '15 s', 20: '20 s', 30: '30 s'}, String(p.autoAnswerSeconds || 10), v => set('autoAnswerSeconds', +v))) : '',
+      check('announceCaller', T('announce_caller'), T('announce_caller_hint')),
       check('speakTiles', T('speak_tiles'), T('speak_tiles_hint')),
       check('voiceConfirm', T('voice_confirm'), T('voice_confirm_hint')),
       check('bedsideClock', T('bedside'), T('bedside_hint')),
@@ -1413,7 +1477,115 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
       check('smsUpdateCommand', T('sms_command'), T('sms_command_hint')));
   }
 
-  function render() { renderPages(); renderGrid(); renderSide(); renderSos(); renderRem(); renderPhone(); issues(); }
+
+  // -------- configurazione guidata: poche domande → schermata pronta da controllare e pubblicare
+  function renderWizard() {
+    const box = document.getElementById('wizbody');
+    if (!box || box.dataset.done) return;
+    box.dataset.done = '1';
+    const fam = [0, 1, 2, 3].map(i => ({
+      name: el('input', {type: 'text', placeholder: T('wiz_name_ph')}),
+      num: el('input', {type: 'tel', placeholder: T('phone_placeholder')}),
+      video: el('input', {type: 'checkbox'}),
+      sos: el('input', {type: 'checkbox', checked: i < 2}),
+    }));
+    const hasWa = !DEV.length || DEV.some(a => a.pkg === 'com.whatsapp');
+    const appsOpts = [
+      ['@dialer', T('def_phone'), true], ['@sms', T('def_messages'), true], ['com.whatsapp', 'WhatsApp', hasWa && DEV.length > 0],
+      ['@camera', T('def_camera'), true], ['@gallery', T('def_gallery'), false], ['missed_calls', T('def_missed'), true],
+      ['search', T('def_search'), false], ['photos', T('def_photos'), false], ['@browser', T('def_internet'), false],
+    ].map(([k, label, on]) => ({k, label, box: el('input', {type: 'checkbox', checked: on})}));
+    const city = el('input', {type: 'text', placeholder: T('wiz_city_ph')});
+    const KINDS = {pill: T('preset_medicine'), shower: T('preset_shower'), cart: T('preset_shopping'), doctor: T('preset_visit'), calendar: T('wiz_other')};
+    const rem = [0, 1, 2, 3].map(() => {
+      const r = {kind: 'pill', title: el('input', {type: 'text', placeholder: T('wiz_rem_ph')}), time: el('input', {type: 'time'})};
+      r.sel = select(KINDS, 'pill', v => { r.kind = v; });
+      return r;
+    });
+    const OPTS = [['speakerCalls', T('speaker_calls'), true], ['speakTiles', T('speak_tiles'), true], ['voiceConfirm', T('voice_confirm'), false],
+      ['homeButton', T('home_button'), true], ['autoAnswer', T('auto_answer'), true], ['announceCaller', T('announce_caller'), true],
+      ['blockUnknown', T('block_unknown'), false], ['bedsideClock', T('bedside'), false]].map(([k, label, on]) => ({k, label, box: el('input', {type: 'checkbox', checked: on})}));
+    const out = el('p', {class: 'hint'});
+    const check = (b, label) => el('label', {style: 'font-weight:400;display:inline-block;margin-right:16px'}, b, ' ' + label);
+
+    box.replaceChildren(
+      el('p', {class: 'hint'}, T('wiz_lead')),
+      el('h3', {}, '1. ' + T('wiz_family')),
+      el('table', {}, el('tr', {}, el('th', {}, T('wiz_name')), el('th', {}, T('phone_number')), el('th', {}, T('wiz_video')), el('th', {}, 'SOS')),
+        fam.map(f => el('tr', {}, el('td', {}, f.name), el('td', {}, f.num), el('td', {style: 'text-align:center'}, f.video), el('td', {style: 'text-align:center'}, f.sos)))),
+      el('h3', {}, '2. ' + T('wiz_apps')),
+      el('div', {}, appsOpts.map(a => check(a.box, a.label))),
+      field(T('wiz_weather'), city, T('wiz_weather_hint')),
+      el('h3', {}, '3. ' + T('wiz_reminders')),
+      el('table', {}, el('tr', {}, el('th', {}, T('wiz_kind')), el('th', {}, T('wiz_what')), el('th', {}, T('wiz_time'))),
+        rem.map(r => el('tr', {}, el('td', {}, r.sel), el('td', {}, r.title), el('td', {}, r.time)))),
+      el('h3', {}, '4. ' + T('wiz_options')),
+      el('div', {}, OPTS.map(o => check(o.box, o.label))),
+      el('p', {}, el('button', {type: 'button', onclick: () => build().catch(e => { out.textContent = String(e); })}, T('wiz_build'))),
+      out);
+
+    async function build() {
+      const people = fam.map(f => ({name: f.name.value.trim(), num: f.num.value.replace(/[^\d+]/g, ''), video: f.video.checked, sos: f.sos.checked}))
+        .filter(f => f.name && f.num);
+      if (cfg.pages.some(p => p.tiles.length > 1) && !confirm(T('wiz_replace'))) return;
+      const items = [];
+      const greens = ['#0B6E4F', '#00695C'];
+      people.forEach((f, i) => {
+        items.push({w: 1, t: {type: 'call', target: f.num, label: f.name, icon: {kind: 'auto', ref: ''}, color: greens[i % 2]}});
+        if (f.video) items.push({w: 1, t: {type: 'wa_video', target: f.num, label: T('wiz_video_of', f.name), icon: {kind: 'auto', ref: ''}, color: '#00695C'}});
+      });
+      let place = null;
+      if (city.value.trim()) {
+        out.textContent = T('loading');
+        place = (await searchPlace(city.value.trim()).catch(() => []))[0] || null;
+        if (!place) { out.textContent = T('weather_no_results'); return; }
+      }
+      if (place) items.push({w: 1, t: {type: 'weather', target: place.target, label: place.name, color: '#0277BD'}});
+      appsOpts.filter(a => a.box.checked).forEach(a => {
+        if (a.k === 'missed_calls') items.push({w: 2, t: {type: 'missed_calls', target: '', label: T('def_missed'), color: '#FFE7A8'}});
+        else if (a.k === 'search') items.push({w: 2, t: {type: 'search', target: '', label: T('def_search'), color: '#37474F'}});
+        else if (a.k === 'photos') items.push({w: 1, t: {type: 'photos', target: '', label: T('def_photos'), photos: [], color: '#6A1B9A'}});
+        else items.push({w: 1, t: {type: 'app', target: a.k, label: APP_LABEL[a.k] || a.label, icon: {kind: 'auto', ref: ''},
+          color: ['@camera', '@gallery'].includes(a.k) ? '#6A1B9A' : a.k === 'com.whatsapp' ? '#1B6E34' : '#1F4FA8'}});
+      });
+      // Ordine di importanza: familiari, chiamate perse, meteo, app, ricerca. Un riquadro largo
+      // che capiterebbe a metà riga aspetta l'inizio della riga successiva, così non restano buchi.
+      const prio = t => ({call: 0, wa_video: 0, missed_calls: 1, weather: 2, app: 3, photos: 4, search: 5})[t.type] ?? 3;
+      items.sort((a, b) => prio(a.t) - prio(b.t));
+      const ROWS = 5, pages = [{cols: 2, rows: ROWS, tiles: [{id: 'clock', col: 0, row: 0, w: 2, h: 1, type: 'clock', color: '#FFFFFF'}]}];
+      let pg = 0, row = 1, col = 0;
+      const lastRow = () => pg === 0 ? ROWS - 2 : ROWS - 1;   // sulla prima pagina l'ultima riga è dell'SOS
+      const put = it => {
+        if (row > lastRow()) { pg++; row = 0; col = 0; pages.push({cols: 2, rows: ROWS, tiles: []}); }
+        pages[pg].tiles.push(Object.assign({id: uid('t'), col, row, w: it.w, h: 1}, it.t));
+        col += it.w;
+        if (col >= 2) { col = 0; row++; }
+      };
+      const waiting = [];
+      for (const it of items) {
+        if (it.w === 2 && col === 1) { waiting.push(it); continue; }
+        put(it);
+        while (col === 0 && waiting.length) put(waiting.shift());
+      }
+      if (col === 1 && waiting.length) { col = 0; row++; }
+      waiting.forEach(put);
+      pages[0].tiles.push({id: 'sos', col: 0, row: ROWS - 1, w: 2, h: 1, type: 'sos', label: 'SOS', color: '#B71C1C'});
+      cfg.pages = pages;
+      cfg.sos.numbers = people.filter(f => f.sos).map(f => f.num);
+      const rems = rem.filter(r => r.time.value).map(r => ({id: uid('r'), time: r.time.value, days: [],
+        title: r.title.value.trim() || KINDS[r.kind], detail: '', icon: r.kind, snoozeMinutes: 10, repeatMinutes: 5, maxRepeats: 6, enabled: true}));
+      if (rems.length) cfg.reminders = rems;
+      OPTS.forEach(o => { cfg.phone[o.k] = o.box.checked; });
+      if (cfg.phone.autoAnswer && !cfg.phone.autoAnswerSeconds) cfg.phone.autoAnswerSeconds = 10;
+      page = 0; selId = null; changed(); render();
+      document.getElementById('wizard').open = false;
+      out.textContent = '';
+      document.getElementById('dirty').textContent = T('wiz_done');
+      document.querySelector('.tabs').scrollIntoView({behavior: 'smooth'});
+    }
+  }
+
+  function render() { renderPages(); renderGrid(); renderSide(); renderSos(); renderRem(); renderPhone(); renderWizard(); issues(); }
   render();
   window.addEventListener('beforeunload', e => { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
   document.getElementById('pubform').addEventListener('submit', () => {
