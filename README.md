@@ -1,20 +1,67 @@
 # SemplicePhone
 
+**Il telefono semplice per i nonni.** Launcher Android con pochi riquadri grandi, SOS, promemoria
+e una pagina web da cui la famiglia sistema tutto da lontano. Gratis, senza pubblicità, software libero.
+
+[![Ultima versione](https://img.shields.io/github/v/release/francescosorzini-dev/SemplicePhone?label=versione)](../../releases/latest)
+[![Build](https://github.com/francescosorzini-dev/SemplicePhone/actions/workflows/build.yml/badge.svg)](../../actions/workflows/build.yml)
+[![Licenza GPL-3.0](https://img.shields.io/badge/licenza-GPL--3.0-blue)](LICENSE)
+![Android 10+](https://img.shields.io/badge/Android-10%2B-3DDC84?logo=android&logoColor=white)
+![Lingue](https://img.shields.io/badge/lingue-it%20%C2%B7%20en%20%C2%B7%20de%20%C2%B7%20fr%20%C2%B7%20es-orange)
+
 *[English version](README.en.md)*
 
-Launcher Android per anziani. La Home è fatta solo di tile grandi e ogni tile è configurabile:
-app, chiamata, videochiamata WhatsApp, SMS, link, scorciatoie, orologio, SOS.
-Si distribuisce come APK dal sito; sono pronte anche le edizioni per F-Droid e Google Play
-(vedi [Store](#store)). La configurazione si può gestire anche da remoto, con firma Ed25519.
+<p align="center">
+  <img src="fastlane/metadata/android/it-IT/images/phoneScreenshots/1_home.png" width="260" alt="Home con riquadri grandi, meteo e chiamate perse">
+  <img src="fastlane/metadata/android/it-IT/images/phoneScreenshots/3_reminder.png" width="260" alt="Promemoria a tutto schermo">
+  <img src="fastlane/metadata/android/it-IT/images/phoneScreenshots/6_home_button.png" width="260" alt="Pulsante Casa sopra le altre app">
+</p>
 
-- Kotlin + Jetpack Compose, minSdk 29 / targetSdk 36, font Atkinson Hyperlegible (OFL)
-- Lingue: italiano, inglese, tedesco, francese, spagnolo (app e portale). L'app segue la lingua
-  del telefono; da Android 13 se ne può scegliere una solo per SemplicePhone (Impostazioni ›
-  Lingua). Per tradurre: [TRANSLATING.md](TRANSLATING.md)
-- Config JSON: `assets/default_config.json` (predefinita) → `filesDir/config.json` (locale) →
-  config remota firmata (sostituisce quella locale quando arriva una versione più nuova)
+**[⬇ Scarica l'APK](../../releases/latest/download/SemplicePhone.apk)** · [Come si installa](#scarica-e-installa) · [Portale per la famiglia](#per-la-famiglia-il-portale) · [Privacy](PRIVACY.md)
 
-## Installazione su un telefono
+## Per chi lo usa
+
+- **Pochi riquadri grandi e chiari.** Ogni riquadro fa una cosa sola: chiama Maria, apre WhatsApp,
+  manda un SMS, apre un sito. Scritte grandi, colori forti e un carattere molto leggibile.
+- **SOS.** Basta tenerlo premuto: parte un conto alla rovescia annullabile, poi la chiamata al
+  primo familiare e un SMS con la posizione a tutti.
+- **Promemoria per farmaci e attività** (medicina, doccia, spesa, visita, partita a carte…):
+  allarme a tutto schermo anche a telefono bloccato, con foto della pastiglia. Suona finché
+  qualcuno non preme «PRESO» o «FATTO».
+- **Chiamate perse.** Il riquadro mostra chi ha chiamato e non è stato richiamato: un tocco sul
+  nome e si richiama.
+- **Non ci si perde.** Un pulsante «CASA» resta visibile dentro le altre app: un tocco e si torna qui.
+  Ogni app si apre dalla sua schermata iniziale, non dall'ultima pagina lasciata a metà.
+- **Voce.** Una pressione lunga legge il riquadro ad alta voce, o l'ora sull'orologio. Prima di
+  chiamare il telefono dice «Chiamo Maria».
+- **Meteo, foto di famiglia e orologio da comodino** quando il telefono è in carica.
+- **Chiamate più sicure.** I numeri sconosciuti si possono bloccare: passano solo rubrica e
+  familiari. Vivavoce automatico.
+
+<p align="center">
+  <img src="fastlane/metadata/android/it-IT/images/phoneScreenshots/2_sos.png" width="200" alt="SOS con conto alla rovescia">
+  <img src="fastlane/metadata/android/it-IT/images/phoneScreenshots/4_editor.png" width="200" alt="Editor della schermata">
+  <img src="fastlane/metadata/android/it-IT/images/phoneScreenshots/5_tile.png" width="200" alt="Modifica di un riquadro">
+</p>
+
+## Per la famiglia: il portale
+
+Un file PHP da mettere sul proprio spazio web ([`tools/remote-server`](tools/remote-server)).
+Da lì si sistemano i riquadri, l'SOS e i promemoria con un editor visuale, e si pubblica sul
+telefono. Le modifiche sono firmate: il telefono accetta solo quelle del proprio portale.
+
+<p align="center"><img src="docs/images/portal-it.png" width="720" alt="Editor del portale"></p>
+
+- **Avvisi** su Telegram o email: SOS con posizione, promemoria non confermato, batteria scarica,
+  telefono che non si fa sentire, chiamate bloccate.
+- **«Dov'è?»**: posizione del telefono su richiesta, solo se consentito sul telefono.
+- **Riepilogo settimanale** ogni lunedì e scheda «Ultimi 7 giorni» per ogni telefono.
+- **Vede anche le modifiche fatte sul telefono** (foto comprese) e segnala i permessi che mancano.
+- **Storico delle versioni**, copia della configurazione da un telefono all'altro.
+
+Le impostazioni si possono cambiare anche sul telefono: 5 tocchi sull'orologio e PIN.
+
+## Scarica e installa
 
 ### Quale edizione
 
@@ -86,7 +133,7 @@ aggiornamenti), in silenzio se è Device Owner.
 
 | | Edizione | Stato | Guida |
 |---|---|---|---|
-| **F-Droid** | completa, stesso APK firmato da noi (build riproducibile) | da proporre | [`tools/fdroid`](tools/fdroid) |
+| **F-Droid** | completa, stesso APK firmato da noi (build riproducibile verificata) | in attesa: F-Droid accetta app con almeno 3 mesi di vita, si ripropone da febbraio 2027 | [`tools/fdroid`](tools/fdroid) |
 | **Google Play** | play: come la standard, ma senza invio automatico di SMS (l'SOS apre Messaggi già pronto) | da pubblicare | [`tools/play`](tools/play) |
 
 Tutte le edizioni hanno lo stesso pacchetto e la stessa chiave: si passa dall'una all'altra
@@ -115,7 +162,19 @@ Così si sbloccano:
 
 Ogni opzione si toglie da Impostazioni › Protezione, compreso il ruolo di Device Owner.
 
-## Funzioni
+## Lingue e privacy
+
+- App e portale in italiano, inglese, tedesco, francese e spagnolo. L'app segue la lingua del
+  telefono; da Android 13 se ne può scegliere una solo per SemplicePhone. Per tradurre:
+  [TRANSLATING.md](TRANSLATING.md).
+- Nessun account, nessuna statistica, nessun dato allo sviluppatore. Con la gestione da remoto i
+  dati vanno solo al portale del familiare: [PRIVACY.md](PRIVACY.md).
+
+## Per sviluppatori
+
+Kotlin + Jetpack Compose, minSdk 29 / targetSdk 36, font Atkinson Hyperlegible (OFL). Config JSON:
+`assets/default_config.json` (predefinita) → `filesDir/config.json` (locale) → config remota
+firmata Ed25519 (sostituisce quella locale quando arriva una versione più nuova).
 
 | | |
 |---|---|
@@ -138,7 +197,7 @@ Ogni opzione si toglie da Impostazioni › Protezione, compreso il ruolo di Devi
 | **Remoto** | busta firmata Ed25519, anti-replay, PIN impostabile, controllo ogni 15 min (ETag), SMS «#AGGIORNA», eventi urgenti, «Dov'è?» (posizione su richiesta, con consenso sul telefono); portale con editor visuale (vede anche le modifiche fatte sul telefono, foto comprese), avvisi Telegram/email, riepilogo settimanale, avviso dei permessi mancanti sul telefono, storico versioni: [`tools/remote-server`](tools/remote-server) |
 | **Aggiornamenti** | `update.json` + verifica SHA-256 + PackageInstaller |
 
-## Build
+### Build
 
 - Ogni push su `main` esegue la CI: APK debug come artifact, unit test e build release R8 di controllo.
 - Checklist completa di ogni release (GitHub, portale, F-Droid, Play, documentazione): [RELEASING.md](RELEASING.md).
@@ -150,16 +209,16 @@ Ogni opzione si toglie da Impostazioni › Protezione, compreso il ruolo di Devi
 
   La GitHub Release conterrà gli APK firmati, l'AAB per Play, gli `update.json` e `index.php`.
   Il workflow verifica anche che la build sia riproducibile.
-- In locale: `./gradlew assembleDebug testDebugUnitTest` (JDK 17, Android SDK 35).
+- In locale: `./gradlew assembleStandardDebug testStandardDebugUnitTest` (JDK 21, Android SDK 36).
 
 Valori di default sovrascrivibili con `-P` o in `gradle.properties`: `semplice.remoteUrl`,
 `semplice.remotePubkey`, `semplice.updateUrl`.
 
-## Modello tile
+### Modello dei riquadri
 
 ```json
 { "id": "t1", "col": 0, "row": 1, "w": 2, "h": 1,
-  "type": "app | call | wa_video | sms | url | shortcut | clock | sos",
+  "type": "app | call | wa_video | sms | url | shortcut | clock | sos | weather | photos | missed_calls",
   "target": "package | @ruolo | numero | https://… | pacchetto/shortcutId",
   "label": "Telefono",
   "icon": { "kind": "auto | app | symbol | photo | none", "ref": "phone | contact:<lookupKey>" },
@@ -170,7 +229,7 @@ Una config con tile fuori griglia, sovrapposti, id duplicati o orari non validi 
 e resta in uso l'ultima valida. L'app, il server PHP e gli unit test applicano la stessa
 validazione.
 
-## Milestone
+### Milestone
 
 | | Stato |
 |---|---|
@@ -187,7 +246,7 @@ validazione.
 | M10 – promemoria per attività, filtro chiamate, voce, meteo, foto, comodino, «Dov'è?» | ✅ |
 | M11 – chiamate perse, pulsante «Casa», riepilogo settimanale | ✅ |
 
-## Limiti noti
+### Limiti noti
 
 - **Videochiamata WhatsApp**: usa la data row del contatto, che non è documentata da WhatsApp.
   Se manca apre la chat.
