@@ -91,3 +91,29 @@ echo "rubrica: '$C'" | tee -a "$OUT/button.txt"
 if [ -n "$C" ]; then adb shell input tap $C; shot 6_tile_no_button 4; focus; adb shell dumpsys window windows | grep -c "APPLICATION_OVERLAY.*semplicephone\|semplicephone.*APPLICATION_OVERLAY" > "$OUT/overlay_after_tile.txt" || true; fi
 adb shell dumpsys telecom | grep -iE "Call TC|state" | head -5 > "$OUT/telecom.txt" || true
 adb logcat -d -s HomeButton:* MissedCalls:* | grep -v "^-" > "$OUT/logcat.txt" || true
+
+# ---- Lingue: config con testi predefiniti italiani (come creata in italiano o dal portale)
+cat > /tmp/l.json <<'J'
+{"version":1,"pages":[{"cols":2,"rows":5,"tiles":[
+ {"id":"clock","col":0,"row":0,"w":2,"h":1,"type":"clock","color":"#FFFFFF"},
+ {"id":"dialer","col":0,"row":1,"type":"app","target":"@dialer","label":"Telefono","color":"#1F4FA8"},
+ {"id":"sms","col":1,"row":1,"type":"app","target":"@sms","label":"Messaggi","color":"#1E7B34"},
+ {"id":"fam","col":0,"row":2,"type":"photos","label":"Famiglia","color":"#6A1B9A"},
+ {"id":"m","col":1,"row":2,"type":"call","target":"3331234567","label":"Maria","color":"#C2185B"},
+ {"id":"miss","col":0,"row":3,"w":2,"type":"missed_calls","label":"Chiamate perse","color":"#FFE7A8"},
+ {"id":"sos","col":0,"row":4,"w":2,"type":"sos","label":"SOS","color":"#B71C1C"}]}],
+ "sos":{"numbers":["3331234567"],"message":"Ho bisogno di aiuto."},
+ "reminders":[{"id":"r1","time":"08:00","title":"Doccia","icon":"shower"},{"id":"r2","time":"09:00","title":"È ora della medicina"}],
+ "phone":{}}
+J
+adb push /tmp/l.json /data/local/tmp/l.json >/dev/null
+for L in en de it; do
+  adb shell cmd locale set-app-locales $P --locales $L
+  adb shell am force-stop $P
+  adb shell "run-as $P sh -c 'cp /data/local/tmp/l.json files/config.json'"
+  home; shot "lang_${L}_home" 4
+  adb shell am start -W -n $P/.reminders.ReminderActivity --es id r1 >/dev/null; shot "lang_${L}_reminder" 3
+  adb shell am start -W -n $P/.reminders.ReminderActivity --es id r2 >/dev/null; shot "lang_${L}_reminder2" 3
+  for f in home reminder reminder2; do grep -o 'text="[^"]\+"' "$OUT/lang_${L}_$f.xml" | tr '\n' ' ' >> "$OUT/lang.txt"; echo " <- $L $f" >> "$OUT/lang.txt"; done
+  adb shell input keyevent BACK
+done

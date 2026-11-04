@@ -122,7 +122,12 @@ class MainActivity : ComponentActivity() {
         onBackPressedDispatcher.addCallback(this) { goBack() }
 
         setContent {
-            val config by repo.config.collectAsStateWithLifecycle()
+            val stored by repo.config.collectAsStateWithLifecycle()
+            // Nomi e testi predefiniti nella lingua attuale (anche se creati in un'altra lingua).
+            val locale = androidx.compose.ui.platform.LocalConfiguration.current.locales[0]
+            val config = androidx.compose.runtime.remember(stored, locale) {
+                app.semplicephone.data.LocalizedDefaults.apply(this@MainActivity, stored)
+            }
             SempliceTheme {
                 when (val s = screen) {
                     Screen.Home -> HomeScreen(
@@ -277,7 +282,7 @@ class MainActivity : ComponentActivity() {
 
     private fun navigate(target: Screen) {
         if (target == Screen.Layout && draft == null) {
-            draft = repo.config.value
+            draft = app.semplicephone.data.LocalizedDefaults.apply(this, repo.config.value)
             editPage = 0
             saveError = null
             lifecycleScope.launch { apps = withContext(Dispatchers.IO) { catalog.load() } }

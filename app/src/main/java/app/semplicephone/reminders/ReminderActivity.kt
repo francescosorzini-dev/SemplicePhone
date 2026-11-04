@@ -47,7 +47,7 @@ class ReminderActivity : ComponentActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         val id = intent.getStringExtra(ReminderReceiver.EXTRA_ID) ?: return finish()
-        val r = ConfigRepository.readCurrent(this).reminders.firstOrNull { it.id == id } ?: return finish()
+        val r = app.semplicephone.data.LocalizedDefaults.apply(this, ConfigRepository.readCurrent(this)).reminders.firstOrNull { it.id == id } ?: return finish()
 
         setContent {
             SempliceTheme {

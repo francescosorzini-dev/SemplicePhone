@@ -29,7 +29,7 @@ class ReminderReceiver : BroadcastReceiver() {
     private fun fire(context: Context, scheduler: ReminderScheduler, intent: Intent) {
         val id = intent.getStringExtra(EXTRA_ID) ?: return
         val attempt = intent.getIntExtra(EXTRA_ATTEMPT, 0)
-        val r = ConfigRepository.readCurrent(context).reminders.firstOrNull { it.id == id && it.enabled } ?: run {
+        val r = app.semplicephone.data.LocalizedDefaults.apply(context, ConfigRepository.readCurrent(context)).reminders.firstOrNull { it.id == id && it.enabled } ?: run {
             scheduler.cancel(id)
             return
         }
@@ -61,7 +61,7 @@ class ReminderReceiver : BroadcastReceiver() {
         }
 
         fun snooze(context: Context, id: String) {
-            val r = ConfigRepository.readCurrent(context).reminders.firstOrNull { it.id == id } ?: return
+            val r = app.semplicephone.data.LocalizedDefaults.apply(context, ConfigRepository.readCurrent(context)).reminders.firstOrNull { it.id == id } ?: return
             val s = ReminderScheduler(context)
             s.cancelRepeat(id)
             // Dopo il rinvio la serie di ripetizioni riparte da capo.
