@@ -91,7 +91,7 @@ fun TileView(
     badge: Int = 0,
 ) {
     when (tile.type) {
-        TileType.CLOCK -> ClockTile(tile, modifier, onSecretTap)
+        TileType.CLOCK -> ClockTile(tile, launcher, modifier, onSecretTap)
         TileType.SOS -> SosTile(tile, sos, launcher, modifier)
         TileType.WEATHER -> WeatherTile(tile, launcher, modifier)
         TileType.PHOTOS -> PhotosTile(tile, launcher, modifier)
@@ -275,7 +275,7 @@ private fun initials(label: String): String =
     label.split(' ').filter { it.isNotBlank() }.take(2).joinToString("") { it.take(1).uppercase() }.ifEmpty { "?" }
 
 @Composable
-private fun ClockTile(tile: Tile, modifier: Modifier, onSecretTap: () -> Unit) {
+private fun ClockTile(tile: Tile, launcher: TileLauncher, modifier: Modifier, onSecretTap: () -> Unit) {
     var now by remember { mutableStateOf(LocalDateTime.now()) }
     // Accesso impostazioni: 5 tocchi entro 3 s. Nessun feedback visivo, per non invitare a provare.
     val taps = remember { ArrayDeque<Long>() }
@@ -295,13 +295,15 @@ private fun ClockTile(tile: Tile, modifier: Modifier, onSecretTap: () -> Unit) {
     val pattern = android.text.format.DateFormat.getBestDateTimePattern(locale, "EEEEdMMMM")
     val date = now.format(DateTimeFormatter.ofPattern(pattern, locale)).replaceFirstChar { it.titlecase(locale) }
     val clockDesc = stringResource(R.string.clock_desc, time, date)
+    // Pressione lunga (con «leggi i riquadri» attivo): il telefono dice ora e data.
+    val spoken by androidx.compose.runtime.rememberUpdatedState(stringResource(R.string.clock_spoken, time, date))
 
     BoxWithConstraints(
         modifier
             .clip(TileShape)
             .background(bg)
             .border(if (bg.isLight()) 2.dp else 0.dp, Palette.Ink, TileShape)
-            .secretTaps(taps) { secretTap() }
+            .secretTaps(taps, onLongPress = { launcher.speakText(spoken) }) { secretTap() }
             .semantics { contentDescription = clockDesc },
         contentAlignment = Alignment.Center,
     ) {
@@ -378,8 +380,8 @@ private fun Color.isLight() = contentColorFor(this) == Palette.Ink
  * 5 tocchi entro 3 s → [onTrigger]. Usato sull'orologio e sullo sfondo della griglia,
  * così le impostazioni restano raggiungibili anche se l'orologio viene tolto.
  */
-fun Modifier.secretTaps(taps: ArrayDeque<Long>, onTrigger: () -> Unit): Modifier = pointerInput(Unit) {
-    detectTapGestures(onTap = {
+fun Modifier.secretTaps(taps: ArrayDeque<Long>, onLongPress: (() -> Unit)? = null, onTrigger: () -> Unit): Modifier = pointerInput(Unit) {
+    detectTapGestures(onLongPress = onLongPress?.let { f -> { _ -> f() } }, onTap = {
         val t = System.currentTimeMillis()
         taps.addLast(t)
         while (taps.isNotEmpty() && t - taps.first() > 3_000) taps.removeFirst()

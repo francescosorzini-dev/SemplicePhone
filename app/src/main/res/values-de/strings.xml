@@ -274,6 +274,7 @@
     <string name="tile_home_button">Schaltfläche „Start“ in dieser App</string>
     <string name="tile_home_button_detail">Aus: beim Öffnen dieser Kachel erscheint die Schaltfläche nicht (zum Beispiel in einem Spiel oder einer Vollbild-App). Sie kommt zurück, sobald man wieder auf dem Startbildschirm ist.</string>
     <string name="label_family">Familie</string>
+    <string name="clock_spoken">Es ist %1$s Uhr, %2$s</string>
     <string name="color_blue">Blau</string>
     <string name="color_green">Grün</string>
     <string name="color_purple">Violett</string>

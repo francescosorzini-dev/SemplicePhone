@@ -274,6 +274,7 @@
     <string name="tile_home_button">Botón «Inicio» en esta app</string>
     <string name="tile_home_button_detail">Apagado: al abrir este mosaico el botón no aparece (por ejemplo en un juego o una app a pantalla completa). Vuelve en cuanto se regresa a la pantalla de inicio.</string>
     <string name="label_family">Familia</string>
+    <string name="clock_spoken">Son las %1$s, %2$s</string>
     <string name="color_blue">Azul</string>
     <string name="color_green">Verde</string>
     <string name="color_purple">Morado</string>
