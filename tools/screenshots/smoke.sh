@@ -114,6 +114,15 @@ for L in en de it; do
   home; shot "lang_${L}_home" 4
   adb shell am start -W -n $P/.reminders.ReminderActivity --es id r1 >/dev/null; shot "lang_${L}_reminder" 3
   adb shell am start -W -n $P/.reminders.ReminderActivity --es id r2 >/dev/null; shot "lang_${L}_reminder2" 3
-  for f in home reminder reminder2; do grep -o 'text="[^"]\+"' "$OUT/lang_${L}_$f.xml" | tr '\n' ' ' >> "$OUT/lang.txt"; echo " <- $L $f" >> "$OUT/lang.txt"; done
+  # Risposta al secondo: deve ricomparire il primo, non chiudersi
+  T=$(python3 - "$OUT/lang_${L}_reminder2.xml" <<'PY'
+import re,sys
+x=open(sys.argv[1]).read()
+m=re.search(r'text="(DONE|ERLEDIGT|FATTO|TAKEN|GENOMMEN|PRESO)"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"',x)
+print(f"{(int(m[2])+int(m[4]))//2} {(int(m[3])+int(m[5]))//2}" if m else "")
+PY
+)
+  [ -n "$T" ] && adb shell input tap $T; shot "lang_${L}_reminder3" 3
+  for f in home reminder reminder2 reminder3; do grep -o 'text="[^"]\+"' "$OUT/lang_${L}_$f.xml" | tr '\n' ' ' >> "$OUT/lang.txt"; echo " <- $L $f" >> "$OUT/lang.txt"; done
   adb shell input keyevent BACK
 done

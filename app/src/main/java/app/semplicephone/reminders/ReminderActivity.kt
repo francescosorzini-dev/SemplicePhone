@@ -40,16 +40,46 @@ import app.semplicephone.ui.Palette
 import app.semplicephone.ui.SempliceTheme
 import app.semplicephone.ui.Symbols
 
-/** Allarme a schermo intero, anche a telefono bloccato: un solo gesto ovvio, "PRESO". */
+/**
+ * Allarme a schermo intero, anche a telefono bloccato: un solo gesto ovvio, "PRESO".
+ * Più promemoria insieme (es. medicina e doccia alla stessa ora) si mostrano uno dopo l'altro.
+ */
 class ReminderActivity : ComponentActivity() {
+
+    /** Promemoria in attesa di risposta; si mostra l'ultimo arrivato. */
+    private val queue = androidx.compose.runtime.mutableStateListOf<String>()
+
+    private fun reminder(id: String) =
+        app.semplicephone.data.LocalizedDefaults.apply(this, ConfigRepository.readCurrent(this)).reminders.firstOrNull { it.id == id }
+
+    private fun enqueue(intent: android.content.Intent?) {
+        val id = intent?.getStringExtra(ReminderReceiver.EXTRA_ID) ?: return
+        if (reminder(id) == null) return
+        queue.remove(id)
+        queue.add(id)
+    }
+
+    /** Risposta data al promemoria [id]: si passa al successivo o si chiude. */
+    private fun answered(id: String) {
+        queue.remove(id)
+        if (queue.isEmpty()) finish()
+    }
+
+    override fun onNewIntent(intent: android.content.Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        enqueue(intent)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
-        val id = intent.getStringExtra(ReminderReceiver.EXTRA_ID) ?: return finish()
-        val r = app.semplicephone.data.LocalizedDefaults.apply(this, ConfigRepository.readCurrent(this)).reminders.firstOrNull { it.id == id } ?: return finish()
+        enqueue(intent)
+        if (queue.isEmpty()) return finish()
 
         setContent {
+            val id = queue.lastOrNull() ?: return@setContent
+            val r = androidx.compose.runtime.remember(id) { reminder(id) } ?: return@setContent
             SempliceTheme {
                 Column(
                     Modifier
@@ -79,13 +109,13 @@ class ReminderActivity : ComponentActivity() {
                     if (r.detail.isNotBlank()) Text(r.detail, fontSize = 26.sp, color = Palette.Ink, textAlign = TextAlign.Center)
                     Spacer(Modifier.weight(1f))
                     Button(
-                        onClick = { ReminderReceiver.taken(this@ReminderActivity, id); finish() },
+                        onClick = { ReminderReceiver.taken(this@ReminderActivity, id); answered(id) },
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1B6E34)),
                         shape = RoundedCornerShape(24.dp),
                         modifier = Modifier.fillMaxWidth().heightIn(min = 120.dp),
                     ) { Text(stringResource(if (r.icon == "pill") R.string.reminder_taken_big else R.string.reminder_done_big), fontSize = 44.sp, fontWeight = FontWeight.Bold) }
                     OutlinedButton(
-                        onClick = { ReminderReceiver.snooze(this@ReminderActivity, id); finish() },
+                        onClick = { ReminderReceiver.snooze(this@ReminderActivity, id); answered(id) },
                         shape = RoundedCornerShape(20.dp),
                         modifier = Modifier.fillMaxWidth().heightIn(min = 72.dp),
                     ) { Text(androidx.compose.ui.res.pluralStringResource(R.plurals.reminder_snooze_long, r.snoozeMinutes, r.snoozeMinutes), fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Palette.Ink) }
