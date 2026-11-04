@@ -1,1 +1,3 @@
 - Änderungen am Telefon kommen im Portal an (auch Fotos): der Web-Editor zeigt sie, beim Veröffentlichen gehen sie nicht mehr verloren
+- Beim Sprachwechsel werden auch die Standardnamen der Kacheln, Erinnerungen und die SOS-Nachricht übersetzt (und die Sprachausgabe liest sie richtig)
+- Mehrere Erinnerungen zur gleichen Zeit erscheinen nacheinander

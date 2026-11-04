@@ -1,1 +1,3 @@
 - Le modifiche fatte sul telefono arrivano al portale (foto comprese): l'editor web le mostra e pubblicando non si perdono
+- Cambiando lingua, anche i nomi predefiniti dei riquadri, i promemoria e il messaggio SOS si traducono (e la voce li legge nella lingua giusta)
+- Più promemoria alla stessa ora si mostrano uno dopo l'altro

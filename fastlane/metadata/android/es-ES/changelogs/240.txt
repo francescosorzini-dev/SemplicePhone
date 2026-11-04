@@ -1,1 +1,3 @@
 - Los cambios hechos en el teléfono llegan al portal (fotos incluidas): el editor web los muestra y al publicar ya no se pierden
+- Al cambiar de idioma, también se traducen los nombres predeterminados de los mosaicos, los recordatorios y el mensaje SOS (y la voz los lee en el idioma correcto)
+- Varios recordatorios a la misma hora se muestran uno tras otro

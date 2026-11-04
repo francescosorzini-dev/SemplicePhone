@@ -1,1 +1,3 @@
 - Changes made on the phone reach the portal (photos included): the web editor shows them and publishing no longer loses them
+- When changing language, default tile names, reminders and the SOS message are translated too (and the voice reads them in the right language)
+- Several reminders at the same time are shown one after another

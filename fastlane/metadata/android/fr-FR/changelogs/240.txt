@@ -1,1 +1,3 @@
 - Les modifications faites sur le téléphone arrivent au portail (photos comprises) : l'éditeur web les affiche et la publication ne les perd plus
+- En changeant de langue, les noms par défaut des tuiles, les rappels et le message SOS sont aussi traduits (et la voix les lit dans la bonne langue)
+- Plusieurs rappels à la même heure s'affichent l'un après l'autre
