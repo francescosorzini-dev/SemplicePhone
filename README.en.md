@@ -49,7 +49,7 @@ reset phone unlocks the locked notification shade, install blocking and factory-
 - **Apps from the start**: tapping a tile opens the app on its first screen (chat list, messages…), not the last page viewed (phone-wide setting, overridable per tile). Contact photos can fill the whole tile.
 - **Protected ringer**, **low-battery alert**, **PIN-protected settings**.
 - **Remote management**: a single-file PHP portal ([`tools/remote-server`](tools/remote-server))
-  with a visual editor, Telegram/email alerts, a weekly summary and version history.
+  with a visual editor (it also sees changes made on the phone, photos included), Telegram/email alerts, a weekly summary and version history.
 
 ## License
 

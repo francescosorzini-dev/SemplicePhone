@@ -1,0 +1,1 @@
+- Änderungen am Telefon kommen im Portal an (auch Fotos): der Web-Editor zeigt sie, beim Veröffentlichen gehen sie nicht mehr verloren

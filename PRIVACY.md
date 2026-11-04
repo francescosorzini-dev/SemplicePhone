@@ -29,6 +29,7 @@ non ne riceve i dati.
 Il telefono invia al portale:
 - un identificativo casuale del telefono;
 - i dati della tabella marcati «gestione da remoto»;
+- la configurazione del telefono (riquadri, promemoria, SOS) e le foto scelte sul telefono, così il familiare vede anche le modifiche fatte sul telefono;
 - quali accessi mancano alle funzioni attive (es. «Mostra sopra altre app»), per avvisare il familiare;
 - gli avvisi di SOS (con la posizione), di promemoria non confermati e di chiamate bloccate;
 - la posizione su richiesta del familiare («Dov'è?»), solo se sul telefono è stata consentita.

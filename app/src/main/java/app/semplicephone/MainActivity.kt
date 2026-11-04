@@ -312,6 +312,10 @@ class MainActivity : ComponentActivity() {
                         PhoneGuard.checkAll(applicationContext)
                         app.semplicephone.data.Media.cleanup(applicationContext, d)
                     }
+                    // Modifica fatta sul telefono: si manda subito al portale, che la mostra nell'editor web.
+                    val remote = app.semplicephone.remote.RemoteSettings(applicationContext)
+                    remote.configLocalAt = System.currentTimeMillis()
+                    if (remote.enabled) app.semplicephone.remote.RemoteClient.syncNow(applicationContext)
                     askPermissions(d)
                     closeSettings()
                 }

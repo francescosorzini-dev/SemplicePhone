@@ -97,6 +97,18 @@ class RemoteSettings(context: Context) {
     var appsSentAt: Long
         get() = prefs.getLong("apps_sent_at", 0)
         set(v) = prefs.edit().putLong("apps_sent_at", v).apply()
+    /** Impronta della config già mandata al portale: si rimanda solo se cambia. */
+    var configSentHash: String
+        get() = prefs.getString("config_sent_hash", "").orEmpty()
+        set(v) = prefs.edit().putString("config_sent_hash", v).apply()
+    /** Impronta dell'ultima config arrivata dal portale: se coincide, la config non è stata toccata sul telefono. */
+    var configRemoteHash: String
+        get() = prefs.getString("config_remote_hash", "").orEmpty()
+        set(v) = prefs.edit().putString("config_remote_hash", v).apply()
+    /** Ultimo salvataggio fatto dalle impostazioni del telefono (ms). */
+    var configLocalAt: Long
+        get() = prefs.getLong("config_local_at", 0)
+        set(v) = prefs.edit().putLong("config_local_at", v).apply()
 
     val deviceId: String get() = stable("device_id", 10)
     val deviceSecret: String get() = stable("device_secret", 40)
@@ -204,6 +216,7 @@ class RemoteClient(private val context: Context) {
             val problems = ConfigRepository.validate(cfg)
             if (problems.isNotEmpty()) return r(R.string.remote_r_invalid, problems.first())
             ConfigRepository.get(context).save(cfg)
+            configHash()?.let { settings.configRemoteHash = it }
             // Immagini della config (foto di famiglia, foto dei promemoria): scaricate e verificate con l'hash.
             app.semplicephone.data.Media.fetchMissing(context, cfg, settings.resolvedUrl(), settings.deviceSecret)
             app.semplicephone.data.Media.cleanup(context, cfg)
@@ -243,6 +256,37 @@ class RemoteClient(private val context: Context) {
         return out
     }
 
+    private fun configFile() = File(context.filesDir, "config.json")
+
+    private fun configHash(): String? = configFile().takeIf { it.exists() }?.readBytes()?.let { b ->
+        java.security.MessageDigest.getInstance("SHA-256").digest(b).joinToString("") { "%02x".format(it) }
+    }
+
+    /**
+     * Foto della config che il portale non ha ancora (scelte o scattate sul telefono): si caricano,
+     * così l'editor web le mostra e una pubblicazione successiva non le perde.
+     */
+    private fun uploadMedia(hashes: List<String>) {
+        for (h in hashes.take(30)) {
+            val f = app.semplicephone.data.Media.file(context, "media:$h")?.takeIf { it.exists() } ?: continue
+            val url = settings.resolvedUrl() + (if ('?' in settings.resolvedUrl()) "&" else "?") + "media=" + h
+            runCatching {
+                val c = (URL(url).openConnection() as HttpURLConnection).apply {
+                    requestMethod = "POST"
+                    doOutput = true
+                    connectTimeout = 15_000
+                    readTimeout = 30_000
+                    setRequestProperty("Content-Type", "image/jpeg")
+                    setRequestProperty("X-Device-Secret", settings.deviceSecret)
+                    setFixedLengthStreamingMode(f.length())
+                }
+                f.inputStream().use { input -> c.outputStream.use { input.copyTo(it) } }
+                c.responseCode
+                c.disconnect()
+            }.onFailure { Log.w(TAG, "foto $h non caricata", it) }
+        }
+    }
+
     private fun report(force: Boolean) {
         if (!settings.enabled || !settings.resolvedUrl().startsWith("https://")) return
         val battery = context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
@@ -272,7 +316,10 @@ class RemoteClient(private val context: Context) {
         val appsChanged = apps.isNotEmpty() &&
             (force || appsHash != settings.appsHash || System.currentTimeMillis() - settings.appsSentAt > 24 * 3_600_000L)
         val due = System.currentTimeMillis() - settings.lastReport > 60 * 60_000L
-        if (!force && !due && events.length() == 0 && !appsChanged) return
+        // Config: a ogni cambiamento, così il portale vede anche le modifiche fatte sul telefono.
+        val cfgHash = configHash()
+        val sendConfig = cfgHash != null && cfgHash != settings.configSentHash
+        if (!force && !due && events.length() == 0 && !appsChanged && !sendConfig) return
 
         val body = JSONObject()
             .put("device", settings.deviceId)
@@ -285,6 +332,13 @@ class RemoteClient(private val context: Context) {
             .put("edition", BuildConfig.EDITION)
             .apply { if (BuildConfig.FULL) put("badgesAccess", app.semplicephone.phone.Badges.isEnabled(context)) }
             .put("access", accessReport())
+            .apply {
+                if (sendConfig) {
+                    runCatching { JSONObject(configFile().readText()) }.getOrNull()?.let { put("config", it) }
+                    put("configSource", if (cfgHash == settings.configRemoteHash) "remote" else "local")
+                    put("configAt", settings.configLocalAt.takeIf { it > 0 } ?: configFile().lastModified())
+                }
+            }
             .apply {
                 if (appsChanged) put("apps", JSONArray().also { a -> apps.forEach { a.put(JSONObject().put("pkg", it.target).put("label", it.label)) } })
             }
@@ -310,6 +364,9 @@ class RemoteClient(private val context: Context) {
             settings.lastReport = System.currentTimeMillis()
             // Il portale dice se l'elenco gli manca: si azzera così parte al prossimo report.
             val reply = if (code == 200) runCatching { conn.inputStream.use { readLimited(it, 4096) } }.getOrNull() else null
+            if (sendConfig && cfgHash != null) settings.configSentHash = cfgHash
+            val needMedia = reply?.let { r -> runCatching { JSONObject(r).optJSONArray("needMedia") }.getOrNull() }
+            if (needMedia != null && needMedia.length() > 0) uploadMedia((0 until needMedia.length()).map { needMedia.getString(it) })
             if (reply != null && runCatching { JSONObject(reply).optBoolean("needApps") }.getOrDefault(false)) {
                 settings.appsHash = 0
                 settings.appsSentAt = 0

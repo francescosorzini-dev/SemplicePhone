@@ -396,5 +396,7 @@
  "weekly_hint": "Rappels, SOS, appels bloqués, batterie et contacts manqués, sur les mêmes canaux que les alertes.",
  "tile_home_button": "Bouton « Accueil » dans cette appli",
  "tile_home_button_hint": "Décochez pour le masquer dans l'appli ouverte par cette tuile (jeux, applis plein écran).",
- "old_app_warn_0101": "Le téléphone a l'appli {0} : masquer le bouton « Accueil » pour une tuile nécessite la version 0.10.1 ou ultérieure."
+ "old_app_warn_0101": "Le téléphone a l'appli {0} : masquer le bouton « Accueil » pour une tuile nécessite la version 0.10.1 ou ultérieure.",
+ "loaded_from_phone": "Configuration actuelle du téléphone chargée (modifiée sur le téléphone le {0}) : en publiant, vous la conservez avec vos modifications.",
+ "use_published": "Utiliser plutôt la dernière publiée"
 }

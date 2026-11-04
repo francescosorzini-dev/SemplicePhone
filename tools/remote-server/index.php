@@ -256,6 +256,27 @@ function weekly_lines(string $id): array {
     ];
 }
 
+/** Hash delle foto usate da una config (riquadri foto e promemoria). */
+function phone_media_refs($cfg): array {
+    $out = [];
+    foreach ((array)($cfg['pages'] ?? []) as $p) foreach ((array)($p['tiles'] ?? []) as $t) foreach ((array)($t['photos'] ?? []) as $ref) $out[] = (string)$ref;
+    foreach ((array)($cfg['reminders'] ?? []) as $r) $out[] = (string)($r['photo'] ?? '');
+    $out = array_map(fn($r) => substr($r, 6), array_filter($out, fn($r) => preg_match('/^media:[0-9a-f]{64}$/', $r)));
+    return array_values(array_unique($out));
+}
+
+/**
+ * Config del telefono da caricare nell'editor al posto di quella pubblicata: se è stata cambiata
+ * sul telefono dopo l'ultima pubblicazione, o se dal portale non è mai stato pubblicato nulla.
+ */
+function phone_newer(string $id, array $meta): ?array {
+    $ph = read_json(dev_path($id, 'phone.json'), null);
+    if (!is_array($ph) || !isset($ph['config'])) return null;
+    $published = is_file(dev_path($id, 'config.json'));
+    if (!$published) return $ph;
+    return ($ph['source'] ?? '') === 'local' && (int)($ph['at'] ?? 0) > (int)($meta['publishedAt'] ?? 0) ? $ph : null;
+}
+
 /** Accessi mancanti sul telefono per le funzioni attive (dal report del telefono). */
 function access_warnings(array $meta): array {
     $keys = ['overlay' => 'acc_overlay', 'callLog' => 'acc_call_log', 'screening' => 'acc_screening', 'contacts' => 'acc_contacts'];
@@ -305,7 +326,21 @@ if (isset($_GET['device'])) {
     // Immagini della config (foto di famiglia, foto dei promemoria): il telefono ne verifica l'hash.
     if (isset($_GET['media'])) {
         write_atomic(dev_path($id, 'meta.json'), json_encode($meta));
-        serve_media((string)$_GET['media']);
+        $hash = (string)$_GET['media'];
+        // Foto scelte sul telefono: le carica il telefono stesso, solo se la sua config le usa.
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $wanted = phone_media_refs(read_json(dev_path($id, 'phone.json'), [])['config'] ?? []);
+            if (!media_path($hash) || !in_array($hash, $wanted, true)) { http_response_code(403); exit('{"error":"media"}'); }
+            $body = file_get_contents('php://input', false, null, 0, MEDIA_MAX + 1);
+            $info = $body !== false && strlen($body) <= MEDIA_MAX ? @getimagesizefromstring($body) : false;
+            if (!$info || !in_array($info['mime'], ['image/jpeg', 'image/png', 'image/webp'], true) || hash('sha256', $body) !== $hash) {
+                http_response_code(400); exit('{"error":"image"}');
+            }
+            if (!is_file(media_path($hash))) write_atomic(media_path($hash), $body);
+            http_response_code(204);
+            exit;
+        }
+        serve_media($hash);
     }
 
     if (isset($_GET['report']) && $_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -326,11 +361,23 @@ if (isset($_GET['device'])) {
         $meta['access'] = isset($r['access']) && is_array($r['access'])
             ? array_map('boolval', array_intersect_key($r['access'], array_flip(['overlay', 'callLog', 'screening', 'contacts']))) : null;
         $meta['appliedSeq'] = $r['seq'] ?? null;
+        // Config attuale del telefono (anche quella cambiata dalle sue impostazioni): l'editor web
+        // la carica se è più recente dell'ultima pubblicazione.
+        $needMedia = [];
+        if (isset($r['config']) && is_array($r['config']) && isset($r['config']['pages'])) {
+            write_atomic(dev_path($id, 'phone.json'), json_encode([
+                'config' => $r['config'],
+                'source' => ($r['configSource'] ?? '') === 'remote' ? 'remote' : 'local',
+                'at' => (int)(((int)($r['configAt'] ?? 0)) / 1000) ?: time(),
+                'receivedAt' => time(),
+            ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+            $needMedia = array_values(array_filter(phone_media_refs($r['config']), fn($h) => !is_file(media_path($h))));
+        }
         write_atomic(dev_path($id, 'meta.json'), json_encode($meta));
         if ($backOnline) send_alert(ev_title('online'), t('back_online_text'), $id);
         // Il telefono rimanda l'elenco app solo se cambia: se qui manca (portale nuovo, telefono
         // rimosso e ricollegato…) glielo si chiede esplicitamente.
-        echo json_encode(['ok' => true, 'needApps' => !is_file(dev_path($id, 'apps.json'))]);
+        echo json_encode(['ok' => true, 'needApps' => !is_file(dev_path($id, 'apps.json')), 'needMedia' => $needMedia]);
         exit;
     }
 
@@ -810,6 +857,10 @@ details summary{cursor:pointer;font-weight:600}
         $hv = read_json($hf, []);
         $src = json_encode($hv['config'] ?? [], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         $loaded = t('loaded_version', date('d/m/Y H:i', (int)($hv['at'] ?? 0)));
+    } elseif (!isset($_POST['config']) && !isset($_GET['published']) && !isset($_GET['copy']) && ($ph = phone_newer($edit, $meta))) {
+        $src = json_encode($ph['config'], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        $loaded = t('loaded_from_phone', date('d/m/Y H:i', (int)$ph['at']));
+        $fromPhone = true;
     } elseif (!isset($_POST['config']) && isset($_GET['copy']) && valid_id($cp = strtolower((string)$_GET['copy'])) && is_file(dev_path($cp, 'config.json'))) {
         $src = file_get_contents(dev_path($cp, 'config.json'));
         $loaded = t('copied_from', device_name($cp));
@@ -829,7 +880,7 @@ details summary{cursor:pointer;font-weight:600}
     <?php if (isset($meta['battery']) && $meta['battery'] >= 0): ?><?= th('battery_lower', (int)$meta['battery']) ?><?php endif; ?>
     <?php if (!empty($meta['appVersion'])): ?><?= th('app_version', $meta['appVersion']) ?><?php endif; ?></p>
 
-  <?php if ($loaded): ?><div class="msg warn"><?= h($loaded) ?></div><?php endif; ?>
+  <?php if ($loaded): ?><div class="msg warn"><?= h($loaded) ?><?php if (!empty($fromPhone) && is_file(dev_path($edit, 'config.json'))): ?> <a href="?edit=<?= h($edit) ?>&amp;published=1"><?= th('use_published') ?></a><?php endif; ?></div><?php endif; ?>
   <?php if (isset($meta['badgesAccess']) && !$meta['badgesAccess']): ?><div class="msg warn"><?= th('no_notif_access') ?></div><?php endif; ?>
   <?php foreach (access_warnings($meta) as $w): ?><div class="msg warn"><?= h($w) ?></div><?php endforeach; ?>
   <form method="post" id="pubform" data-dirty="<?= $loaded ? '1' : '0' ?>" data-edition="<?= h($meta['edition'] ?? '') ?>" data-app="<?= h($meta['appVersion'] ?? '') ?>" data-csrf="<?= h($csrf) ?>">

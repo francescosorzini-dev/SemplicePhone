@@ -396,5 +396,7 @@
  "weekly_hint": "Erinnerungen, SOS, blockierte Anrufe, Akku und fehlende Kontakte, über dieselben Kanäle wie die Benachrichtigungen.",
  "tile_home_button": "Schaltfläche „Start“ in dieser App",
  "tile_home_button_hint": "Haken entfernen, um sie in der von dieser Kachel geöffneten App auszublenden (Spiele, Vollbild-Apps).",
- "old_app_warn_0101": "Das Telefon hat App {0}: die Schaltfläche „Start“ für eine Kachel auszublenden erfordert Version 0.10.1 oder neuer."
+ "old_app_warn_0101": "Das Telefon hat App {0}: die Schaltfläche „Start“ für eine Kachel auszublenden erfordert Version 0.10.1 oder neuer.",
+ "loaded_from_phone": "Die aktuelle Konfiguration des Telefons wurde geladen (am Telefon geändert am {0}): beim Veröffentlichen bleibt sie erhalten, ergänzt um Ihre Änderungen.",
+ "use_published": "Stattdessen die zuletzt veröffentlichte verwenden"
 }
