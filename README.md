@@ -37,8 +37,10 @@ e una pagina web da cui la famiglia sistema tutto da lontano. Gratis, senza pubb
 - **Voce.** Una pressione lunga legge il riquadro ad alta voce, o l'ora sull'orologio. Prima di
   chiamare il telefono dice «Chiamo Maria».
 - **Meteo, foto di famiglia e orologio da comodino** quando il telefono è in carica.
-- **Chiamate più sicure.** I numeri sconosciuti si possono bloccare: passano solo rubrica e
-  familiari. Vivavoce automatico.
+- **Chiamate più sicure e più facili.** I numeri sconosciuti si possono bloccare: passano solo
+  rubrica e familiari. Vivavoce automatico, il telefono dice chi chiama e, se chiama un familiare e
+  nessuno risponde, risponde da solo in vivavoce (per chi è caduto o non trova il telefono).
+- **Messaggi dalla famiglia** a tutto schermo e letti ad alta voce, finché non si tocca «HO LETTO».
 
 <p align="center">
   <img src="fastlane/metadata/android/it-IT/images/phoneScreenshots/2_sos.png" width="200" alt="SOS con conto alla rovescia">
@@ -56,6 +58,9 @@ telefono. Le modifiche sono firmate: il telefono accetta solo quelle del proprio
 
 - **Avvisi** su Telegram o email: SOS con posizione, promemoria non confermato, batteria scarica,
   telefono che non si fa sentire, chiamate bloccate.
+- **Configurazione guidata**: poche domande (chi chiama, cosa serve, quali medicine) e la schermata è pronta.
+- **Messaggio al telefono** (a tutto schermo e letto a voce, con conferma di lettura) e **«Fai squillare»**
+  a tutto volume anche in silenzioso, per ritrovarlo in casa.
 - **«Dov'è?»**: posizione del telefono su richiesta, solo se consentito sul telefono.
 - **Riepilogo settimanale** ogni lunedì e scheda «Ultimi 7 giorni» per ogni telefono.
 - **Vede anche le modifiche fatte sul telefono** (foto comprese) e segnala i permessi che mancano.
@@ -248,6 +253,7 @@ validazione.
 | M10 – promemoria per attività, filtro chiamate, voce, meteo, foto, comodino, «Dov'è?» | ✅ |
 | M11 – chiamate perse, pulsante «Casa», riepilogo settimanale | ✅ |
 | M12 – riquadro «Cerca app» (anche a voce) | ✅ |
+| M13 – messaggi dalla famiglia, «Fai squillare», risposta automatica, configurazione guidata | ✅ |
 
 ### Limiti noti
 

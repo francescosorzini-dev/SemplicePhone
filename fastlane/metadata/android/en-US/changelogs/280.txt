@@ -1,0 +1,4 @@
+- Messages from the family: from the portal, full screen and read aloud, with read receipt
+- "Ring the phone" from the portal: full volume even on silent, to find the phone
+- Auto-answer on speakerphone for family calls, and spoken announcement of who is calling
+- Portal: guided setup with a few questions

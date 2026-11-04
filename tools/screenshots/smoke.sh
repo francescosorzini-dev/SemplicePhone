@@ -174,12 +174,14 @@ adb push /tmp/a.json /data/local/tmp/a.json >/dev/null
 adb shell am force-stop $P
 adb shell "run-as $P sh -c 'cp /data/local/tmp/a.json files/config.json'"
 adb shell pm grant $P android.permission.ANSWER_PHONE_CALLS
+adb shell pm grant $P android.permission.READ_PHONE_STATE
 adb shell cmd role add-role-holder android.app.role.CALL_SCREENING $P 0 || true
 home; sleep 3
 adb logcat -c
 adb emu gsm call 3331234567; sleep 3
 adb shell dumpsys telecom | grep -E "^\s+Call TC|state=|CallAudioRouteStateMachine|Current state" | head -12 > "$OUT/answer_before.txt"
 sleep 7
+adb shell dumpsys window | grep -m1 mCurrentFocus > "$OUT/answer_focus.txt"
 adb shell dumpsys telecom | grep -E "^\s+Call TC|state=|Current state" | head -12 > "$OUT/answer_after.txt"
 shot answer_call 1
 adb shell dumpsys audio | grep -iE "mode|communication device|speaker" | head -15 > "$OUT/answer_audio.txt"

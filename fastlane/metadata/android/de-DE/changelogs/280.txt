@@ -1,0 +1,4 @@
+- Nachrichten von der Familie: aus dem Portal, im Vollbild und vorgelesen, mit Lesebestätigung
+- „Klingeln lassen“ aus dem Portal: volle Lautstärke auch im Lautlos-Modus, um das Telefon zu finden
+- Automatische Annahme mit Freisprechen bei Familienanrufen und Ansage des Anrufers
+- Portal: geführte Einrichtung mit wenigen Fragen

@@ -36,8 +36,10 @@ and a web page where the family sets everything up from afar. Free, no ads, free
 - **Voice.** A long press reads a tile aloud, or the time on the clock. Before calling, the phone
   says "Calling Maria".
 - **Weather, family photos and a bedside clock** while charging.
-- **Safer calls.** Unknown numbers can be blocked: only contacts and family get through.
-  Automatic speakerphone.
+- **Safer, easier calls.** Unknown numbers can be blocked: only contacts and family get through.
+  Automatic speakerphone, the phone says who is calling and, if a family member calls and nobody
+  answers, it answers by itself on speakerphone (for someone who has fallen or cannot find the phone).
+- **Messages from the family** full screen and read aloud, until someone taps "GOT IT".
 
 <p align="center">
   <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/2_sos.png" width="200" alt="SOS countdown">
@@ -55,6 +57,9 @@ Changes are signed: the phone only accepts those from its own portal.
 
 - **Alerts** on Telegram or email: SOS with location, unconfirmed reminder, low battery, phone
   out of contact, blocked calls.
+- **Guided setup**: a few questions (who they call, what they need, which medicines) and the screen is ready.
+- **Message to the phone** (full screen, read aloud, with read receipt) and **"Ring the phone"** at full
+  volume even on silent, to find it at home.
 - **"Where is it?"**: phone location on request, only if allowed on the phone.
 - **Weekly summary** every Monday and a "Last 7 days" card for each phone.
 - **It also sees changes made on the phone** (photos included) and flags missing permissions.

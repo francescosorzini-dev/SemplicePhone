@@ -32,7 +32,11 @@ Il telefono invia al portale:
 - la configurazione del telefono (riquadri, promemoria, SOS) e le foto scelte sul telefono, così il familiare vede anche le modifiche fatte sul telefono;
 - quali accessi mancano alle funzioni attive (es. «Mostra sopra altre app»), per avvisare il familiare;
 - gli avvisi di SOS (con la posizione), di promemoria non confermati e di chiamate bloccate;
-- la posizione su richiesta del familiare («Dov'è?»), solo se sul telefono è stata consentita.
+- la posizione su richiesta del familiare («Dov'è?»), solo se sul telefono è stata consentita;
+- la conferma di lettura dei messaggi della famiglia e l'esito di «Fai squillare».
+
+Dal portale il telefono riceve, firmati, i messaggi scritti dal familiare: restano sul telefono
+finché non vengono letti.
 
 Il collegamento usa HTTPS. Le configurazioni ricevute devono essere firmate con la chiave del
 portale. Per interrompere l'invio basta spegnere «Gestione da remoto» o disinstallare l'app; i
@@ -44,6 +48,8 @@ dati già inviati si cancellano dal portale.
 - Contatti: per i riquadri e per riconoscere i contatti nel filtro chiamate.
 - Registro chiamate: per il riquadro «Chiamate perse» (non nell'edizione Google Play).
 - Mostra sopra altre app: per il pulsante «Casa», se attivato.
+- Rispondere alle chiamate e stato del telefono: solo per la risposta automatica ai numeri SOS, se
+  attivata (per rispondere e mostrare poi la schermata della chiamata).
 - Posizione: per l'SOS.
 - Notifiche e sveglie: per i promemoria.
 - «Non disturbare»: per togliere il silenzioso.

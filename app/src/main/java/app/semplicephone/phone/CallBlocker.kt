@@ -100,9 +100,18 @@ object IncomingCall {
             @Suppress("MissingPermission", "DEPRECATION")
             context.getSystemService(android.telecom.TelecomManager::class.java).acceptRingingCall()
         }
-        // Vivavoce e volume al massimo, appena la chiamata è attiva.
+        // Vivavoce e volume al massimo, appena la chiamata è attiva; poi la schermata della chiamata
+        // in primo piano, così il tasto per chiudere è in vista e non dietro la Home.
         main.postDelayed({ speaker(context) }, 1_200)
-        main.postDelayed({ speaker(context) }, 3_000)
+        main.postDelayed({ speaker(context); showCallScreen(context) }, 3_000)
+    }
+
+    private fun showCallScreen(context: android.content.Context) {
+        if (!app.semplicephone.launch.Permissions.granted(context, android.Manifest.permission.READ_PHONE_STATE)) return
+        runCatching {
+            @Suppress("MissingPermission")
+            context.getSystemService(android.telecom.TelecomManager::class.java).showInCallScreen(false)
+        }
     }
 
     private fun speaker(context: android.content.Context) {

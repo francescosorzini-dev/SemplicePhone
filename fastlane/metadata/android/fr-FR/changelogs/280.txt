@@ -1,0 +1,4 @@
+- Messages de la famille : depuis le portail, en plein écran et lus à voix haute, avec accusé de lecture
+- « Faire sonner » depuis le portail : plein volume même en silencieux, pour retrouver le téléphone
+- Réponse automatique en haut-parleur aux appels de la famille et annonce vocale de l'appelant
+- Portail : configuration guidée en quelques questions

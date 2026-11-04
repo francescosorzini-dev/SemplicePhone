@@ -299,3 +299,17 @@ class Features0120Test {
         assertEquals(TileType.SEARCH, cfg.pages[0].tiles[0].type)
     }
 }
+
+class Features0130Test {
+    @Test fun autoAnswerOnlyForSosNumbers() {
+        val cfg = LauncherConfig(
+            sos = app.semplicephone.model.SosConfig(numbers = listOf("+39 333 1234567")),
+            phone = app.semplicephone.model.PhoneConfig(autoAnswer = true),
+        )
+        val ic = app.semplicephone.phone.IncomingCall
+        assertTrue(ic.shouldAutoAnswer(cfg, "3331234567"))
+        assertFalse(ic.shouldAutoAnswer(cfg, "3477654321"))
+        assertFalse(ic.shouldAutoAnswer(cfg, ""))
+        assertFalse(ic.shouldAutoAnswer(cfg.copy(phone = cfg.phone.copy(autoAnswer = false)), "3331234567"))
+    }
+}

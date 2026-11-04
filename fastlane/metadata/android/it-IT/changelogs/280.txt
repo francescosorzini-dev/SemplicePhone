@@ -1,0 +1,4 @@
+- Messaggi dalla famiglia: dal portale, a tutto schermo e letti ad alta voce, con conferma di lettura
+- «Fai squillare» dal portale: a tutto volume anche in silenzioso, per ritrovare il telefono
+- Risposta automatica in vivavoce alle chiamate dei familiari e annuncio a voce di chi chiama
+- Portale: configurazione guidata con poche domande

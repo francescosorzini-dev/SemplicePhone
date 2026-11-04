@@ -8,6 +8,8 @@
     <uses-permission android:name="android.permission.CALL_PHONE" />
     <!-- Risposta automatica alle chiamate dei numeri SOS (se attivata) -->
     <uses-permission android:name="android.permission.ANSWER_PHONE_CALLS" />
+    <!-- Dopo la risposta automatica: porta in primo piano la schermata della chiamata -->
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission android:name="android.permission.SEND_SMS" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />

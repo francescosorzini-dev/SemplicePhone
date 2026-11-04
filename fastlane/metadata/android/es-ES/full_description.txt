@@ -14,7 +14,7 @@ SemplicePhone sustituye la pantalla de inicio por unos pocos mosaicos grandes y 
 
 <b>Recordatorios de medicamentos y actividades</b>: ducha, compra, citas, cartas — cada día, en días elegidos o en una fecha, con símbolo y foto. Alarma a pantalla completa incluso con el teléfono bloqueado; se repite hasta que se confirma.
 
-<b>Llamadas más seguras</b>: bloqueo de números desconocidos, altavoz automático, confirmación por voz antes de llamar, mosaico de llamadas perdidas para devolverlas con un toque y mosaico «Buscar apps» para encontrar una app escribiendo o diciendo su nombre.
+<b>Llamadas más seguras</b>: bloqueo de números desconocidos, altavoz automático, confirmación por voz antes de llamar, mosaico de llamadas perdidas para devolverlas con un toque y mosaico «Buscar apps» para encontrar una app escribiendo o diciendo su nombre. El teléfono dice quién llama y contesta solo en altavoz a la familia.
 
 <b>Tiempo, fotos, mesilla</b>: mosaico del tiempo, mosaico de fotos de familia, reloj grande mientras carga.
 

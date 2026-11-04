@@ -1,0 +1,4 @@
+- Mensajes de la familia: desde el portal, a pantalla completa y leídos en voz alta, con confirmación de lectura
+- «Hacer sonar» desde el portal: a todo volumen aunque esté en silencio, para encontrar el teléfono
+- Respuesta automática en altavoz a las llamadas de la familia y aviso por voz de quién llama
+- Portal: configuración guiada con pocas preguntas
