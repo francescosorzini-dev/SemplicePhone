@@ -27,6 +27,11 @@ contact() {
 }
 contact Maria +393331234567
 contact Luca +393477654321
+# Riquadro «Chiamate perse» (una chiamata di Luca) e pulsante «Casa» sopra le altre app
+adb shell pm grant $P android.permission.READ_CALL_LOG
+adb shell appops set $P SYSTEM_ALERT_WINDOW allow
+adb shell content insert --uri content://call_log/calls --bind number:s:3477654321 --bind type:i:3 \
+  --bind date:l:$(( ($(adb shell date +%s | tr -d '\r') - 2400) * 1000 )) --bind duration:i:0 --bind new:i:1
 # Barra di stato pulita
 adb shell settings put global sysui_demo_allowed 1
 demo() { adb shell am broadcast -a com.android.systemui.demo -e command "$@" >/dev/null; }
@@ -71,6 +76,10 @@ for L in it en de fr es; do
   shot "${L}_4_editor" 3
   python3 tap.py Maria >/dev/null
   shot "${L}_5_tile" 3
+  home; sleep 1; home; sleep 2
+  # Pulsante «Casa» dentro un'altra app (il tastierino del telefono)
+  adb shell am start -W -a android.intent.action.DIAL >/dev/null
+  shot "${L}_6_home_button" 4
   home
 done
 ls -la "$OUT"

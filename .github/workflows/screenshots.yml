@@ -3,6 +3,9 @@ name: screenshots
 # Screenshot reali dell'app (emulatore Android 14) in tutte le lingue, come artifact.
 on:
   workflow_dispatch:
+  # Anche con un push sul ramo «screenshots-run» (il dispatch parte solo dal ramo principale).
+  push:
+    branches: [screenshots-run]
 
 permissions:
   contents: write

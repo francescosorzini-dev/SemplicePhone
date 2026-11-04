@@ -10,20 +10,20 @@ SRC, DEST = Path(sys.argv[1]), Path(sys.argv[2])
 ROOT = Path(__file__).resolve().parents[2]
 BOLD = str(ROOT / 'app/src/main/res/font/atkinson_bold.ttf')
 LOCALES = {'it': 'it-IT', 'en': 'en-US', 'de': 'de-DE', 'fr': 'fr-FR', 'es': 'es-ES'}
-SHOTS = ['1_home', '2_sos', '3_reminder', '4_editor', '5_tile']
+SHOTS = ['1_home', '2_sos', '3_reminder', '4_editor', '5_tile', '6_home_button']
 COLORS = {'1_home': ('#1F4FA8', '#163A7D'), '2_sos': ('#B71C1C', '#7F1313'), '3_reminder': ('#1B6E34', '#124A24'),
-          '4_editor': ('#6A1B9A', '#4A126C'), '5_tile': ('#00695C', '#00473E')}
+          '4_editor': ('#6A1B9A', '#4A126C'), '5_tile': ('#00695C', '#00473E'), '6_home_button': ('#E65100', '#9C3700')}
 CAPTIONS = {
-    'it': ['Pochi riquadri grandi e chiari', 'SOS: chiamata e posizione ai familiari', 'Promemoria dei farmaci a tutto schermo',
-           'Ogni riquadro si personalizza', 'Chiamate, app, WhatsApp, siti, SOS'],
-    'en': ['A few big, clear tiles', 'SOS: call and location to family', 'Full-screen medication reminders',
-           'Every tile is customizable', 'Calls, apps, WhatsApp, websites, SOS'],
-    'de': ['Wenige große, klare Kacheln', 'SOS: Anruf und Standort an die Familie', 'Medikamenten-Erinnerung im Vollbild',
-           'Jede Kachel ist anpassbar', 'Anrufe, Apps, WhatsApp, Webseiten, SOS'],
-    'fr': ['Quelques grandes tuiles claires', 'SOS : appel et position à la famille', 'Rappels de médicaments en plein écran',
-           'Chaque tuile est personnalisable', 'Appels, applis, WhatsApp, sites, SOS'],
-    'es': ['Pocos mosaicos grandes y claros', 'SOS: llamada y ubicación a la familia', 'Recordatorios de medicamentos a pantalla completa',
-           'Cada mosaico se personaliza', 'Llamadas, apps, WhatsApp, webs, SOS'],
+    'it': ['Riquadri grandi: chiamate, meteo, chiamate perse', 'SOS: chiamata e posizione ai familiari', 'Promemoria per farmaci e attività',
+           'Ogni riquadro si personalizza', 'Chiamate, app, WhatsApp, siti, SOS', 'Un tocco su «CASA» e si torna qui'],
+    'en': ['Big tiles: calls, weather, missed calls', 'SOS: call and location to family', 'Reminders for medicines and activities',
+           'Every tile is customizable', 'Calls, apps, WhatsApp, websites, SOS', 'One tap on HOME to come back'],
+    'de': ['Große Kacheln: Anrufe, Wetter, verpasste Anrufe', 'SOS: Anruf und Standort an die Familie', 'Erinnerungen für Medikamente und Tätigkeiten',
+           'Jede Kachel ist anpassbar', 'Anrufe, Apps, WhatsApp, Webseiten, SOS', 'Ein Tipp auf START und zurück'],
+    'fr': ['Grandes tuiles : appels, météo, appels manqués', 'SOS : appel et position à la famille', 'Rappels pour médicaments et activités',
+           'Chaque tuile est personnalisable', 'Appels, applis, WhatsApp, sites, SOS', 'Un appui sur ACCUEIL pour revenir'],
+    'es': ['Mosaicos grandes: llamadas, tiempo, perdidas', 'SOS: llamada y ubicación a la familia', 'Recordatorios de medicinas y actividades',
+           'Cada mosaico se personaliza', 'Llamadas, apps, WhatsApp, webs, SOS', 'Un toque en INICIO para volver'],
 }
 W, H, S = 1080, 1920, 2  # disegno a 2× e riduco alla fine per bordi morbidi
 
