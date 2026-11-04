@@ -708,8 +708,11 @@ if ($logged) {
 *{box-sizing:border-box}
 body{font:16px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;margin:0;background:var(--bg);color:var(--ink)}
 header.top{background:var(--ink);color:#fff}
-header.top .in{max-width:1080px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;gap:12px}
-header.top .brand{font-weight:700;font-size:19px;flex:1}
+header.top .in{max-width:1080px;margin:0 auto;padding:12px 16px;display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+header.top .brand{font-weight:700;font-size:19px;flex:1 1 auto;min-width:0}
+/* Schermi stretti (o carattere grande): il nome sopra, menu ed «Esci» sotto, mai oltre il bordo. */
+@media (max-width:560px){header.top .brand{flex-basis:100%}header.top .nav{flex:1}}
+.card{overflow-x:auto}img,textarea,input,select{max-width:100%}code{overflow-wrap:anywhere;word-break:break-all}
 header.top a{color:#fff}
 .nav{display:flex;gap:4px}.nav a{padding:8px 12px;border-radius:8px;text-decoration:none;font-weight:600}.nav a[aria-current=page]{background:#ffffff26}
 main{max-width:1080px;margin:0 auto;padding:16px}
