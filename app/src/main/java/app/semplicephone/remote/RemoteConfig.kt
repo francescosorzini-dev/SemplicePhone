@@ -105,6 +105,14 @@ class RemoteSettings(context: Context) {
     var configRemoteHash: String
         get() = prefs.getString("config_remote_hash", "").orEmpty()
         set(v) = prefs.edit().putString("config_remote_hash", v).apply()
+    /** Ultima richiesta «Fai squillare» eseguita (valore dell'intestazione X-Ring). */
+    var lastRing: String
+        get() = prefs.getString("last_ring", "").orEmpty()
+        set(v) = prefs.edit().putString("last_ring", v).apply()
+    /** Ultimo messaggio della famiglia già scaricato (intestazione X-Message). */
+    var lastMessage: String
+        get() = prefs.getString("last_message", "").orEmpty()
+        set(v) = prefs.edit().putString("last_message", v).apply()
     /** Ultimo salvataggio fatto dalle impostazioni del telefono (ms). */
     var configLocalAt: Long
         get() = prefs.getLong("config_local_at", 0)
@@ -178,6 +186,24 @@ class RemoteClient(private val context: Context) {
         RemoteEvents.enqueue(context, "location", text, mapOf("lat" to loc?.latitude, "lon" to loc?.longitude, "acc" to loc?.accuracy))
     }
 
+    /** Scarica e mostra il messaggio della famiglia; false se la firma non è valida. */
+    private fun fetchMessage(url: String): Boolean {
+        val c = (URL(url + (if ('?' in url) "&" else "?") + "message=1").openConnection() as HttpURLConnection).apply {
+            connectTimeout = 15_000
+            readTimeout = 15_000
+            setRequestProperty("X-Device-Secret", settings.deviceSecret)
+        }
+        try {
+            if (c.responseCode != 200) return false
+            val body = c.inputStream.use { readLimited(it, 16 * 1024) }
+            val m = FamilyMessages.parse(body, settings.publicKey, settings.deviceId) ?: return false
+            FamilyMessages.show(context, m)
+            return true
+        } finally {
+            c.disconnect()
+        }
+    }
+
     private suspend fun syncInternal(force: Boolean): SyncResult {
         if (!settings.enabled) return r(R.string.remote_r_disabled)
         val url = settings.resolvedUrl()
@@ -195,6 +221,18 @@ class RemoteClient(private val context: Context) {
         val code = conn.responseCode
         // «Dov'è?» dal portale: arriva come intestazione anche con 304. Solo se consentito sul telefono.
         if (conn.getHeaderField("X-Locate") == "1" && settings.allowLocate) sendLocation()
+        // Messaggio della famiglia e «Fai squillare»: anche questi arrivano come intestazioni.
+        conn.getHeaderField("X-Message")?.takeIf { it.isNotBlank() && it != settings.lastMessage }?.let { id ->
+            runCatching { fetchMessage(url) }.onSuccess { if (it) settings.lastMessage = id }
+                .onFailure { Log.w(TAG, "messaggio non scaricato", it) }
+        }
+        conn.getHeaderField("X-Ring")?.takeIf { it.isNotBlank() && it != settings.lastRing }?.let { id ->
+            settings.lastRing = id
+            val stoppedAfter = FindPhone.ring(context)
+            val text = if (stoppedAfter != null) context.getString(R.string.find_event_stopped, stoppedAfter)
+                else context.getString(R.string.find_event_rang, FindPhone.RING_SECONDS)
+            RemoteEvents.enqueue(context, "ring_done", text, mapOf("ring" to id, "stoppedAfter" to stoppedAfter))
+        }
         if (code == 304) return r(R.string.remote_r_up_to_date, settings.lastSeq, ok = true)
         if (code == 404) return r(R.string.remote_r_not_found, settings.deviceId)
         if (code != 200) return SyncResult(context.getString(R.string.remote_r_http, code), error = code >= 500)
@@ -248,7 +286,7 @@ class RemoteClient(private val context: Context) {
         if (app.semplicephone.data.MissedCalls.supported() &&
             cfg.pages.any { p -> p.tiles.any { it.type == app.semplicephone.model.TileType.MISSED_CALLS } }
         ) out.put("callLog", app.semplicephone.data.MissedCalls.canRead(context))
-        if (cfg.phone.blockUnknown) {
+        if (cfg.phone.blockUnknown || cfg.phone.autoAnswer || cfg.phone.announceCaller) {
             val roles = context.getSystemService(android.app.role.RoleManager::class.java)
             out.put("screening", runCatching { roles.isRoleHeld(android.app.role.RoleManager.ROLE_CALL_SCREENING) }.getOrDefault(false))
             out.put("contacts", app.semplicephone.launch.Permissions.granted(context, android.Manifest.permission.READ_CONTACTS))

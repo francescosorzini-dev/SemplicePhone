@@ -96,7 +96,7 @@ fun PhoneEditor(
                 p = p.copy(blockUnknown = it)
                 if (it) { requestContacts(); requestScreening() }
             }
-            if (p.blockUnknown && !screening) {
+            if ((p.blockUnknown || p.autoAnswer || p.announceCaller) && !screening) {
                 Text(stringResource(R.string.phone_block_needs_role), fontSize = 15.sp, color = Palette.Sos)
                 androidx.compose.material3.OutlinedButton(onClick = ::requestScreening, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
                     Text(stringResource(R.string.phone_block_grant))
@@ -109,6 +109,18 @@ fun PhoneEditor(
                 }
             }
             Toggle(stringResource(R.string.phone_speaker), stringResource(R.string.phone_speaker_detail), p.speakerCalls) { p = p.copy(speakerCalls = it) }
+            Toggle(stringResource(R.string.phone_auto_answer), stringResource(R.string.phone_auto_answer_detail), p.autoAnswer) {
+                p = p.copy(autoAnswer = it)
+                if (it) requestScreening()
+            }
+            if (p.autoAnswer) {
+                Stepper(stringResource(R.string.phone_auto_answer_after), (p.autoAnswerSeconds / 5).coerceIn(1, 6), 1..6, { p = p.copy(autoAnswerSeconds = it * 5) }, format = { "${it * 5} s" })
+                if (!hasSosNumbers) Text(stringResource(R.string.phone_auto_answer_no_sos), fontSize = 15.sp, color = Palette.Sos)
+            }
+            Toggle(stringResource(R.string.phone_announce), stringResource(R.string.phone_announce_detail), p.announceCaller) {
+                p = p.copy(announceCaller = it)
+                if (it) { requestContacts(); requestScreening() }
+            }
 
             SectionLabel(stringResource(R.string.phone_voice_screen))
             Toggle(stringResource(R.string.phone_speak_tiles), stringResource(R.string.phone_speak_tiles_detail), p.speakTiles) { p = p.copy(speakTiles = it) }

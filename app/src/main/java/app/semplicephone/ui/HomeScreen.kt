@@ -56,6 +56,9 @@ fun HomeScreen(
     showSetHomeBanner: Boolean,
     onSetHome: () -> Unit,
     onOpenSettings: () -> Unit,
+    /** Messaggio della famiglia non ancora letto: riquadro in alto finché non si tocca «Ho letto». */
+    message: app.semplicephone.remote.FamilyMessage? = null,
+    onOpenMessage: () -> Unit = {},
 ) {
     val pages = config.pages
     val counts by Badges.counts.collectAsState()
@@ -99,6 +102,7 @@ fun HomeScreen(
         verticalArrangement = Arrangement.spacedBy(Gap),
     ) {
         if (showSetHomeBanner) SetHomeBanner(onSetHome)
+        message?.let { MessageBanner(it, onOpenMessage) }
         val threshold = config.phone.batteryAlertPercent.takeIf { it > 0 } ?: 15
         battery?.let { b -> if (!b.charging && b.level in 0..threshold) BatteryBanner(b.level) }
 
@@ -213,6 +217,27 @@ private fun BatteryBanner(level: Int) {
             color = Color.White,
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
+        )
+    }
+}
+
+@Composable
+private fun MessageBanner(m: app.semplicephone.remote.FamilyMessage, onClick: () -> Unit) {
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .background(Color(0xFF1F4FA8))
+            .clickable(onClick = onClick)
+            .padding(16.dp),
+    ) {
+        Text(
+            (if (m.from.isNotBlank()) stringResource(R.string.message_from, m.from) else stringResource(R.string.message_title)) +
+                ": " + m.text.take(60) + (if (m.text.length > 60) "…" else "") + "\n" + stringResource(R.string.message_tap),
+            color = Color.White,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            maxLines = 3,
         )
     }
 }

@@ -41,6 +41,11 @@ data class PhoneConfig(
     val voiceConfirm: Boolean = false,
     /** In carica e senza tocchi per un minuto: orologio grande a tutto schermo, schermo acceso. */
     val bedsideClock: Boolean = false,
+    /** Le chiamate dai numeri SOS ricevono risposta da sole, in vivavoce, dopo [autoAnswerSeconds]. */
+    val autoAnswer: Boolean = false,
+    val autoAnswerSeconds: Int = 10,
+    /** Durante lo squillo il telefono dice chi chiama («Chiama Maria»). */
+    val announceCaller: Boolean = false,
     /** Pulsante «Casa» sempre visibile sopra le altre app: un tocco riporta al launcher. */
     val homeButton: Boolean = false,
 )

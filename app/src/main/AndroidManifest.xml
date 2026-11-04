@@ -6,6 +6,8 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CALL_PHONE" />
+    <!-- Risposta automatica alle chiamate dei numeri SOS (se attivata) -->
+    <uses-permission android:name="android.permission.ANSWER_PHONE_CALLS" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission android:name="android.permission.SEND_SMS" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
@@ -93,6 +95,21 @@
             android:taskAffinity="app.semplicephone.reminder"
             android:process=":alarm" />
 
+        <!-- Messaggio della famiglia a tutto schermo: stesso processo separato dell'allarme. -->
+        <activity
+            android:name=".remote.MessageActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:launchMode="singleTask"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
+            android:screenOrientation="portrait"
+            android:configChanges="locale|layoutDirection|uiMode|fontScale|density|screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden|navigation"
+            android:taskAffinity="app.semplicephone.message"
+            android:process=":alarm" />
+        <receiver
+            android:name=".remote.FamilyReceiver"
+            android:exported="false" />
         <receiver
             android:name=".reminders.ReminderReceiver"
             android:exported="false">

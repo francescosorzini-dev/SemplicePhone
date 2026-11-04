@@ -41,6 +41,8 @@ object Permissions {
         }
         // Il filtro chiamate riconosce i contatti solo leggendo la rubrica: senza, non blocca nessuno.
         if (cfg.phone.blockUnknown) out.putIfAbsent(Manifest.permission.READ_CONTACTS, s(R.string.perm_block_contacts))
+        if (cfg.phone.autoAnswer) out[Manifest.permission.ANSWER_PHONE_CALLS] = s(R.string.perm_auto_answer)
+        if (cfg.phone.announceCaller) out.putIfAbsent(Manifest.permission.READ_CONTACTS, s(R.string.perm_announce_contacts))
         if (tiles.any { it.type == TileType.SOS }) {
             out.putIfAbsent(Manifest.permission.CALL_PHONE, s(R.string.perm_sos_call))
             if (BuildConfig.SEND_SMS) out[Manifest.permission.SEND_SMS] = s(R.string.perm_sos_sms)

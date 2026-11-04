@@ -126,6 +126,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val stored by repo.config.collectAsStateWithLifecycle()
+            val familyMessage by app.semplicephone.remote.FamilyMessages.current.collectAsStateWithLifecycle()
             // Nomi e testi predefiniti nella lingua attuale (anche se creati in un'altra lingua).
             val locale = androidx.compose.ui.platform.LocalConfiguration.current.locales[0]
             val config = androidx.compose.runtime.remember(stored, locale) {
@@ -140,6 +141,10 @@ class MainActivity : ComponentActivity() {
                         showSetHomeBanner = needsHomeRole.value,
                         onSetHome = ::askHomeRole,
                         onOpenSettings = ::openSettings,
+                        message = familyMessage,
+                        onOpenMessage = {
+                            runCatching { startActivity(Intent(this@MainActivity, app.semplicephone.remote.MessageActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+                        },
                     )
                     is Screen.Pin -> PinScreen(
                         store = pins,
@@ -266,6 +271,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
+        app.semplicephone.remote.FamilyMessages.refresh(this)
         externalActivity = false
         permissionsTick++
         refreshHomeRole()
