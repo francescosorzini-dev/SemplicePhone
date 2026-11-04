@@ -159,6 +159,6 @@ adb shell cmd locale set-app-locales $P --locales it; adb shell am force-stop $P
 adb shell "run-as $P sh -c 'cp /data/local/tmp/s.json files/config.json'"
 home; sleep 3
 python3 tap.py "Cerca app" >/dev/null; shot search_1_open 3
-adb shell input text "impo"; shot search_2_typed 2
+adb shell input text "sett"; shot search_2_typed 2
 grep -o 'text="[^"]\+"' "$OUT/search_2_typed.xml" | tr '\n' ' ' > "$OUT/search.txt"
 python3 tap.py "Settings" >/dev/null || python3 tap.py "Impostazioni" >/dev/null; sleep 3; focus >> "$OUT/search.txt"
