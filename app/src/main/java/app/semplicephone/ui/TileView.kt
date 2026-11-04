@@ -429,11 +429,12 @@ private fun WeatherTile(tile: Tile, launcher: TileLauncher, modifier: Modifier) 
             if (wide) {
                 val icon = (maxHeight * 0.75f).coerceAtMost(110.dp)
                 val temp = (maxHeight * 0.34f).coerceIn(20.dp, 44.dp)
+                val roomForRange = maxHeight > 110.dp
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                     Icon(sym, null, Modifier.size(icon), tint = fg)
                     Column {
                         Text(tempText, color = fg, fontSize = temp.fixedSp(), lineHeight = temp.fixedSp(), fontWeight = FontWeight.Bold, maxLines = 1)
-                        if (range.isNotEmpty() && maxHeight > 110.dp) Text(range, color = fg, fontSize = 18.dp.fixedSp(), maxLines = 1)
+                        if (range.isNotEmpty() && roomForRange) Text(range, color = fg, fontSize = 18.dp.fixedSp(), maxLines = 1)
                         TileLabel(tile.label, fg, 20.dp.fixedSp(), TextAlign.Start, Modifier)
                     }
                 }
@@ -441,13 +442,14 @@ private fun WeatherTile(tile: Tile, launcher: TileLauncher, modifier: Modifier) 
                 val showRange = range.isNotEmpty() && maxHeight > 190.dp
                 val icon = (maxHeight * if (showRange) 0.3f else 0.34f).coerceAtMost(96.dp)
                 val temp = (maxHeight * 0.22f).coerceIn(18.dp, 40.dp)
+                val labelSize = (maxHeight * 0.15f).coerceIn(15.dp, 22.dp)
                 Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(0.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         Icon(sym, null, Modifier.size(icon), tint = fg)
                         Text(tempText, color = fg, fontSize = temp.fixedSp(), lineHeight = temp.fixedSp(), fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false)
                     }
                     if (showRange) Text(range, color = fg, fontSize = 18.dp.fixedSp(), maxLines = 1)
-                    TileLabel(tile.label, fg, (maxHeight * 0.15f).coerceIn(15.dp, 22.dp).fixedSp(), TextAlign.Center, Modifier.fillMaxWidth())
+                    TileLabel(tile.label, fg, labelSize.fixedSp(), TextAlign.Center, Modifier.fillMaxWidth())
                 }
             }
         }
