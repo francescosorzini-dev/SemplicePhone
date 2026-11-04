@@ -132,7 +132,7 @@ adb shell cmd locale set-app-locales $P --locales it; adb shell am force-stop $P
 adb shell "run-as $P sh -c 'cp /data/local/tmp/l.json files/config.json'"
 adb logcat -c
 home; sleep 3
-step() { echo "== $1" >> "$OUT/crash.txt"; adb shell pidof $P >> "$OUT/crash.txt" || echo "PROCESSO MORTO" >> "$OUT/crash.txt"; }
+step() { echo "== $1" >> "$OUT/crash.txt"; adb shell pidof $P >> "$OUT/crash.txt" || echo "PROCESSO MORTO" >> "$OUT/crash.txt"; adb shell cmd locale get-app-locales $P >> "$OUT/crash.txt"; adb shell dumpsys activity activities | grep -E "topResumedActivity|ResumedActivity" | head -2 >> "$OUT/crash.txt"; }
 adb shell cmd locale set-app-locales $P --locales en; sleep 5; step "home it->en"; shot crash_1_home 1
 python3 tap.py --times 5 --regex '^\d\d:\d\d$' >/dev/null; sleep 1
 for round in 1 2; do for d in 1 2 3 4; do python3 tap.py "$d" >/dev/null; done; python3 tap.py Confirm >/dev/null; sleep 1; done
