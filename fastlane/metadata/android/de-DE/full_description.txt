@@ -14,7 +14,7 @@ SemplicePhone ersetzt den Startbildschirm durch wenige große, klare Kacheln fü
 
 <b>Erinnerungen für Medikamente und Tätigkeiten</b>: Duschen, Einkaufen, Arzttermin, Kartenspiel — täglich, an gewählten Tagen oder an einem Datum, mit Symbol und Foto. Wecker im Vollbild auch bei gesperrtem Telefon; wiederholt sich bis zur Bestätigung.
 
-<b>Sicherere Anrufe</b>: unbekannte Nummern blockieren, automatisches Freisprechen, Sprachbestätigung vor dem Anruf, Kachel mit verpassten Anrufen zum Zurückrufen mit einem Tipp.
+<b>Sicherere Anrufe</b>: unbekannte Nummern blockieren, automatisches Freisprechen, Sprachbestätigung vor dem Anruf, Kachel mit verpassten Anrufen zum Zurückrufen mit einem Tipp und Kachel „Apps suchen“, um eine App per Eingabe oder Sprache zu finden.
 
 <b>Wetter, Fotos, Nachttisch</b>: Wetterkachel, Kachel mit Familienfotos, große Uhr beim Laden.
 

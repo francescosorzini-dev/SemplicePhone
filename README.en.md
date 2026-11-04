@@ -31,6 +31,8 @@ and a web page where the family sets everything up from afar. Free, no ads, free
 - **Missed calls.** The tile shows who called and was not called back: tap the name to call back.
 - **No getting lost.** A "HOME" button stays visible inside other apps: one tap and you are back.
   Apps open on their first screen, not on the last page left half-way.
+- **Search apps.** A tile opens search inside the launcher: type or say part of the name (even
+  the initials, "gm" for Google Maps) and one tap opens the app.
 - **Voice.** A long press reads a tile aloud, or the time on the clock. Before calling, the phone
   says "Calling Maria".
 - **Weather, family photos and a bedside clock** while charging.

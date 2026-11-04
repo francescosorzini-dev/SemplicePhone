@@ -1,0 +1,1 @@
+- Nuovo riquadro «Cerca app»: si scrive o si dice una parte del nome (anche le iniziali) e un tocco apre l'app, senza uscire dal launcher

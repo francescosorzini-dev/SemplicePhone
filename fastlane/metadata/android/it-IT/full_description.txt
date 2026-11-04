@@ -18,7 +18,7 @@ Si tiene premuto, parte un conto alla rovescia annullabile, poi la chiamata al p
 Medicine, doccia, spesa, visita, partita a carte: ogni giorno, in giorni scelti o in una sola data, con simbolo e foto. Allarme a schermo intero anche a telefono bloccato, con «PRESO»/«FATTO» e rinvio; si ripete finché nessuno conferma.
 
 <b>Chiamate più semplici e sicure</b>
-Blocco dei numeri sconosciuti (passano solo rubrica e familiari), vivavoce automatico, conferma vocale prima di chiamare. Riquadro con le chiamate perse da richiamare con un tocco.
+Blocco dei numeri sconosciuti (passano solo rubrica e familiari), vivavoce automatico, conferma vocale prima di chiamare. Riquadro con le chiamate perse da richiamare con un tocco; riquadro «Cerca app» per trovare e aprire un'app scrivendo o dicendo il nome.
 
 <b>Meteo, foto e comodino</b>
 Riquadro meteo, riquadro con le foto di famiglia che scorrono, orologio grande quando il telefono è in carica.

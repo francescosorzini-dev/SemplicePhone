@@ -1,0 +1,1 @@
+- Nuevo mosaico «Buscar apps»: escriba o diga parte del nombre (incluso las iniciales) y un toque abre la app, sin salir del launcher

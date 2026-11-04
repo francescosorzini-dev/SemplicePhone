@@ -1,0 +1,1 @@
+- Neue Kachel „Apps suchen“: einen Teil des Namens tippen oder sagen (auch die Anfangsbuchstaben), ein Tipp öffnet die App, ohne den Launcher zu verlassen

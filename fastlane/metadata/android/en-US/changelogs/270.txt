@@ -1,0 +1,1 @@
+- New "Search apps" tile: type or say part of the name (even the initials) and one tap opens the app, without leaving the launcher

@@ -1,0 +1,1 @@
+- Nouvelle tuile « Rechercher une appli » : tapez ou dites une partie du nom (même les initiales) et un appui ouvre l'appli, sans quitter le launcher

@@ -32,6 +32,8 @@ e una pagina web da cui la famiglia sistema tutto da lontano. Gratis, senza pubb
   nome e si richiama.
 - **Non ci si perde.** Un pulsante «CASA» resta visibile dentro le altre app: un tocco e si torna qui.
   Ogni app si apre dalla sua schermata iniziale, non dall'ultima pagina lasciata a metà.
+- **Cerca app.** Un riquadro apre la ricerca dentro il launcher: si scrive o si dice una parte del
+  nome (anche le iniziali, «gm» per Google Maps) e un tocco apre l'app.
 - **Voce.** Una pressione lunga legge il riquadro ad alta voce, o l'ora sull'orologio. Prima di
   chiamare il telefono dice «Chiamo Maria».
 - **Meteo, foto di famiglia e orologio da comodino** quando il telefono è in carica.
@@ -179,7 +181,7 @@ firmata Ed25519 (sostituisce quella locale quando arriva una versione più nuova
 | | |
 |---|---|
 | **Home** | griglia per pagine (1–4 colonne × 1–8 righe), tile w×h, swipe tra pagine, tasto Home → pagina 1 |
-| **Tile** | `app` (package o ruoli `@dialer @sms @camera @gallery @browser`), `call`, `wa_video`, `sms`, `url`, `shortcut`, `clock`, `sos`, `weather`, `photos`, `missed_calls` |
+| **Tile** | `app` (package o ruoli `@dialer @sms @camera @gallery @browser`), `call`, `wa_video`, `sms`, `url`, `shortcut`, `clock`, `sos`, `weather`, `photos`, `missed_calls`, `search` |
 | **Contatti** | scelta dalla rubrica, foto in cerchio (o iniziali) oppure a tutto riquadro, chiamata diretta con `CALL_PHONE` |
 | **App dall'inizio** | toccando un riquadro l'app riparte dalla sua schermata iniziale (elenco chat, messaggi…), non dall'ultima pagina vista; si sceglie per tutto il telefono e per singolo riquadro |
 | **SOS** | pressione prolungata → conto alla rovescia annullabile → SMS con posizione a tutti i numeri → chiamata al primo |
@@ -218,7 +220,7 @@ Valori di default sovrascrivibili con `-P` o in `gradle.properties`: `semplice.r
 
 ```json
 { "id": "t1", "col": 0, "row": 1, "w": 2, "h": 1,
-  "type": "app | call | wa_video | sms | url | shortcut | clock | sos | weather | photos | missed_calls",
+  "type": "app | call | wa_video | sms | url | shortcut | clock | sos | weather | photos | missed_calls | search",
   "target": "package | @ruolo | numero | https://… | pacchetto/shortcutId",
   "label": "Telefono",
   "icon": { "kind": "auto | app | symbol | photo | none", "ref": "phone | contact:<lookupKey>" },
@@ -245,6 +247,7 @@ validazione.
 | M9 – app e portale in 5 lingue, pronti per Weblate | ✅ |
 | M10 – promemoria per attività, filtro chiamate, voce, meteo, foto, comodino, «Dov'è?» | ✅ |
 | M11 – chiamate perse, pulsante «Casa», riepilogo settimanale | ✅ |
+| M12 – riquadro «Cerca app» (anche a voce) | ✅ |
 
 ### Limiti noti
 
