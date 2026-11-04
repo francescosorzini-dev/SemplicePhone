@@ -62,7 +62,8 @@ class ReminderActivity : ComponentActivity() {
     /** Risposta data al promemoria [id]: si passa al successivo o si chiude. */
     private fun answered(id: String) {
         queue.remove(id)
-        if (queue.isEmpty()) finish()
+        // Via anche dal task: non resta un'attività in sospeso dietro la Home.
+        if (queue.isEmpty()) finishAndRemoveTask()
     }
 
     override fun onNewIntent(intent: android.content.Intent) {

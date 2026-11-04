@@ -23,6 +23,8 @@ class SempliceApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        // Il processo «:alarm» ospita solo l'allarme dei promemoria: niente receiver, controlli o pulsante Casa.
+        if (getProcessName().endsWith(":alarm")) return
 
         val ringer = object : BroadcastReceiver() {
             override fun onReceive(c: Context, i: Intent) = PhoneGuard.enforceRinger(c)

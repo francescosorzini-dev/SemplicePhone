@@ -78,6 +78,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <!-- Processo separato: con la Home e un'attività normale nello stesso processo, Android 14
+             non riesce ad applicare la lingua scelta per l'app («Can't change activity type once
+             set») e la pagina «Lingua dell'app» delle Impostazioni si chiude con un errore. -->
         <activity
             android:name=".reminders.ReminderActivity"
             android:exported="false"
@@ -87,7 +90,8 @@
             android:turnScreenOn="true"
             android:screenOrientation="portrait"
             android:configChanges="locale|layoutDirection|uiMode|fontScale|density|screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden|navigation"
-            android:taskAffinity="app.semplicephone.reminder" />
+            android:taskAffinity="app.semplicephone.reminder"
+            android:process=":alarm" />
 
         <receiver
             android:name=".reminders.ReminderReceiver"
