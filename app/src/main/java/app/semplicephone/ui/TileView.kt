@@ -420,25 +420,34 @@ private fun WeatherTile(tile: Tile, launcher: TileLauncher, modifier: Modifier) 
         contentAlignment = Alignment.Center,
     ) {
         BoxWithConstraints(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            val wide = maxWidth > maxHeight
-            val icon = (minOf(maxWidth, maxHeight) * if (wide) 0.7f else 0.42f).coerceAtMost(110.dp)
+            // Misure ricavate dallo spazio reale: in un riquadro 1×1 entrano simbolo, temperatura e
+            // località; minima e massima solo se c'è posto.
+            val wide = maxWidth > maxHeight * 1.5f
             val sym = Symbols.get(w?.let { app.semplicephone.data.Weather.symbol(it.code) } ?: "weather")
             val tempText = w?.let { "${it.temp}°" } ?: "–"
             val range = w?.let { "${it.min}° / ${it.max}°" }.orEmpty()
             if (wide) {
+                val icon = (maxHeight * 0.75f).coerceAtMost(110.dp)
+                val temp = (maxHeight * 0.34f).coerceIn(20.dp, 44.dp)
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                     Icon(sym, null, Modifier.size(icon), tint = fg)
                     Column {
-                        Text(tempText, color = fg, fontSize = 44.dp.fixedSp(), fontWeight = FontWeight.Bold)
-                        if (range.isNotEmpty()) Text(range, color = fg, fontSize = 18.dp.fixedSp())
+                        Text(tempText, color = fg, fontSize = temp.fixedSp(), lineHeight = temp.fixedSp(), fontWeight = FontWeight.Bold, maxLines = 1)
+                        if (range.isNotEmpty() && maxHeight > 110.dp) Text(range, color = fg, fontSize = 18.dp.fixedSp(), maxLines = 1)
                         TileLabel(tile.label, fg, 20.dp.fixedSp(), TextAlign.Start, Modifier)
                     }
                 }
             } else {
-                Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Icon(sym, null, Modifier.size(icon), tint = fg)
-                    Text(tempText, color = fg, fontSize = 30.dp.fixedSp(), fontWeight = FontWeight.Bold)
-                    TileLabel(tile.label, fg, 18.dp.fixedSp(), TextAlign.Center, Modifier.fillMaxWidth())
+                val showRange = range.isNotEmpty() && maxHeight > 190.dp
+                val icon = (maxHeight * if (showRange) 0.3f else 0.34f).coerceAtMost(96.dp)
+                val temp = (maxHeight * 0.22f).coerceIn(18.dp, 40.dp)
+                Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(0.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Icon(sym, null, Modifier.size(icon), tint = fg)
+                        Text(tempText, color = fg, fontSize = temp.fixedSp(), lineHeight = temp.fixedSp(), fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false)
+                    }
+                    if (showRange) Text(range, color = fg, fontSize = 18.dp.fixedSp(), maxLines = 1)
+                    TileLabel(tile.label, fg, (maxHeight * 0.15f).coerceIn(15.dp, 22.dp).fixedSp(), TextAlign.Center, Modifier.fillMaxWidth())
                 }
             }
         }

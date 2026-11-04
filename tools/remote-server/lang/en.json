@@ -398,5 +398,6 @@
  "tile_home_button_hint": "Untick to hide it in the app opened by this tile (games, full-screen apps).",
  "old_app_warn_0101": "The phone has app {0}: hiding the \"Home\" button for a tile needs version 0.10.1 or later.",
  "loaded_from_phone": "Loaded the phone's current configuration (changed on the phone on {0}): publishing keeps it and adds your changes.",
- "use_published": "Use the last published one instead"
+ "use_published": "Use the last published one instead",
+ "loaded_phone_current": "Loaded the phone's current configuration: publishing keeps it and adds your changes."
 }

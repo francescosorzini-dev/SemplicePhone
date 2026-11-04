@@ -51,6 +51,15 @@ object HomeButton {
     fun shouldShow(enabled: Boolean, canDraw: Boolean, appVisible: Boolean, inCall: Boolean, suppressed: Boolean = false): Boolean =
         enabled && canDraw && !appVisible && !inCall && !suppressed
 
+    /** Allarme dei promemoria a schermo (gira nel processo «:alarm», che lo segnala con un broadcast). */
+    private var alarmVisible = false
+    const val ACTION_ALARM = "app.semplicephone.ALARM_VISIBLE"
+
+    /** Chiamato dall'allarme in onStart/onStop: arriva al processo principale come broadcast interno. */
+    fun notifyAlarm(context: Context, visible: Boolean) {
+        context.sendBroadcast(Intent(ACTION_ALARM).setPackage(context.packageName).putExtra("visible", visible))
+    }
+
     /** Da chiamare subito prima di aprire l'app di un riquadro. */
     fun forNextApp(show: Boolean) { suppressed = !show }
 
@@ -66,6 +75,9 @@ object HomeButton {
             override fun onActivitySaveInstanceState(a: Activity, b: Bundle) {}
             override fun onActivityDestroyed(a: Activity) {}
         })
+        androidx.core.content.ContextCompat.registerReceiver(application, object : android.content.BroadcastReceiver() {
+            override fun onReceive(c: Context, i: Intent) { alarmVisible = i.getBooleanExtra("visible", false); update(c) }
+        }, android.content.IntentFilter(ACTION_ALARM), androidx.core.content.ContextCompat.RECEIVER_NOT_EXPORTED)
         if (Build.VERSION.SDK_INT >= 31) {
             runCatching {
                 application.getSystemService(AudioManager::class.java)
@@ -84,7 +96,7 @@ object HomeButton {
         if (!::app.isInitialized) return
         main.post {
             val enabled = ConfigRepository.get(app).config.value.phone.homeButton
-            val show = shouldShow(enabled, Settings.canDrawOverlays(app), started > 0, inCall(app), suppressed)
+            val show = shouldShow(enabled, Settings.canDrawOverlays(app), started > 0 || alarmVisible, inCall(app), suppressed)
             if (show) attach() else detach()
         }
     }
@@ -140,7 +152,8 @@ object HomeButton {
         ).apply {
             gravity = Gravity.END or Gravity.TOP
             x = dp(10f)
-            y = prefs.getInt("y", (app.resources.displayMetrics.heightPixels * 0.55f).toInt())
+            // Predefinito a un terzo dello schermo: sotto le barre in alto, sopra tastiere e tastierini.
+            y = prefs.getInt("y", (app.resources.displayMetrics.heightPixels * 0.30f).toInt())
         }
         // Trascinamento verticale; un tocco senza spostamento torna alla Home.
         var downY = 0f

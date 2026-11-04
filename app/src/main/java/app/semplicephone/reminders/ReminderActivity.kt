@@ -66,6 +66,16 @@ class ReminderActivity : ComponentActivity() {
         if (queue.isEmpty()) finishAndRemoveTask()
     }
 
+    override fun onStart() {
+        super.onStart()
+        app.semplicephone.launch.HomeButton.notifyAlarm(this, true)
+    }
+
+    override fun onStop() {
+        app.semplicephone.launch.HomeButton.notifyAlarm(this, false)
+        super.onStop()
+    }
+
     override fun onNewIntent(intent: android.content.Intent) {
         super.onNewIntent(intent)
         setIntent(intent)

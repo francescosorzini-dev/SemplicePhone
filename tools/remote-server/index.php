@@ -859,7 +859,9 @@ details summary{cursor:pointer;font-weight:600}
         $loaded = t('loaded_version', date('d/m/Y H:i', (int)($hv['at'] ?? 0)));
     } elseif (!isset($_POST['config']) && !isset($_GET['published']) && !isset($_GET['copy']) && ($ph = phone_newer($edit, $meta))) {
         $src = json_encode($ph['config'], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-        $loaded = t('loaded_from_phone', date('d/m/Y H:i', (int)$ph['at']));
+        $loaded = is_file(dev_path($edit, 'config.json'))
+            ? t('loaded_from_phone', date('d/m/Y H:i', (int)$ph['at']))
+            : t('loaded_phone_current');
         $fromPhone = true;
     } elseif (!isset($_POST['config']) && isset($_GET['copy']) && valid_id($cp = strtolower((string)$_GET['copy'])) && is_file(dev_path($cp, 'config.json'))) {
         $src = file_get_contents(dev_path($cp, 'config.json'));
