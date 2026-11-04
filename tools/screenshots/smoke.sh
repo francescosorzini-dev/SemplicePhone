@@ -132,17 +132,18 @@ adb shell cmd locale set-app-locales $P --locales it; adb shell am force-stop $P
 adb shell "run-as $P sh -c 'cp /data/local/tmp/l.json files/config.json'"
 adb logcat -c
 home; sleep 3
+setl() { echo "-- set $1: $(adb shell cmd locale set-app-locales $P --locales $1 2>&1)" >> "$OUT/crash.txt"; }
 step() { echo "== $1" >> "$OUT/crash.txt"; adb shell pidof $P >> "$OUT/crash.txt" || echo "PROCESSO MORTO" >> "$OUT/crash.txt"; adb shell cmd locale get-app-locales $P >> "$OUT/crash.txt"; adb shell dumpsys activity activities | grep -E "topResumedActivity|ResumedActivity" | head -2 >> "$OUT/crash.txt"; }
-adb shell cmd locale set-app-locales $P --locales en; sleep 5; step "home it->en"; shot crash_1_home 1
+setl en; sleep 5; step "home it->en"; shot crash_1_home 1
 python3 tap.py --times 5 --regex '^\d\d:\d\d$' >/dev/null; sleep 1
 for round in 1 2; do for d in 1 2 3 4; do python3 tap.py "$d" >/dev/null; done; python3 tap.py Confirm >/dev/null; sleep 1; done
 shot crash_2_editor 2
-adb shell cmd locale set-app-locales $P --locales de; sleep 5; step "editor en->de"; shot crash_3_editor_de 1
+setl de; sleep 5; step "editor en->de"; shot crash_3_editor_de 1
 adb shell am start -W -n $P/.reminders.ReminderActivity --es id r1 >/dev/null; sleep 2
-adb shell cmd locale set-app-locales $P --locales fr; sleep 5; step "promemoria de->fr"; shot crash_4_reminder_fr 1
+setl fr; sleep 5; step "promemoria de->fr"; shot crash_4_reminder_fr 1
 adb shell input keyevent HOME; sleep 2
-adb shell cmd locale set-app-locales $P --locales es; sleep 5; step "home fr->es"; shot crash_5_home_es 1
+setl es; sleep 5; step "home fr->es"; shot crash_5_home_es 1
 adb shell am start -W -a android.intent.action.MAIN -c android.intent.category.APP_CONTACTS >/dev/null; sleep 3
-adb shell cmd locale set-app-locales $P --locales it; sleep 5; step "altra app con pulsante Casa es->it"; shot crash_6_other 1
+setl it; sleep 5; step "altra app con pulsante Casa es->it"; shot crash_6_other 1
 adb logcat -d -b crash > "$OUT/logcat_crash.txt" || true
 adb logcat -d | grep -E "AndroidRuntime|FATAL|semplicephone" | grep -iE "fatal|exception|caused by|at app\.semplicephone|ANR" | head -80 > "$OUT/logcat_errors.txt" || true
