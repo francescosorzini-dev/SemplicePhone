@@ -1,0 +1,2 @@
+- Sprachwechsel: die Android-Einstellungen schließen sich nicht mehr mit einem Fehler, der Editor bleibt offen, ohne Änderungen zu verlieren
+- Uhr: mit „Kacheln vorlesen“ sagt ein langer Druck Uhrzeit und Datum

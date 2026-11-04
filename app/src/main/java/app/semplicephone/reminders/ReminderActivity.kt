@@ -80,7 +80,8 @@ class ReminderActivity : ComponentActivity() {
 
         setContent {
             val id = queue.lastOrNull() ?: return@setContent
-            val r = androidx.compose.runtime.remember(id) { reminder(id) } ?: return@setContent
+            // Ricalcolato anche al cambio lingua (titoli predefiniti tradotti).
+            val r = androidx.compose.runtime.remember(id, androidx.compose.ui.platform.LocalConfiguration.current.locales[0]) { reminder(id) } ?: return@setContent
             SempliceTheme {
                 Column(
                     Modifier

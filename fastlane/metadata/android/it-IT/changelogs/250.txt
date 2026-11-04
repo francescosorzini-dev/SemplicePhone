@@ -1,0 +1,2 @@
+- Cambio lingua: le Impostazioni di Android non si chiudono più con un errore e l'editor resta aperto senza perdere le modifiche
+- Orologio: con «leggi i riquadri» attivo, una pressione lunga dice ora e data

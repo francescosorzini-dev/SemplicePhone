@@ -1,0 +1,2 @@
+- Changement de langue : les Paramètres d'Android ne se ferment plus sur une erreur et l'éditeur reste ouvert sans perdre les modifications
+- Horloge : avec « lire les tuiles » activé, un appui long dit l'heure et la date

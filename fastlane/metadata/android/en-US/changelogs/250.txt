@@ -1,0 +1,2 @@
+- Language change: Android Settings no longer close with an error and the editor stays open without losing changes
+- Clock: with "read tiles aloud" on, a long press says the time and date

@@ -1,0 +1,2 @@
+- Cambio de idioma: los Ajustes de Android ya no se cierran con un error y el editor sigue abierto sin perder los cambios
+- Reloj: con «leer los mosaicos» activado, una pulsación larga dice la hora y la fecha
