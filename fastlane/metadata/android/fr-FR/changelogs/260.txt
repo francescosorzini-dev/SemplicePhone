@@ -1,0 +1,3 @@
+- Le bouton « Accueil » n'apparaît plus par-dessus l'alarme des rappels et se place plus haut par défaut (il ne couvre plus les claviers)
+- Tuile météo 1×1 : température et lieu toujours lisibles
+- Nouvelles captures d'écran

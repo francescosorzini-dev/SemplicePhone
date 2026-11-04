@@ -1,0 +1,3 @@
+- Die Schaltfläche „Start“ erscheint nicht mehr über dem Erinnerungsalarm und sitzt standardmäßig höher (verdeckt keine Tastenfelder)
+- Wetterkachel 1×1: Temperatur und Ort immer lesbar
+- Neue Bildschirmfotos

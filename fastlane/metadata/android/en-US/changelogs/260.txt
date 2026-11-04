@@ -1,0 +1,3 @@
+- The "Home" button no longer appears over the reminder alarm and sits higher by default (it does not cover keypads)
+- 1×1 weather tile: temperature and place always readable
+- New screenshots

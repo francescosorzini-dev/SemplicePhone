@@ -1,0 +1,3 @@
+- Il pulsante «Casa» non compare più sopra l'allarme dei promemoria e di serie sta più in alto (non copre i tastierini)
+- Riquadro meteo 1×1: temperatura e località sempre leggibili
+- Nuove schermate
