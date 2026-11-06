@@ -497,5 +497,20 @@
  "theme_normal": "Normal",
  "theme_contrast": "High contrast",
  "theme_night": "Dark in the evening (9 pm–7 am)",
- "old_app_warn_0140": "The phone has app {0}: unread messages, radio, family photos, quiet night, \"charge the phone\", hold to open and themes need version 0.14.0 or later."
+ "old_app_warn_0140": "The phone has app {0}: unread messages, radio, family photos, quiet night, \"charge the phone\", hold to open and themes need version 0.14.0 or later.",
+ "cal_title": "📅 Family calendar",
+ "cal_hint": "Paste the calendar's secret iCal address (Google Calendar: calendar settings → \"Secret address in iCal format\"; Outlook and iCloud provide one too). Appointments in the next 14 days become reminders on the phone and update by themselves every 3 hours. Don't edit them in the editor: they are recreated from the calendar.",
+ "cal_url": "iCal address (.ics)",
+ "cal_lead": "Notice before the appointment",
+ "cal_lead_0": "At the time of the appointment",
+ "cal_lead_n": "{0} minutes before",
+ "cal_eve": "Also remind the evening before at 8 pm",
+ "cal_save": "Save and update now",
+ "cal_error": "Calendar not reachable: check the address",
+ "cal_status": "{0} appointments in the next 14 days · read {1}",
+ "cal_today": "Today",
+ "cal_tomorrow": "Tomorrow: {0}",
+ "cal_at": "at {0}",
+ "chg_calendar": "calendar appointments: {0} reminders",
+ "from_calendar": "from the calendar"
 }

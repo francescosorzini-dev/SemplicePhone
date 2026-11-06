@@ -497,5 +497,20 @@
  "theme_normal": "Normal",
  "theme_contrast": "Alto contraste",
  "theme_night": "Oscuro por la noche (21–7)",
- "old_app_warn_0140": "El teléfono tiene la app {0}: mensajes sin leer, radio, fotos de familiares, noche tranquila, «ponga a cargar», abrir manteniendo pulsado y temas necesitan la versión 0.14.0 o posterior."
+ "old_app_warn_0140": "El teléfono tiene la app {0}: mensajes sin leer, radio, fotos de familiares, noche tranquila, «ponga a cargar», abrir manteniendo pulsado y temas necesitan la versión 0.14.0 o posterior.",
+ "cal_title": "📅 Calendario familiar",
+ "cal_hint": "Pega la dirección secreta iCal del calendario (Google Calendar: configuración del calendario → «Dirección secreta en formato iCal»; Outlook e iCloud también la dan). Las citas de los próximos 14 días se convierten en recordatorios en el teléfono y se actualizan solas cada 3 horas. No las edites en el editor: se vuelven a crear desde el calendario.",
+ "cal_url": "Dirección iCal (.ics)",
+ "cal_lead": "Aviso antes de la cita",
+ "cal_lead_0": "A la hora de la cita",
+ "cal_lead_n": "{0} minutos antes",
+ "cal_eve": "Avisar también la noche anterior a las 20",
+ "cal_save": "Guardar y actualizar ahora",
+ "cal_error": "Calendario no accesible: revisa la dirección",
+ "cal_status": "{0} citas en los próximos 14 días · leído {1}",
+ "cal_today": "Hoy",
+ "cal_tomorrow": "Mañana: {0}",
+ "cal_at": "a las {0}",
+ "chg_calendar": "citas del calendario: {0} recordatorios",
+ "from_calendar": "del calendario"
 }

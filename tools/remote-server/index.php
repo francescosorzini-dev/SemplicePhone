@@ -221,7 +221,159 @@ function run_checks(bool $force = false): void {
             send_alert(ev_title('offline'), $text, $id);
         }
         if ($sendWeekly && $seen) send_alert(t('weekly_title'), implode("\n", weekly_lines($id)), $id);
+        calendar_sync($id);
     }
+}
+
+// ---------------------------------------------------------------- calendario di famiglia (ICS)
+function http_get(string $url, int $max = 2097152): ?string {
+    if (function_exists('curl_init')) {
+        $c = curl_init($url);
+        curl_setopt_array($c, [CURLOPT_RETURNTRANSFER => true, CURLOPT_FOLLOWLOCATION => true, CURLOPT_MAXREDIRS => 3, CURLOPT_TIMEOUT => 8,
+            CURLOPT_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS, CURLOPT_USERAGENT => 'SemplicePhone-portal']);
+        $res = curl_exec($c); $code = (int)curl_getinfo($c, CURLINFO_HTTP_CODE); curl_close($c);
+        return is_string($res) && $code >= 200 && $code < 300 && strlen($res) <= $max ? $res : null;
+    }
+    $res = @file_get_contents($url, false, stream_context_create(['http' => ['timeout' => 8, 'user_agent' => 'SemplicePhone-portal']]), 0, $max + 1);
+    return is_string($res) && strlen($res) <= $max ? $res : null;
+}
+
+/** Valore ICS (DTSTART, EXDATE…) → [DateTimeImmutable nel fuso del portale, tutto il giorno?]. */
+function ics_time(string $val, array $params): ?array {
+    $tz = new DateTimeZone(date_default_timezone_get());
+    $val = trim(explode(',', $val)[0]);
+    if (($params['VALUE'] ?? '') === 'DATE' || preg_match('/^\d{8}$/', $val)) {
+        $d = DateTimeImmutable::createFromFormat('!Ymd', substr($val, 0, 8), $tz);
+        return $d ? [$d, true] : null;
+    }
+    if (!preg_match('/^(\d{8}T\d{6})(Z?)$/', $val, $m)) return null;
+    try { $src = $m[2] === 'Z' ? new DateTimeZone('UTC') : (isset($params['TZID']) ? new DateTimeZone(trim($params['TZID'], '"')) : $tz); }
+    catch (Exception $e) { $src = $tz; }
+    $d = DateTimeImmutable::createFromFormat('Ymd\THis', $m[1], $src);
+    return $d ? [$d->setTimezone($tz), false] : null;
+}
+
+/** Eventi del file ICS che iniziano tra $from e $to: [uid, titolo, inizio, tutto il giorno]. Ripetizioni semplici comprese. */
+function ics_events(string $text, DateTimeImmutable $from, DateTimeImmutable $to): array {
+    $lines = preg_split('/\r?\n/', preg_replace('/\r?\n[ \t]/', '', $text));
+    $out = []; $ev = null;
+    foreach ($lines as $line) {
+        if ($line === 'BEGIN:VEVENT') { $ev = ['ex' => []]; continue; }
+        if ($line === 'END:VEVENT') { if ($ev) $out = array_merge($out, ics_expand($ev, $from, $to)); $ev = null; continue; }
+        if ($ev === null || !preg_match('/^([A-Z-]+)((?:;[^:]*)?):(.*)$/', $line, $m)) continue;
+        $params = [];
+        foreach (array_filter(explode(';', $m[2])) as $pp) { [$k, $v] = array_pad(explode('=', $pp, 2), 2, ''); $params[strtoupper($k)] = $v; }
+        $v = $m[3];
+        switch ($m[1]) {
+            case 'UID': $ev['uid'] = $v; break;
+            case 'SUMMARY': $ev['title'] = trim(str_replace(['\\n', '\\N', '\\,', '\;', '\\\\'], [' ', ' ', ',', ';', '\\'], $v)); break;
+            case 'DTSTART': $ev['start'] = ics_time($v, $params); break;
+            case 'RRULE': $ev['rrule'] = $v; break;
+            case 'STATUS': $ev['status'] = strtoupper($v); break;
+            case 'EXDATE': foreach (explode(',', $v) as $x) if ($t = ics_time($x, $params)) $ev['ex'][] = $t[0]->format('Ymd'); break;
+            case 'RECURRENCE-ID': $ev['override'] = true; break;
+        }
+    }
+    return $out;
+}
+
+function ics_expand(array $ev, DateTimeImmutable $from, DateTimeImmutable $to): array {
+    if (empty($ev['start']) || ($ev['status'] ?? '') === 'CANCELLED' || !empty($ev['override'])) return [];
+    [$start, $allDay] = $ev['start'];
+    $title = mb_substr($ev['title'] ?? '', 0, 60) ?: '…';
+    $uid = (string)($ev['uid'] ?? md5($title . $start->format('c')));
+    $one = fn($d) => ['uid' => $uid, 'title' => $title, 'start' => $d, 'allDay' => $allDay];
+    if (empty($ev['rrule'])) return $start >= $from && $start <= $to ? [$one($start)] : [];
+    $r = [];
+    foreach (explode(';', $ev['rrule']) as $pp) { [$k, $v] = array_pad(explode('=', $pp, 2), 2, ''); $r[strtoupper($k)] = $v; }
+    $step = ['DAILY' => 'day', 'WEEKLY' => 'week', 'MONTHLY' => 'month', 'YEARLY' => 'year'][$r['FREQ'] ?? ''] ?? null;
+    if (!$step) return [];
+    $int = max(1, (int)($r['INTERVAL'] ?? 1));
+    $count = isset($r['COUNT']) ? (int)$r['COUNT'] : PHP_INT_MAX;
+    $until = isset($r['UNTIL']) && ($u = ics_time($r['UNTIL'], [])) ? $u[0]->setTime(23, 59, 59) : null;
+    $days = $step === 'week' && !empty($r['BYDAY'])
+        ? array_values(array_filter(array_map(fn($d) => array_search(substr($d, -2), ['MO', 'TU', 'WE', 'TH', 'FR', 'SA', 'SU']), explode(',', $r['BYDAY'])), fn($x) => $x !== false))
+        : null;
+    $out = []; $n = 0;
+    for ($i = 0; $i < 3000 && $n < $count; $i++) {
+        $base = $start->modify('+' . ($i * $int) . " $step");
+        if ($step === 'month' && $base->format('d') !== $start->format('d')) continue;
+        $cands = [$base];
+        if ($days !== null) {
+            $monday = $base->modify('-' . ((int)$base->format('N') - 1) . ' days');
+            $cands = array_map(fn($d) => $monday->modify("+$d days"), $days);
+            sort($cands);
+        }
+        foreach ($cands as $d) {
+            if ($d < $start) continue;
+            if (($until && $d > $until) || $d > $to || $n >= $count) break 2;
+            $n++;
+            if ($d >= $from && !in_array($d->format('Ymd'), $ev['ex'], true)) $out[] = $one($d);
+        }
+    }
+    return $out;
+}
+
+/** Promemoria «cal-…» dagli appuntamenti dei prossimi 14 giorni: prima dell'ora e, se scelto, la sera prima. */
+function calendar_reminders(array $events, int $lead, bool $eve): array {
+    $now = new DateTimeImmutable();
+    $out = [];
+    $add = function (DateTimeImmutable $at, string $title, string $detail, string $key) use (&$out, $now) {
+        if ($at <= $now) return;
+        $out[] = ['id' => 'cal-' . substr(sha1($key), 0, 12), 'time' => $at->format('H:i'), 'date' => $at->format('Y-m-d'), 'days' => [],
+            'title' => $title, 'detail' => $detail, 'icon' => 'calendar', 'snoozeMinutes' => 10, 'repeatMinutes' => 5, 'maxRepeats' => 2, 'enabled' => true];
+    };
+    usort($events, fn($a, $b) => $a['start'] <=> $b['start']);
+    foreach (array_slice($events, 0, 25) as $e) {
+        $k = $e['uid'] . '|' . $e['start']->format('c');
+        if ($e['allDay']) {
+            $add($e['start']->setTime(9, 0), $e['title'], t('cal_today'), "$k|day");
+            if ($eve) $add($e['start']->modify('-1 day')->setTime(20, 0), t('cal_tomorrow', $e['title']), '', "$k|eve");
+        } else {
+            $hm = $e['start']->format('H:i');
+            $add($e['start']->modify("-$lead minutes"), $e['title'], t('cal_at', $hm), "$k|lead");
+            if ($eve) $add($e['start']->modify('-1 day')->setTime(20, 0), t('cal_tomorrow', $e['title']), t('cal_at', $hm), "$k|eve");
+        }
+    }
+    $seen = [];
+    return array_values(array_filter($out, function ($r) use (&$seen) { if (isset($seen[$r['id']])) return false; return $seen[$r['id']] = true; }));
+}
+
+/**
+ * Scarica il calendario del telefono (al massimo ogni 3 ore, o subito con $force) e mette gli
+ * appuntamenti tra i promemoria; pubblica una nuova versione solo se cambiano.
+ */
+function calendar_sync(string $id, bool $force = false): void {
+    $meta = read_json(dev_path($id, 'meta.json'), []);
+    $url = (string)($meta['calendarUrl'] ?? '');
+    $curFile = dev_path($id, 'config.json');
+    if (!is_file($curFile)) return;
+    if ($url === '' && empty($meta['calendarHad'])) return;
+    if (!$force && $url !== '' && time() - (int)($meta['calendarAt'] ?? 0) < 3 * 3600) return;
+    $new = [];
+    if ($url !== '') {
+        $meta['calendarAt'] = time();
+        $text = http_get(preg_replace('#^webcal://#i', 'https://', $url));
+        if ($text === null || strpos($text, 'BEGIN:VCALENDAR') === false) {
+            $meta['calendarError'] = time();
+            write_atomic(dev_path($id, 'meta.json'), json_encode($meta));
+            return;
+        }
+        unset($meta['calendarError']);
+        $events = ics_events($text, new DateTimeImmutable(), new DateTimeImmutable('+14 days'));
+        $new = calendar_reminders($events, (int)($meta['calendarLead'] ?? 60), !empty($meta['calendarEve']));
+        $meta['calendarCount'] = count($events);
+    }
+    $meta['calendarHad'] = $url !== '';
+    write_atomic(dev_path($id, 'meta.json'), json_encode($meta));
+    $cfg = json_decode((string)file_get_contents($curFile), true);
+    if (!is_array($cfg)) return;
+    $old = array_values(array_filter((array)($cfg['reminders'] ?? []), fn($r) => strpos((string)($r['id'] ?? ''), 'cal-') === 0));
+    $key = fn($l) => json_encode(array_map(fn($r) => [$r['id'] ?? '', $r['time'] ?? '', $r['date'] ?? '', $r['title'] ?? '', $r['detail'] ?? ''], $l));
+    if ($key($old) === $key($new)) return;
+    $cfg['reminders'] = array_merge(array_values(array_filter((array)($cfg['reminders'] ?? []), fn($r) => strpos((string)($r['id'] ?? ''), 'cal-') !== 0)), $new);
+    write_atomic($curFile, json_encode($cfg, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+    publish($id, $cfg, null, ['source' => 'calendar', 'changes' => [t('chg_calendar', count($new))]]);
 }
 
 /** Numeri degli ultimi [days] giorni di un telefono, da report ed eventi già ricevuti. */
@@ -719,6 +871,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 write_atomic(dev_path($id, 'meta.json'), json_encode($meta));
                 header('Location: ?edit=' . urlencode($id) . '#family'); exit;
             }
+        } elseif ($act === 'calendar') {
+            $meta = read_json(dev_path($id, 'meta.json'), []);
+            $u = trim((string)($_POST['calendarUrl'] ?? ''));
+            $meta['calendarUrl'] = preg_match('#^(https?|webcal)://\S+$#i', $u) ? mb_substr($u, 0, 1000) : '';
+            $meta['calendarLead'] = in_array((int)($_POST['calendarLead'] ?? 60), [0, 15, 30, 60, 120], true) ? (int)$_POST['calendarLead'] : 60;
+            $meta['calendarEve'] = !empty($_POST['calendarEve']);
+            write_atomic(dev_path($id, 'meta.json'), json_encode($meta));
+            calendar_sync($id, true);
+            header('Location: ?edit=' . urlencode($id) . '#calendar'); exit;
         } elseif ($act === 'ignore') {
             $meta = read_json(dev_path($id, 'meta.json'), []);
             $meta['ignoreOffline'] = empty($meta['ignoreOffline']);
@@ -1062,7 +1223,7 @@ details summary{cursor:pointer;font-weight:600}
   <?php if (!$versions): ?><p class="hint"><?= th('no_publications') ?></p><?php else: ?>
     <table><tr><th><?= th('col_published') ?></th><th></th></tr>
     <?php foreach ($versions as $i => $v): $hv = read_json(DATA . "/history/$edit/$v.json", []); ?>
-      <tr><td><?= h(date('d/m/Y H:i', (int)($hv['at'] ?? 0))) ?><?= $i === 0 ? ' <span class="pill ok">' . th('current') . '</span>' : '' ?><?= !empty($hv['pin']) ? ' <span class="pill mute">' . th('pin_changed') . '</span>' : '' ?><?= ($hv['source'] ?? '') === 'phone' ? ' <span class="pill warn">' . th('from_phone') . '</span>' : '' ?>
+      <tr><td><?= h(date('d/m/Y H:i', (int)($hv['at'] ?? 0))) ?><?= $i === 0 ? ' <span class="pill ok">' . th('current') . '</span>' : '' ?><?= !empty($hv['pin']) ? ' <span class="pill mute">' . th('pin_changed') . '</span>' : '' ?><?= ($hv['source'] ?? '') === 'phone' ? ' <span class="pill warn">' . th('from_phone') . '</span>' : '' ?><?= ($hv['source'] ?? '') === 'calendar' ? ' <span class="pill mute">' . th('from_calendar') . '</span>' : '' ?>
         <?php if (!empty($hv['changes'])): ?><div class="hint"><?= h(implode('; ', (array)$hv['changes'])) ?></div><?php endif; ?></td>
       <td style="text-align:right"><?php if ($i > 0): ?><a class="btn sec" href="?edit=<?= h($edit) ?>&amp;from=<?= (int)$v ?>"><?= th('load_in_editor') ?></a><?php endif; ?></td></tr>
     <?php endforeach; ?></table>
@@ -1099,6 +1260,16 @@ details summary{cursor:pointer;font-weight:600}
   <?php endif; ?>
   </div>
 
+  <details class="card" id="calendar" <?= !empty($meta['calendarUrl']) ? 'open' : '' ?>><summary><?= th('cal_title') ?></summary>
+    <p class="hint"><?= th('cal_hint') ?></p>
+    <form method="post"><input type="hidden" name="csrf" value="<?= h($csrf) ?>"><input type="hidden" name="act" value="calendar"><input type="hidden" name="id" value="<?= h($edit) ?>">
+      <label for="calurl"><?= th('cal_url') ?></label><input id="calurl" type="url" name="calendarUrl" value="<?= h($meta['calendarUrl'] ?? '') ?>" placeholder="https://calendar.google.com/calendar/ical/…/basic.ics">
+      <div class="row"><div><label for="callead"><?= th('cal_lead') ?></label><select id="callead" name="calendarLead">
+        <?php foreach ([0, 15, 30, 60, 120] as $n): ?><option value="<?= $n ?>" <?= (int)($meta['calendarLead'] ?? 60) === $n ? 'selected' : '' ?>><?= $n ? th('cal_lead_n', $n) : th('cal_lead_0') ?></option><?php endforeach; ?></select></div></div>
+      <label style="font-weight:400"><input type="checkbox" name="calendarEve" <?= !empty($meta['calendarEve']) ? 'checked' : '' ?>> <?= th('cal_eve') ?></label>
+      <p><button><?= th('cal_save') ?></button></p></form>
+    <?php if (!empty($meta['calendarUrl'])): ?><p class="hint"><?= !empty($meta['calendarError']) ? '<span class="pill bad">' . th('cal_error') . '</span>' : th('cal_status', (int)($meta['calendarCount'] ?? 0), ago(isset($meta['calendarAt']) ? (int)$meta['calendarAt'] : null)) ?></p><?php endif; ?>
+  </details>
   <details class="card"><summary><?= th('reinstalled') ?></summary>
     <p><?= th('reinstalled_text') ?></p>
     <form method="post"><input type="hidden" name="csrf" value="<?= h($csrf) ?>"><input type="hidden" name="act" value="forget"><input type="hidden" name="id" value="<?= h($edit) ?>">

@@ -497,5 +497,20 @@
  "theme_normal": "Normal",
  "theme_contrast": "Contraste élevé",
  "theme_night": "Sombre le soir (21 h–7 h)",
- "old_app_warn_0140": "Le téléphone a l'appli {0} : messages non lus, radio, photos des proches, nuit tranquille, « mettez en charge », ouverture en maintenant et thèmes nécessitent la version 0.14.0 ou ultérieure."
+ "old_app_warn_0140": "Le téléphone a l'appli {0} : messages non lus, radio, photos des proches, nuit tranquille, « mettez en charge », ouverture en maintenant et thèmes nécessitent la version 0.14.0 ou ultérieure.",
+ "cal_title": "📅 Calendrier familial",
+ "cal_hint": "Colle l'adresse secrète iCal du calendrier (Google Agenda : paramètres de l'agenda → « Adresse secrète au format iCal » ; Outlook et iCloud en fournissent aussi une). Les rendez-vous des 14 prochains jours deviennent des rappels sur le téléphone et se mettent à jour seuls toutes les 3 heures. Ne les modifie pas dans l'éditeur : ils sont recréés depuis le calendrier.",
+ "cal_url": "Adresse iCal (.ics)",
+ "cal_lead": "Rappel avant le rendez-vous",
+ "cal_lead_0": "À l'heure du rendez-vous",
+ "cal_lead_n": "{0} minutes avant",
+ "cal_eve": "Rappeler aussi la veille à 20 h",
+ "cal_save": "Enregistrer et mettre à jour",
+ "cal_error": "Calendrier injoignable : vérifie l'adresse",
+ "cal_status": "{0} rendez-vous dans les 14 prochains jours · lu {1}",
+ "cal_today": "Aujourd'hui",
+ "cal_tomorrow": "Demain : {0}",
+ "cal_at": "à {0}",
+ "chg_calendar": "rendez-vous du calendrier : {0} rappels",
+ "from_calendar": "du calendrier"
 }

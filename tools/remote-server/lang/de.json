@@ -497,5 +497,20 @@
  "theme_normal": "Normal",
  "theme_contrast": "Hoher Kontrast",
  "theme_night": "Abends dunkel (21–7 Uhr)",
- "old_app_warn_0140": "Das Telefon hat App {0}: ungelesene Nachrichten, Radio, Familienfotos, ruhige Nacht, „Telefon laden“, Öffnen durch Halten und Designs erfordern Version 0.14.0 oder neuer."
+ "old_app_warn_0140": "Das Telefon hat App {0}: ungelesene Nachrichten, Radio, Familienfotos, ruhige Nacht, „Telefon laden“, Öffnen durch Halten und Designs erfordern Version 0.14.0 oder neuer.",
+ "cal_title": "📅 Familienkalender",
+ "cal_hint": "Füge die geheime iCal-Adresse des Kalenders ein (Google Kalender: Kalendereinstellungen → „Privatadresse im iCal-Format“; auch Outlook und iCloud bieten sie). Termine der nächsten 14 Tage werden Erinnerungen auf dem Telefon und aktualisieren sich alle 3 Stunden. Nicht im Editor ändern: sie werden aus dem Kalender neu erstellt.",
+ "cal_url": "iCal-Adresse (.ics)",
+ "cal_lead": "Hinweis vor dem Termin",
+ "cal_lead_0": "Zur Uhrzeit des Termins",
+ "cal_lead_n": "{0} Minuten vorher",
+ "cal_eve": "Auch am Vorabend um 20 Uhr erinnern",
+ "cal_save": "Speichern und jetzt aktualisieren",
+ "cal_error": "Kalender nicht erreichbar: Adresse prüfen",
+ "cal_status": "{0} Termine in den nächsten 14 Tagen · gelesen {1}",
+ "cal_today": "Heute",
+ "cal_tomorrow": "Morgen: {0}",
+ "cal_at": "um {0}",
+ "chg_calendar": "Kalendertermine: {0} Erinnerungen",
+ "from_calendar": "aus dem Kalender"
 }

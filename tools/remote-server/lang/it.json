@@ -497,5 +497,20 @@
  "theme_normal": "Normale",
  "theme_contrast": "Alto contrasto",
  "theme_night": "Scuro la sera (21–7)",
- "old_app_warn_0140": "Il telefono ha l'app {0}: messaggi da leggere, radio, foto dei familiari, notte tranquilla, «metti in carica», apertura tenendo premuto e temi richiedono la versione 0.14.0 o successiva."
+ "old_app_warn_0140": "Il telefono ha l'app {0}: messaggi da leggere, radio, foto dei familiari, notte tranquilla, «metti in carica», apertura tenendo premuto e temi richiedono la versione 0.14.0 o successiva.",
+ "cal_title": "📅 Calendario di famiglia",
+ "cal_hint": "Incolla l'indirizzo segreto iCal del calendario (Google Calendar: Impostazioni del calendario → «Indirizzo segreto in formato iCal»; anche Outlook e iCloud lo danno). Gli appuntamenti dei prossimi 14 giorni diventano promemoria sul telefono e si aggiornano da soli ogni 3 ore. Non modificarli nell'editor: vengono ricreati dal calendario.",
+ "cal_url": "Indirizzo iCal (.ics)",
+ "cal_lead": "Avviso prima dell'appuntamento",
+ "cal_lead_0": "All'ora dell'appuntamento",
+ "cal_lead_n": "{0} minuti prima",
+ "cal_eve": "Avvisa anche la sera prima alle 20",
+ "cal_save": "Salva e aggiorna ora",
+ "cal_error": "Calendario non raggiungibile: controlla l'indirizzo",
+ "cal_status": "{0} appuntamenti nei prossimi 14 giorni · letto {1}",
+ "cal_today": "Oggi",
+ "cal_tomorrow": "Domani: {0}",
+ "cal_at": "alle {0}",
+ "chg_calendar": "appuntamenti dal calendario: {0} promemoria",
+ "from_calendar": "dal calendario"
 }
