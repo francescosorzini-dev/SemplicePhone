@@ -1560,7 +1560,7 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
         field(T('upload_photos'), fileInput(true, refs => { t.photos = [...new Set(t.photos.concat(refs))]; changed(); render(); })));
     }
     if (t.type === 'search') parts.push(el('p', {class: 'hint'}, T('search_hint')));
-    if (t.type === 'messages') parts.push(el('p', {class: 'hint'}, T(FORM.dataset.edition === 'completo' ? 'messages_hint' : 'messages_hint_basic')));
+    if (t.type === 'messages') parts.push(el('p', {class: 'hint'}, T(FORM.dataset.edition === 'play' ? 'messages_hint_basic' : 'messages_hint') + (FORM.dataset.edition === 'standard' ? ' ' + T('restricted_hint') : '')));
     if (t.type === 'radio') {
       t.stations = t.stations || [];
       parts.push(el('p', {class: 'hint'}, T('radio_hint')));
@@ -1747,9 +1747,9 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
       field(T('battery_alert'), select(Object.assign({0: T('never_cap')}, ...[10, 15, 20, 25, 30].map(n => ({[n]: T('below_pct', n)}))), String(p.batteryAlertPercent), v => set('batteryAlertPercent', +v)),
         T('battery_alert_hint')),
       ...(['standard', 'play'].includes(document.getElementById('pubform').dataset.edition)
-        ? [el('p', {class: 'msg warn'}, T('edition_warn', T(document.getElementById('pubform').dataset.edition === 'play' ? 'edition_play' : 'edition_standard')))]
+        ? [el('p', {class: 'msg warn'}, document.getElementById('pubform').dataset.edition === 'play' ? T('edition_warn', T('edition_play')) : T('edition_warn_standard'))]
         : []),
-      check('badges', T('badges'), T('badges_hint')),
+      check('badges', T('badges'), T('badges_hint') + (document.getElementById('pubform').dataset.edition === 'standard' ? ' ' + T('restricted_hint') : '')),
       check('smsUpdateCommand', T('sms_command'), T('sms_command_hint')));
   }
 

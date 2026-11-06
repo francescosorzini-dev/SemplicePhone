@@ -1,0 +1,1 @@
+- „Ungelesene Nachrichten“ und Zähler auch in der Standardversion (ab Android 13 „eingeschränkte Einstellungen“ zulassen, die App erklärt wie)

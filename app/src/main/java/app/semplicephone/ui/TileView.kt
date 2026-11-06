@@ -669,7 +669,7 @@ private fun missedWhen(m: app.semplicephone.data.Missed): String {
 @Composable
 private fun MessagesTile(tile: Tile, sos: SosConfig, launcher: TileLauncher, modifier: Modifier) {
     val context = LocalContext.current
-    val readable = app.semplicephone.BuildConfig.FULL && app.semplicephone.phone.Badges.isEnabled(context)
+    val readable = app.semplicephone.BuildConfig.NOTIFICATIONS && app.semplicephone.phone.Badges.isEnabled(context)
     val messages by app.semplicephone.phone.Badges.messages.collectAsState()
     val bg = parseColor(tile.color)
     val fg = contentColorFor(bg)

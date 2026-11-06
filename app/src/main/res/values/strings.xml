@@ -321,7 +321,7 @@
     <string name="messages_spoken_count">Messages to read: %1$d</string>
     <string name="messages_spoken_one">%1$s, on %2$s: %3$s</string>
     <string name="tile_messages_hint">Shows messages received and not read yet (SMS, WhatsApp, Telegram…): one tap opens that conversation, a long press reads it aloud. Notification access is needed.</string>
-    <string name="tile_messages_hint_basic">In this edition the tile opens the Messages app. The list of messages to read is in the Full edition.</string>
+    <string name="tile_messages_hint_basic">In the Google Play version the tile opens the Messages app. The list of messages to read is in the Standard and Full editions.</string>
     <string name="tile_own_photo">Family member photo (optional)</string>
     <string name="prot_no_lock">No lock screen</string>
     <string name="prot_no_lock_detail">Turning the screen on goes straight to Home. Works only if the phone has no PIN, pattern or password.</string>
@@ -371,6 +371,7 @@
     <string name="tile_radio_url">Stream address</string>
     <string name="tile_radio_remove">Remove this station</string>
     <string name="tile_radio_add">+ Add station</string>
+    <string name="special_badges_restricted">If the switch is greyed out: Settings › Apps › SemplicePhone › ⋮ menu at the top › \"Allow restricted settings\", then come back here.</string>
     <string name="color_blue">Blue</string>
     <string name="color_green">Green</string>
     <string name="color_purple">Purple</string>
@@ -433,7 +434,7 @@
     <string name="phone_sms_command_detail">A family member among the SOS numbers can send the SMS \"%1$s\" to apply a configuration published on the portal right away.</string>
     <string name="phone_full_only">Full edition only</string>
     <string name="phone_full_only_play">Unread message badges, the \"%1$s\" SMS command and automatic SMS are not in the Google Play version. They are in the full edition (F-Droid or project website).</string>
-    <string name="phone_full_only_standard">Unread message badges, the \"%1$s\" SMS command and automatic updates need permissions that Android blocks for apps downloaded from the browser. They are in the full edition, installed with ADB (see the guide on the project website).</string>
+    <string name="phone_full_only_standard">The \"%1$s\" SMS command and automatic updates need permissions that Android blocks for apps downloaded from the browser. They are in the full edition, installed with ADB (see the guide on the project website).</string>
     <string name="sms_keyword">#UPDATE</string>
     <string name="sos_editor_sms">The first number is called. Everyone receives an SMS with the location.</string>
     <string name="sos_editor_compose">The first number is called. Then the screen shows \"SEND LOCATION\", which opens Messages ready for all numbers.</string>

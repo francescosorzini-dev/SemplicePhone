@@ -476,7 +476,7 @@
  "def_messages_unread": "Nouveaux messages",
  "def_radio": "Radio",
  "messages_hint": "Affiche les messages non lus (SMS, WhatsApp, Telegram…) : un appui ouvre la conversation, un appui long la lit à voix haute. Il faut accorder l'accès aux notifications sur le téléphone. Les textes restent sur le téléphone.",
- "messages_hint_basic": "Avec l'édition Standard ou Google Play, la tuile ouvre l'appli Messages ; la liste des messages non lus n'existe que dans l'édition complète.",
+ "messages_hint_basic": "Avec la version Google Play, la tuile ouvre l'appli Messages ; la liste des messages non lus est dans les éditions Standard et Complète.",
  "radio_hint": "Une ou plusieurs stations : nom et adresse du flux (sur le site de la radio ; elle finit souvent par .mp3, .aac ou .m3u8). Sur le téléphone : gros boutons Écouter/Arrêter, station suivante, volume.",
  "radio_name": "Nom de la station",
  "radio_url": "Adresse du flux",
@@ -512,5 +512,7 @@
  "cal_at": "à {0}",
  "chg_calendar": "rendez-vous du calendrier : {0} rappels",
  "from_calendar": "du calendrier",
- "type_messages": "💬 Messages non lus"
+ "type_messages": "💬 Messages non lus",
+ "edition_warn_standard": "Ce téléphone a l'édition standard : la commande SMS « #ACTUALISER » et la mise à jour silencieuse ne fonctionnent qu'avec l'édition complète.",
+ "restricted_hint": "Avec l'édition standard sur Android 13 ou ultérieur, si l'interrupteur d'accès aux notifications est grisé : Paramètres › Applis › SemplicePhone › menu ⋮ › « Autoriser les paramètres restreints »."
 }

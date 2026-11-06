@@ -246,7 +246,7 @@ fun TileEditor(
                         modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
                     ) { Text(stringResource(R.string.tile_radio_add)) }
                 }
-                TileType.MESSAGES -> Hint(stringResource(if (app.semplicephone.BuildConfig.FULL) R.string.tile_messages_hint else R.string.tile_messages_hint_basic))
+                TileType.MESSAGES -> Hint(stringResource(if (app.semplicephone.BuildConfig.NOTIFICATIONS) R.string.tile_messages_hint else R.string.tile_messages_hint_basic))
                 TileType.UNKNOWN -> Hint(stringResource(R.string.tile_unknown_hint))
                 TileType.SOS -> Hint(stringResource(R.string.tile_sos_hint))
             }

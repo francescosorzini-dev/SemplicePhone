@@ -476,7 +476,7 @@
  "def_messages_unread": "New messages",
  "def_radio": "Radio",
  "messages_hint": "Shows unread messages (SMS, WhatsApp, Telegram…): a tap opens the conversation, a long press reads it aloud. Notification access must be granted on the phone. Texts stay on the phone.",
- "messages_hint_basic": "With the Standard or Google Play edition the tile opens the Messages app; the list of unread messages is only in the Full edition.",
+ "messages_hint_basic": "With the Google Play version the tile opens the Messages app; the list of unread messages is in the Standard and Full editions.",
  "radio_hint": "One or more stations: name and stream address (on the station's website; it often ends with .mp3, .aac or .m3u8). On the phone: big Play/Stop buttons, next station, volume.",
  "radio_name": "Station name",
  "radio_url": "Stream address",
@@ -512,5 +512,7 @@
  "cal_at": "at {0}",
  "chg_calendar": "calendar appointments: {0} reminders",
  "from_calendar": "from the calendar",
- "type_messages": "💬 Unread messages"
+ "type_messages": "💬 Unread messages",
+ "edition_warn_standard": "This phone has the standard edition: the \"#UPDATE\" SMS command and silent updates only work with the full edition.",
+ "restricted_hint": "With the standard edition on Android 13 or later, if the notification access switch is greyed out: Settings › Apps › SemplicePhone › ⋮ menu › \"Allow restricted settings\"."
 }

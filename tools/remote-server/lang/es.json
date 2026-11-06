@@ -476,7 +476,7 @@
  "def_messages_unread": "Mensajes nuevos",
  "def_radio": "Radio",
  "messages_hint": "Muestra los mensajes sin leer (SMS, WhatsApp, Telegram…): un toque abre la conversación, una pulsación larga lo lee en voz alta. Hay que conceder el acceso a las notificaciones en el teléfono. Los textos se quedan en el teléfono.",
- "messages_hint_basic": "Con la edición Estándar o Google Play el mosaico abre la app Mensajes; la lista de mensajes sin leer solo está en la edición completa.",
+ "messages_hint_basic": "Con la versión de Google Play el mosaico abre la app Mensajes; la lista de mensajes sin leer está en las ediciones Estándar y Completa.",
  "radio_hint": "Una o varias emisoras: nombre y dirección del stream (en la web de la emisora; suele terminar en .mp3, .aac o .m3u8). En el teléfono: botones grandes Escuchar/Parar, siguiente emisora, volumen.",
  "radio_name": "Nombre de la emisora",
  "radio_url": "Dirección del stream",
@@ -512,5 +512,7 @@
  "cal_at": "a las {0}",
  "chg_calendar": "citas del calendario: {0} recordatorios",
  "from_calendar": "del calendario",
- "type_messages": "💬 Mensajes sin leer"
+ "type_messages": "💬 Mensajes sin leer",
+ "edition_warn_standard": "Este teléfono tiene la edición estándar: el comando SMS «#ACTUALIZAR» y la actualización silenciosa solo funcionan con la edición completa.",
+ "restricted_hint": "Con la edición estándar en Android 13 o posterior, si el interruptor de acceso a las notificaciones está en gris: Ajustes › Aplicaciones › SemplicePhone › menú ⋮ › «Permitir ajustes restringidos»."
 }

@@ -194,13 +194,12 @@ fun PhoneEditor(
                 fontSize = 15.sp, color = Color(0xFF4A4A4A),
             )
 
+            if (BuildConfig.NOTIFICATIONS) Toggle(
+                stringResource(R.string.phone_badges),
+                stringResource(R.string.phone_badges_detail),
+                p.badges,
+            ) { p = p.copy(badges = it) }
             if (BuildConfig.FULL) {
-                Toggle(
-                    stringResource(R.string.phone_badges),
-                    stringResource(R.string.phone_badges_detail),
-                    p.badges,
-                ) { p = p.copy(badges = it) }
-
                 Toggle(
                     stringResource(R.string.phone_sms_command, keyword),
                     stringResource(R.string.phone_sms_command_detail, keyword),

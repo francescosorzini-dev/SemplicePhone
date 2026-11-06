@@ -320,7 +320,7 @@
     <string name="messages_spoken_count">Mensajes por leer: %1$d</string>
     <string name="messages_spoken_one">%1$s, en %2$s: %3$s</string>
     <string name="tile_messages_hint">Muestra los mensajes recibidos y aún no leídos (SMS, WhatsApp, Telegram…): un toque abre esa conversación, una pulsación larga lo lee en voz alta. Hace falta el acceso a las notificaciones.</string>
-    <string name="tile_messages_hint_basic">En esta edición el mosaico abre la app Mensajes. La lista de mensajes por leer está en la edición completa.</string>
+    <string name="tile_messages_hint_basic">En la versión de Google Play el mosaico abre la app Mensajes. La lista de mensajes por leer está en las ediciones Estándar y Completa.</string>
     <string name="tile_own_photo">Foto del familiar (opcional)</string>
     <string name="prot_no_lock">Sin pantalla de bloqueo</string>
     <string name="prot_no_lock_detail">Al encender la pantalla se llega directamente al inicio. Solo funciona si el teléfono no tiene PIN, patrón ni contraseña.</string>
@@ -370,6 +370,7 @@
     <string name="tile_radio_url">Dirección del stream</string>
     <string name="tile_radio_remove">Quitar esta emisora</string>
     <string name="tile_radio_add">+ Añadir emisora</string>
+    <string name="special_badges_restricted">Si el interruptor está en gris: Ajustes › Aplicaciones › SemplicePhone › menú ⋮ arriba › «Permitir ajustes restringidos», y vuelva aquí.</string>
     <string name="color_blue">Azul</string>
     <string name="color_green">Verde</string>
     <string name="color_purple">Morado</string>
@@ -432,7 +433,7 @@
     <string name="phone_sms_command_detail">Un familiar entre los números SOS puede enviar el SMS «%1$s» para aplicar al momento una configuración publicada en el portal.</string>
     <string name="phone_full_only">Solo en la edición completa</string>
     <string name="phone_full_only_play">Los contadores de mensajes sin leer, el comando SMS «%1$s» y los SMS automáticos no están en la versión de Google Play. Están en la edición completa (F-Droid o web del proyecto).</string>
-    <string name="phone_full_only_standard">Los contadores de mensajes sin leer, el comando SMS «%1$s» y la actualización automática necesitan permisos que Android bloquea en las apps descargadas desde el navegador. Están en la edición completa, que se instala con ADB (consulta la guía en la web del proyecto).</string>
+    <string name="phone_full_only_standard">El comando SMS «%1$s» y la actualización automática necesitan permisos que Android bloquea en las apps descargadas desde el navegador. Están en la edición completa, que se instala con ADB (ver la guía en la web del proyecto).</string>
     <string name="sms_keyword">#ACTUALIZAR</string>
     <string name="sos_editor_sms">Se llama al primer número. Todos reciben un SMS con la ubicación.</string>
     <string name="sos_editor_compose">Se llama al primer número. Después la pantalla muestra «ENVIAR UBICACIÓN», que abre Mensajes listo para todos los números.</string>

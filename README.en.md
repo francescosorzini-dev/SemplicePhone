@@ -40,7 +40,7 @@ and a web page where the family sets everything up from afar. Free, no ads, free
   Automatic speakerphone, the phone says who is calling and, if a family member calls and nobody
   answers, it answers by itself on speakerphone (for someone who has fallen or cannot find the phone).
 - **Messages from the family** full screen and read aloud, until someone taps "GOT IT".
-- **Unread messages.** A tile lists unread SMS and WhatsApp messages (Full edition): a tap opens the
+- **Unread messages.** A tile lists unread SMS and WhatsApp messages: a tap opens the
   conversation, a long press reads it aloud.
 - **Radio.** A tile with favourite stations: huge PLAY/STOP buttons, next station, volume.
 - **Quiet night.** At night the phone does not ring, except for SOS numbers. In the evening, if the
@@ -87,13 +87,15 @@ Settings can also be changed on the phone: tap the clock 5 times and enter the P
 | Edition | Download | Install |
 |---|---|---|
 | **Standard** | [SemplicePhone.apk](../../releases/latest/download/SemplicePhone.apk) | from the phone's browser |
-| **Full** (unread badges, `#UPDATE` SMS command, silent updates) | [SemplicePhone-completo.apk](../../releases/latest/download/SemplicePhone-completo.apk) | with ADB |
+| **Full** (adds the `#UPDATE` SMS command and silent updates) | [SemplicePhone-completo.apk](../../releases/latest/download/SemplicePhone-completo.apk) | with ADB |
 
 1. Open the APK link on the phone and allow the browser to install apps.
 2. If Play Protect says *"Harmful app blocked"*, it is a false positive caused by the SOS
    permissions (SMS, location, calls): choose *Install anyway*. The source code is right here.
 3. Open SemplicePhone and make it the Home app.
-4. Tap the clock **5 times**, choose a PIN, set up tiles, SOS numbers and reminders, then **Save**.
+4. For unread messages and badges on Android 13+: Settings › Apps › SemplicePhone › ⋮ menu ›
+   *Allow restricted settings*, then grant notification access.
+5. Tap the clock **5 times**, choose a PIN, set up tiles, SOS numbers and reminders, then **Save**.
 
 If Android says *"For your security, this setting is currently unavailable"*, open App info › ⋮ ›
 *Allow restricted settings*, or run `adb shell appops set app.semplicephone ACCESS_RESTRICTED_SETTINGS allow`.

@@ -1,0 +1,1 @@
+- « Messages non lus » et pastilles aussi dans l'édition Standard (sur Android 13+, autoriser les « paramètres restreints », l'appli explique comment)

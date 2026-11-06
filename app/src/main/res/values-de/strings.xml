@@ -320,7 +320,7 @@
     <string name="messages_spoken_count">Zu lesende Nachrichten: %1$d</string>
     <string name="messages_spoken_one">%1$s, über %2$s: %3$s</string>
     <string name="tile_messages_hint">Zeigt eingegangene, noch ungelesene Nachrichten (SMS, WhatsApp, Telegram…): ein Tipp öffnet die Unterhaltung, langes Drücken liest sie vor. Benachrichtigungszugriff ist nötig.</string>
-    <string name="tile_messages_hint_basic">In dieser Ausgabe öffnet die Kachel die Nachrichten-App. Die Liste der ungelesenen Nachrichten gibt es in der Vollversion.</string>
+    <string name="tile_messages_hint_basic">In der Google-Play-Version öffnet die Kachel die Nachrichten-App. Die Liste ungelesener Nachrichten gibt es in der Standard- und der Vollversion.</string>
     <string name="tile_own_photo">Foto des Familienmitglieds (optional)</string>
     <string name="prot_no_lock">Kein Sperrbildschirm</string>
     <string name="prot_no_lock_detail">Beim Einschalten erscheint sofort der Startbildschirm. Funktioniert nur ohne PIN, Muster oder Passwort.</string>
@@ -370,6 +370,7 @@
     <string name="tile_radio_url">Stream-Adresse</string>
     <string name="tile_radio_remove">Diesen Sender entfernen</string>
     <string name="tile_radio_add">+ Sender hinzufügen</string>
+    <string name="special_badges_restricted">Wenn der Schalter grau ist: Einstellungen › Apps › SemplicePhone › Menü ⋮ oben › „Eingeschränkte Einstellungen zulassen“, dann hierher zurück.</string>
     <string name="color_blue">Blau</string>
     <string name="color_green">Grün</string>
     <string name="color_purple">Violett</string>
@@ -432,7 +433,7 @@
     <string name="phone_sms_command_detail">Ein Familienmitglied unter den SOS-Nummern kann die SMS „%1$s“ senden, damit eine im Portal veröffentlichte Konfiguration sofort übernommen wird.</string>
     <string name="phone_full_only">Nur in der Vollversion</string>
     <string name="phone_full_only_play">Zähler für ungelesene Nachrichten, der SMS-Befehl „%1$s“ und automatische SMS fehlen in der Google-Play-Version. Sie sind in der Vollversion (F-Droid oder Projektseite).</string>
-    <string name="phone_full_only_standard">Zähler für ungelesene Nachrichten, der SMS-Befehl „%1$s“ und automatische Updates brauchen Berechtigungen, die Android bei aus dem Browser geladenen Apps sperrt. Sie sind in der Vollversion, die per ADB installiert wird (siehe Anleitung auf der Projektseite).</string>
+    <string name="phone_full_only_standard">Der SMS-Befehl „%1$s“ und automatische Updates brauchen Berechtigungen, die Android bei aus dem Browser geladenen Apps sperrt. Sie sind in der Vollversion, die per ADB installiert wird (siehe Anleitung auf der Projektseite).</string>
     <string name="sms_keyword">#AKTUALISIEREN</string>
     <string name="sos_editor_sms">Die erste Nummer wird angerufen. Alle erhalten eine SMS mit dem Standort.</string>
     <string name="sos_editor_compose">Die erste Nummer wird angerufen. Danach zeigt der Bildschirm „STANDORT SENDEN“, das Nachrichten fertig für alle Nummern öffnet.</string>

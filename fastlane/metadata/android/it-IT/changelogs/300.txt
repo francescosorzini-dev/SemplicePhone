@@ -1,0 +1,1 @@
+- «Messaggi da leggere» e pallini dei non letti anche nell'edizione Standard (su Android 13+ va consentito «Impostazioni con restrizioni», l'app spiega come)

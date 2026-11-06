@@ -41,7 +41,7 @@ e una pagina web da cui la famiglia sistema tutto da lontano. Gratis, senza pubb
   rubrica e familiari. Vivavoce automatico, il telefono dice chi chiama e, se chiama un familiare e
   nessuno risponde, risponde da solo in vivavoce (per chi è caduto o non trova il telefono).
 - **Messaggi dalla famiglia** a tutto schermo e letti ad alta voce, finché non si tocca «HO LETTO».
-- **Messaggi da leggere.** Un riquadro elenca SMS e WhatsApp non letti (edizione completa): un tocco
+- **Messaggi da leggere.** Un riquadro elenca SMS e WhatsApp non letti: un tocco
   apre la conversazione, una pressione lunga la legge ad alta voce.
 - **Radio.** Un riquadro con le stazioni preferite: ASCOLTA/FERMA enormi, stazione dopo, volume.
 - **Notte tranquilla.** Di notte il telefono non squilla, tranne per i numeri SOS. La sera, se la
@@ -92,11 +92,14 @@ Le impostazioni si possono cambiare anche sul telefono: 5 tocchi sull'orologio e
 | Download | [SemplicePhone.apk](../../releases/latest/download/SemplicePhone.apk) | [SemplicePhone-completo.apk](../../releases/latest/download/SemplicePhone-completo.apk) |
 | Si installa | dal browser del telefono | con ADB da computer |
 | Home, SOS, promemoria, suoneria, batteria, remoto | ✅ | ✅ |
-| Pallini con messaggi non letti | — | ✅ |
+| Pallini dei non letti, riquadro «Messaggi da leggere» | ✅ ¹ | ✅ |
 | Comando SMS «#AGGIORNA» | — | ✅ |
 | Aggiornamento automatico (silenzioso con Device Owner) | scarica dal browser | ✅ |
 
-La Completa usa tre permessi (ricezione SMS, lettura notifiche, installazione di APK) che
+¹ Su Android 13 e successivi l'accesso alle notifiche di un'app scaricata dal browser va sbloccato
+una volta: Impostazioni › App › SemplicePhone › menu ⋮ › «Consenti impostazioni con restrizioni».
+
+La Completa usa in più la ricezione SMS e l'installazione di APK, che
 Google Play Protect blocca sulle app scaricate da internet. Per questo si installa con ADB.
 Le due edizioni sono firmate con la stessa chiave: si passa dall'una all'altra installando
 sopra, senza perdere le impostazioni.
