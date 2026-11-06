@@ -24,8 +24,8 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
-      - name: APK di debug (edizione standard)
-        run: ./gradlew --no-daemon assembleStandardDebug
+      - name: APK di debug (edizione completa)
+        run: ./gradlew --no-daemon assembleCompletoDebug
 
       - name: KVM
         run: |
@@ -42,7 +42,7 @@ jobs:
           profile: pixel_6
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
-          script: tools/screenshots/smoke.sh "$PWD/app/build/outputs/apk/standard/debug/app-standard-debug.apk" "$PWD/shots"
+          script: tools/screenshots/smoke.sh "$PWD/app/build/outputs/apk/completo/debug/app-completo-debug.apk" "$PWD/shots"
 
       # Ramo «smoke» (sovrascritto a ogni esecuzione).
       - name: Pubblica sul ramo screenshots

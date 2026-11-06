@@ -28,7 +28,7 @@ const MAX_REPORT = 262144;
 const HISTORY_KEEP = 30;
 const SOURCE_URL = 'https://github.com/francescosorzini-dev/SemplicePhone';
 const VERSION = '0.5.1'; // aggiornata in automatico nelle release
-const TILE_TYPES = ['app', 'call', 'wa_video', 'sms', 'url', 'shortcut', 'clock', 'sos', 'weather', 'photos', 'missed_calls', 'search'];
+const TILE_TYPES = ['app', 'call', 'wa_video', 'sms', 'url', 'shortcut', 'clock', 'sos', 'weather', 'photos', 'missed_calls', 'search', 'messages', 'radio'];
 const MEDIA_MAX = 8 * 1024 * 1024;
 // Versione dell'app che conosce meteo, foto e promemoria in una data: le precedenti li ignorano o scartano.
 const APP_FEATURES_090 = '0.9.0';
@@ -104,6 +104,8 @@ function settings(): array {
         'offlineHours' => 24,
         // Riepilogo settimanale il lunedì mattina (stessi canali degli avvisi).
         'weeklySummary' => true,
+        // Fuso orario per date e ore del portale (il server spesso è in UTC).
+        'timezone' => 'Europe/Rome',
         // Lingua degli avvisi: quella con cui l'amministratore usa il pannello.
         'lang' => 'it',
     ], read_json(DATA . '/settings.json', []));
@@ -219,7 +221,159 @@ function run_checks(bool $force = false): void {
             send_alert(ev_title('offline'), $text, $id);
         }
         if ($sendWeekly && $seen) send_alert(t('weekly_title'), implode("\n", weekly_lines($id)), $id);
+        calendar_sync($id);
     }
+}
+
+// ---------------------------------------------------------------- calendario di famiglia (ICS)
+function http_get(string $url, int $max = 2097152): ?string {
+    if (function_exists('curl_init')) {
+        $c = curl_init($url);
+        curl_setopt_array($c, [CURLOPT_RETURNTRANSFER => true, CURLOPT_FOLLOWLOCATION => true, CURLOPT_MAXREDIRS => 3, CURLOPT_TIMEOUT => 8,
+            CURLOPT_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS, CURLOPT_USERAGENT => 'SemplicePhone-portal']);
+        $res = curl_exec($c); $code = (int)curl_getinfo($c, CURLINFO_HTTP_CODE); curl_close($c);
+        return is_string($res) && $code >= 200 && $code < 300 && strlen($res) <= $max ? $res : null;
+    }
+    $res = @file_get_contents($url, false, stream_context_create(['http' => ['timeout' => 8, 'user_agent' => 'SemplicePhone-portal']]), 0, $max + 1);
+    return is_string($res) && strlen($res) <= $max ? $res : null;
+}
+
+/** Valore ICS (DTSTART, EXDATE…) → [DateTimeImmutable nel fuso del portale, tutto il giorno?]. */
+function ics_time(string $val, array $params): ?array {
+    $tz = new DateTimeZone(date_default_timezone_get());
+    $val = trim(explode(',', $val)[0]);
+    if (($params['VALUE'] ?? '') === 'DATE' || preg_match('/^\d{8}$/', $val)) {
+        $d = DateTimeImmutable::createFromFormat('!Ymd', substr($val, 0, 8), $tz);
+        return $d ? [$d, true] : null;
+    }
+    if (!preg_match('/^(\d{8}T\d{6})(Z?)$/', $val, $m)) return null;
+    try { $src = $m[2] === 'Z' ? new DateTimeZone('UTC') : (isset($params['TZID']) ? new DateTimeZone(trim($params['TZID'], '"')) : $tz); }
+    catch (Exception $e) { $src = $tz; }
+    $d = DateTimeImmutable::createFromFormat('Ymd\THis', $m[1], $src);
+    return $d ? [$d->setTimezone($tz), false] : null;
+}
+
+/** Eventi del file ICS che iniziano tra $from e $to: [uid, titolo, inizio, tutto il giorno]. Ripetizioni semplici comprese. */
+function ics_events(string $text, DateTimeImmutable $from, DateTimeImmutable $to): array {
+    $lines = preg_split('/\r?\n/', preg_replace('/\r?\n[ \t]/', '', $text));
+    $out = []; $ev = null;
+    foreach ($lines as $line) {
+        if ($line === 'BEGIN:VEVENT') { $ev = ['ex' => []]; continue; }
+        if ($line === 'END:VEVENT') { if ($ev) $out = array_merge($out, ics_expand($ev, $from, $to)); $ev = null; continue; }
+        if ($ev === null || !preg_match('/^([A-Z-]+)((?:;[^:]*)?):(.*)$/', $line, $m)) continue;
+        $params = [];
+        foreach (array_filter(explode(';', $m[2])) as $pp) { [$k, $v] = array_pad(explode('=', $pp, 2), 2, ''); $params[strtoupper($k)] = $v; }
+        $v = $m[3];
+        switch ($m[1]) {
+            case 'UID': $ev['uid'] = $v; break;
+            case 'SUMMARY': $ev['title'] = trim(str_replace(['\\n', '\\N', '\\,', '\;', '\\\\'], [' ', ' ', ',', ';', '\\'], $v)); break;
+            case 'DTSTART': $ev['start'] = ics_time($v, $params); break;
+            case 'RRULE': $ev['rrule'] = $v; break;
+            case 'STATUS': $ev['status'] = strtoupper($v); break;
+            case 'EXDATE': foreach (explode(',', $v) as $x) if ($t = ics_time($x, $params)) $ev['ex'][] = $t[0]->format('Ymd'); break;
+            case 'RECURRENCE-ID': $ev['override'] = true; break;
+        }
+    }
+    return $out;
+}
+
+function ics_expand(array $ev, DateTimeImmutable $from, DateTimeImmutable $to): array {
+    if (empty($ev['start']) || ($ev['status'] ?? '') === 'CANCELLED' || !empty($ev['override'])) return [];
+    [$start, $allDay] = $ev['start'];
+    $title = mb_substr($ev['title'] ?? '', 0, 60) ?: '…';
+    $uid = (string)($ev['uid'] ?? md5($title . $start->format('c')));
+    $one = fn($d) => ['uid' => $uid, 'title' => $title, 'start' => $d, 'allDay' => $allDay];
+    if (empty($ev['rrule'])) return $start >= $from && $start <= $to ? [$one($start)] : [];
+    $r = [];
+    foreach (explode(';', $ev['rrule']) as $pp) { [$k, $v] = array_pad(explode('=', $pp, 2), 2, ''); $r[strtoupper($k)] = $v; }
+    $step = ['DAILY' => 'day', 'WEEKLY' => 'week', 'MONTHLY' => 'month', 'YEARLY' => 'year'][$r['FREQ'] ?? ''] ?? null;
+    if (!$step) return [];
+    $int = max(1, (int)($r['INTERVAL'] ?? 1));
+    $count = isset($r['COUNT']) ? (int)$r['COUNT'] : PHP_INT_MAX;
+    $until = isset($r['UNTIL']) && ($u = ics_time($r['UNTIL'], [])) ? $u[0]->setTime(23, 59, 59) : null;
+    $days = $step === 'week' && !empty($r['BYDAY'])
+        ? array_values(array_filter(array_map(fn($d) => array_search(substr($d, -2), ['MO', 'TU', 'WE', 'TH', 'FR', 'SA', 'SU']), explode(',', $r['BYDAY'])), fn($x) => $x !== false))
+        : null;
+    $out = []; $n = 0;
+    for ($i = 0; $i < 3000 && $n < $count; $i++) {
+        $base = $start->modify('+' . ($i * $int) . " $step");
+        if ($step === 'month' && $base->format('d') !== $start->format('d')) continue;
+        $cands = [$base];
+        if ($days !== null) {
+            $monday = $base->modify('-' . ((int)$base->format('N') - 1) . ' days');
+            $cands = array_map(fn($d) => $monday->modify("+$d days"), $days);
+            sort($cands);
+        }
+        foreach ($cands as $d) {
+            if ($d < $start) continue;
+            if (($until && $d > $until) || $d > $to || $n >= $count) break 2;
+            $n++;
+            if ($d >= $from && !in_array($d->format('Ymd'), $ev['ex'], true)) $out[] = $one($d);
+        }
+    }
+    return $out;
+}
+
+/** Promemoria «cal-…» dagli appuntamenti dei prossimi 14 giorni: prima dell'ora e, se scelto, la sera prima. */
+function calendar_reminders(array $events, int $lead, bool $eve): array {
+    $now = new DateTimeImmutable();
+    $out = [];
+    $add = function (DateTimeImmutable $at, string $title, string $detail, string $key) use (&$out, $now) {
+        if ($at <= $now) return;
+        $out[] = ['id' => 'cal-' . substr(sha1($key), 0, 12), 'time' => $at->format('H:i'), 'date' => $at->format('Y-m-d'), 'days' => [],
+            'title' => $title, 'detail' => $detail, 'icon' => 'calendar', 'snoozeMinutes' => 10, 'repeatMinutes' => 5, 'maxRepeats' => 2, 'enabled' => true];
+    };
+    usort($events, fn($a, $b) => $a['start'] <=> $b['start']);
+    foreach (array_slice($events, 0, 25) as $e) {
+        $k = $e['uid'] . '|' . $e['start']->format('c');
+        if ($e['allDay']) {
+            $add($e['start']->setTime(9, 0), $e['title'], t('cal_today'), "$k|day");
+            if ($eve) $add($e['start']->modify('-1 day')->setTime(20, 0), t('cal_tomorrow', $e['title']), '', "$k|eve");
+        } else {
+            $hm = $e['start']->format('H:i');
+            $add($e['start']->modify("-$lead minutes"), $e['title'], t('cal_at', $hm), "$k|lead");
+            if ($eve) $add($e['start']->modify('-1 day')->setTime(20, 0), t('cal_tomorrow', $e['title']), t('cal_at', $hm), "$k|eve");
+        }
+    }
+    $seen = [];
+    return array_values(array_filter($out, function ($r) use (&$seen) { if (isset($seen[$r['id']])) return false; return $seen[$r['id']] = true; }));
+}
+
+/**
+ * Scarica il calendario del telefono (al massimo ogni 3 ore, o subito con $force) e mette gli
+ * appuntamenti tra i promemoria; pubblica una nuova versione solo se cambiano.
+ */
+function calendar_sync(string $id, bool $force = false): void {
+    $meta = read_json(dev_path($id, 'meta.json'), []);
+    $url = (string)($meta['calendarUrl'] ?? '');
+    $curFile = dev_path($id, 'config.json');
+    if (!is_file($curFile)) return;
+    if ($url === '' && empty($meta['calendarHad'])) return;
+    if (!$force && $url !== '' && time() - (int)($meta['calendarAt'] ?? 0) < 3 * 3600) return;
+    $new = [];
+    if ($url !== '') {
+        $meta['calendarAt'] = time();
+        $text = http_get(preg_replace('#^webcal://#i', 'https://', $url));
+        if ($text === null || strpos($text, 'BEGIN:VCALENDAR') === false) {
+            $meta['calendarError'] = time();
+            write_atomic(dev_path($id, 'meta.json'), json_encode($meta));
+            return;
+        }
+        unset($meta['calendarError']);
+        $events = ics_events($text, new DateTimeImmutable(), new DateTimeImmutable('+14 days'));
+        $new = calendar_reminders($events, (int)($meta['calendarLead'] ?? 60), !empty($meta['calendarEve']));
+        $meta['calendarCount'] = count($events);
+    }
+    $meta['calendarHad'] = $url !== '';
+    write_atomic(dev_path($id, 'meta.json'), json_encode($meta));
+    $cfg = json_decode((string)file_get_contents($curFile), true);
+    if (!is_array($cfg)) return;
+    $old = array_values(array_filter((array)($cfg['reminders'] ?? []), fn($r) => strpos((string)($r['id'] ?? ''), 'cal-') === 0));
+    $key = fn($l) => json_encode(array_map(fn($r) => [$r['id'] ?? '', $r['time'] ?? '', $r['date'] ?? '', $r['title'] ?? '', $r['detail'] ?? ''], $l));
+    if ($key($old) === $key($new)) return;
+    $cfg['reminders'] = array_merge(array_values(array_filter((array)($cfg['reminders'] ?? []), fn($r) => strpos((string)($r['id'] ?? ''), 'cal-') !== 0)), $new);
+    write_atomic($curFile, json_encode($cfg, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+    publish($id, $cfg, null, ['source' => 'calendar', 'changes' => [t('chg_calendar', count($new))]]);
 }
 
 /** Numeri degli ultimi [days] giorni di un telefono, da report ed eventi già ricevuti. */
@@ -264,20 +418,47 @@ function phone_media_refs($cfg): array {
     $out = [];
     foreach ((array)($cfg['pages'] ?? []) as $p) foreach ((array)($p['tiles'] ?? []) as $t) foreach ((array)($t['photos'] ?? []) as $ref) $out[] = (string)$ref;
     foreach ((array)($cfg['reminders'] ?? []) as $r) $out[] = (string)($r['photo'] ?? '');
+    foreach ((array)($cfg['pages'] ?? []) as $p) foreach ((array)($p['tiles'] ?? []) as $t) $out[] = (string)($t['icon']['ref'] ?? '');
     $out = array_map(fn($r) => substr($r, 6), array_filter($out, fn($r) => preg_match('/^media:[0-9a-f]{64}$/', $r)));
     return array_values(array_unique($out));
 }
 
 /**
- * Config del telefono da caricare nell'editor al posto di quella pubblicata: se è stata cambiata
- * sul telefono dopo l'ultima pubblicazione, o se dal portale non è mai stato pubblicato nulla.
+ * Differenze tra due configurazioni, a parole («riquadro Maria aggiunto»…), al massimo 5.
+ * Si confrontano solo i campi che contano: i valori predefiniti aggiunti dall'app non sono differenze.
  */
-function phone_newer(string $id, array $meta): ?array {
-    $ph = read_json(dev_path($id, 'phone.json'), null);
-    if (!is_array($ph) || !isset($ph['config'])) return null;
-    $published = is_file(dev_path($id, 'config.json'));
-    if (!$published) return $ph;
-    return ($ph['source'] ?? '') === 'local' && (int)($ph['at'] ?? 0) > (int)($meta['publishedAt'] ?? 0) ? $ph : null;
+function config_diff(array $a, array $b): array {
+    $tiles = function (array $c): array {
+        $out = [];
+        foreach ((array)($c['pages'] ?? []) as $pi => $p) foreach ((array)($p['tiles'] ?? []) as $t) {
+            $icon = (array)($t['icon'] ?? []);
+            $out[(string)($t['id'] ?? '')] = [
+                'label' => (string)($t['label'] ?? ''), 'type' => (string)($t['type'] ?? ''), 'target' => (string)($t['target'] ?? ''),
+                'pos' => $pi . ':' . (int)($t['col'] ?? 0) . ',' . (int)($t['row'] ?? 0) . ',' . (int)($t['w'] ?? 1) . ',' . (int)($t['h'] ?? 1),
+                'look' => strtoupper((string)($t['color'] ?? '')) . '|' . ($icon['kind'] ?? 'auto') . '|' . ($icon['ref'] ?? '') . '|' . json_encode($t['photos'] ?? []),
+            ];
+        }
+        return $out;
+    };
+    $name = fn($t) => $t['label'] !== '' ? $t['label'] : $t['type'];
+    $out = [];
+    $ta = $tiles($a); $tb = $tiles($b);
+    foreach ($tb as $id => $t) if (!isset($ta[$id])) $out[] = t('chg_tile_added', $name($t));
+    foreach ($ta as $id => $t) if (!isset($tb[$id])) $out[] = t('chg_tile_removed', $name($t));
+    foreach ($tb as $id => $t) if (isset($ta[$id]) && $ta[$id] !== $t) {
+        $o = $ta[$id];
+        $out[] = $o['pos'] !== $t['pos'] && array_diff_key($o, ['pos' => 1]) === array_diff_key($t, ['pos' => 1])
+            ? t('chg_tile_moved', $name($t)) : t('chg_tile_changed', $name($t));
+    }
+    if (count((array)($a['pages'] ?? [])) !== count((array)($b['pages'] ?? []))) $out[] = t('chg_pages', count((array)($b['pages'] ?? [])));
+    $rem = fn($c) => array_column(array_map(fn($r) => ['id' => (string)($r['id'] ?? ''), 'v' => json_encode([$r['time'] ?? '', $r['title'] ?? '', $r['days'] ?? [], $r['date'] ?? '', $r['enabled'] ?? true, $r['photo'] ?? '', $r['icon'] ?? 'pill'])], (array)($c['reminders'] ?? [])), 'v', 'id');
+    $ra = $rem($a); $rb = $rem($b);
+    if ($ra != $rb) $out[] = t('chg_reminders', count($rb));
+    $sos = fn($c) => json_encode([(array)($c['sos']['numbers'] ?? []), (string)($c['sos']['message'] ?? '')]);
+    if ($sos($a) !== $sos($b)) $out[] = t('chg_sos');
+    $pa = (array)($a['phone'] ?? []); $pb = (array)($b['phone'] ?? []);
+    foreach (array_intersect_key($pb, $pa) as $k => $v) if ($pa[$k] != $v) { $out[] = t('chg_phone'); break; }
+    return array_slice($out, 0, 5);
 }
 
 /** Accessi mancanti sul telefono per le funzioni attive (dal report del telefono). */
@@ -289,6 +470,8 @@ function access_warnings(array $meta): array {
 }
 
 $LANG = in_array(settings()['lang'], langs(), true) ? settings()['lang'] : 'en';
+// Date e ore nel fuso scelto (predefinito Europe/Rome), non in quello del server.
+if (in_array(settings()['timezone'], timezone_identifiers_list(), true)) date_default_timezone_set(settings()['timezone']);
 
 if (PHP_SAPI === 'cli') {
     if (($argv[1] ?? '') === 'cron') { run_checks(true); exit(0); }
@@ -386,6 +569,17 @@ if (isset($_GET['device'])) {
             $needMedia = array_values(array_filter(phone_media_refs($r['config']), fn($h) => !is_file(media_path($h))));
         }
         write_atomic(dev_path($id, 'meta.json'), json_encode($meta));
+        // Modifica fatta sul telefono (o portale mai usato per questo telefono): diventa la versione
+        // attuale anche qui, con la voce «dal telefono» nello storico. Solo se c'è davvero qualcosa di diverso.
+        if (isset($r['config']) && is_array($r['config']) && isset($r['config']['pages'])) {
+            $curFile = dev_path($id, 'config.json');
+            $cur = is_file($curFile) ? json_decode((string)file_get_contents($curFile), true) : null;
+            $changes = is_array($cur) ? config_diff($cur, $r['config']) : [t('chg_first')];
+            if ((($r['configSource'] ?? '') === 'local' || !is_array($cur)) && $changes) {
+                write_atomic($curFile, json_encode($r['config'], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+                publish($id, $r['config'], null, ['source' => 'phone', 'changes' => $changes]);
+            }
+        }
         if ($backOnline) send_alert(ev_title('online'), t('back_online_text'), $id);
         // Il telefono rimanda l'elenco app solo se cambia: se qui manca (portale nuovo, telefono
         // rimosso e ricollegato…) glielo si chiede esplicitamente.
@@ -484,7 +678,7 @@ function pin_hash(string $pin): string {
 }
 
 /** Firma e pubblica: seq monotono, payload = byte esatti firmati. Tiene le ultime versioni nello storico. */
-function publish(string $id, $cfg, ?string $pin): int {
+function publish(string $id, $cfg, ?string $pin, array $note = []): int {
     $meta = read_json(dev_path($id, 'meta.json'), []);
     $seq = max((int)($meta['seq'] ?? 0) + 1, time());
     $payload = ['seq' => $seq, 'device' => $id, 'issuedAt' => (int)(microtime(true) * 1000), 'config' => $cfg];
@@ -498,7 +692,7 @@ function publish(string $id, $cfg, ?string $pin): int {
 
     $dir = DATA . "/history/$id";
     if (!is_dir($dir)) mkdir($dir, 0700, true);
-    write_atomic("$dir/$seq.json", json_encode(['seq' => $seq, 'at' => time(), 'pin' => $pin !== null && $pin !== '', 'config' => $cfg], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+    write_atomic("$dir/$seq.json", json_encode(['seq' => $seq, 'at' => time(), 'pin' => $pin !== null && $pin !== '', 'config' => $cfg] + $note, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
     $all = glob("$dir/*.json") ?: [];
     rsort($all, SORT_NATURAL);
     foreach (array_slice($all, HISTORY_KEEP) as $old) @unlink($old);
@@ -524,7 +718,7 @@ const DEFAULT_CONFIG = <<<'JSON'
         { "id": "sms", "col": 1, "row": 1, "type": "app", "target": "@sms", "label": "Messaggi", "icon": { "kind": "symbol", "ref": "message" }, "color": "#1F4FA8" },
         { "id": "camera", "col": 0, "row": 2, "type": "app", "target": "@camera", "label": "Fotocamera", "icon": { "kind": "symbol", "ref": "camera" }, "color": "#6A1B9A" },
         { "id": "gallery", "col": 1, "row": 2, "type": "app", "target": "@gallery", "label": "Foto", "icon": { "kind": "symbol", "ref": "photo" }, "color": "#6A1B9A" },
-        { "id": "whatsapp", "col": 0, "row": 3, "type": "app", "target": "com.whatsapp", "label": "WhatsApp", "color": "#0B6E4F" },
+        { "id": "whatsapp", "col": 0, "row": 3, "type": "app", "target": "com.whatsapp", "label": "WhatsApp", "color": "#1B7A34" },
         { "id": "browser", "col": 1, "row": 3, "type": "app", "target": "@browser", "label": "Internet", "icon": { "kind": "symbol", "ref": "web" }, "color": "#1A1A1A" },
         { "id": "sos", "col": 0, "row": 4, "w": 2, "h": 1, "type": "sos", "label": "SOS", "color": "#B71C1C" }
       ]
@@ -618,6 +812,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         foreach (['telegramToken', 'telegramChat', 'emailTo', 'emailFrom'] as $k) $s[$k] = trim((string)($_POST[$k] ?? ''));
         foreach (array_keys($s['notify']) as $k) $s['notify'][$k] = !empty($_POST['notify_' . $k]);
         $s['offlineHours'] = max(1, min(168, (int)($_POST['offlineHours'] ?? 24)));
+        if (in_array($_POST['timezone'] ?? '', timezone_identifiers_list(), true)) $s['timezone'] = $_POST['timezone'];
         $s['weeklySummary'] = !empty($_POST['weeklySummary']);
         if ($s['emailTo'] !== '' && !filter_var(explode(',', $s['emailTo'])[0], FILTER_VALIDATE_EMAIL)) $err[] = t('e_email');
         if ($s['telegramToken'] !== '' && !preg_match('/^\d+:[\w-]{20,}$/', $s['telegramToken'])) $err[] = t('e_telegram');
@@ -676,6 +871,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 write_atomic(dev_path($id, 'meta.json'), json_encode($meta));
                 header('Location: ?edit=' . urlencode($id) . '#family'); exit;
             }
+        } elseif ($act === 'calendar') {
+            $meta = read_json(dev_path($id, 'meta.json'), []);
+            $u = trim((string)($_POST['calendarUrl'] ?? ''));
+            $meta['calendarUrl'] = preg_match('#^(https?|webcal)://\S+$#i', $u) ? mb_substr($u, 0, 1000) : '';
+            $meta['calendarLead'] = in_array((int)($_POST['calendarLead'] ?? 60), [0, 15, 30, 60, 120], true) ? (int)$_POST['calendarLead'] : 60;
+            $meta['calendarEve'] = !empty($_POST['calendarEve']);
+            write_atomic(dev_path($id, 'meta.json'), json_encode($meta));
+            calendar_sync($id, true);
+            header('Location: ?edit=' . urlencode($id) . '#calendar'); exit;
         } elseif ($act === 'ignore') {
             $meta = read_json(dev_path($id, 'meta.json'), []);
             $meta['ignoreOffline'] = empty($meta['ignoreOffline']);
@@ -809,7 +1013,8 @@ details summary{cursor:pointer;font-weight:600}
     <?php endforeach; ?>
     <label style="font-weight:400"><input type="checkbox" name="weeklySummary" <?= !empty($s['weeklySummary']) ? 'checked' : '' ?>> <?= th('weekly_enable') ?></label>
     <div class="hint"><?= th('weekly_hint') ?></div>
-    <div class="row"><div><label for="oh"><?= th('offline_hours') ?></label><input id="oh" type="number" name="offlineHours" min="1" max="168" value="<?= (int)$s['offlineHours'] ?>"></div><div></div></div>
+    <div class="row"><div><label for="oh"><?= th('offline_hours') ?></label><input id="oh" type="number" name="offlineHours" min="1" max="168" value="<?= (int)$s['offlineHours'] ?>"></div>
+      <div><label for="tz"><?= th('timezone') ?></label><select id="tz" name="timezone"><?php foreach (timezone_identifiers_list() as $tz): ?><option <?= $tz === $s['timezone'] ? 'selected' : '' ?>><?= h($tz) ?></option><?php endforeach; ?></select></div></div>
 
     <h3>Telegram <span class="hint"><?= th('telegram_hint') ?></span></h3>
     <details><summary><?= th('how_setup') ?></summary>
@@ -897,12 +1102,6 @@ details summary{cursor:pointer;font-weight:600}
         $hv = read_json($hf, []);
         $src = json_encode($hv['config'] ?? [], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         $loaded = t('loaded_version', date('d/m/Y H:i', (int)($hv['at'] ?? 0)));
-    } elseif (!isset($_POST['config']) && !isset($_GET['published']) && !isset($_GET['copy']) && ($ph = phone_newer($edit, $meta))) {
-        $src = json_encode($ph['config'], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-        $loaded = is_file(dev_path($edit, 'config.json'))
-            ? t('loaded_from_phone', date('d/m/Y H:i', (int)$ph['at']))
-            : t('loaded_phone_current');
-        $fromPhone = true;
     } elseif (!isset($_POST['config']) && isset($_GET['copy']) && valid_id($cp = strtolower((string)$_GET['copy'])) && is_file(dev_path($cp, 'config.json'))) {
         $src = file_get_contents(dev_path($cp, 'config.json'));
         $loaded = t('copied_from', device_name($cp));
@@ -922,7 +1121,9 @@ details summary{cursor:pointer;font-weight:600}
     <?php if (isset($meta['battery']) && $meta['battery'] >= 0): ?><?= th('battery_lower', (int)$meta['battery']) ?><?php endif; ?>
     <?php if (!empty($meta['appVersion'])): ?><?= th('app_version', $meta['appVersion']) ?><?php endif; ?></p>
 
-  <?php if ($loaded): ?><div class="msg warn"><?= h($loaded) ?><?php if (!empty($fromPhone) && is_file(dev_path($edit, 'config.json'))): ?> <a href="?edit=<?= h($edit) ?>&amp;published=1"><?= th('use_published') ?></a><?php endif; ?></div><?php endif; ?>
+  <?php if ($loaded): ?><div class="msg warn"><?= h($loaded) ?></div><?php endif; ?>
+  <?php $lastV = history($edit)[0] ?? null; $lastH = $lastV ? read_json(DATA . "/history/$edit/$lastV.json", []) : [];
+    if (!$loaded && ($lastH['source'] ?? '') === 'phone'): ?><p class="hint">📱 <?= th('phone_changed_info', date('d/m/Y H:i', (int)($lastH['at'] ?? 0)), implode('; ', (array)($lastH['changes'] ?? []))) ?></p><?php endif; ?>
   <?php if (isset($meta['badgesAccess']) && !$meta['badgesAccess']): ?><div class="msg warn"><?= th('no_notif_access') ?></div><?php endif; ?>
   <?php foreach (access_warnings($meta) as $w): ?><div class="msg warn"><?= h($w) ?></div><?php endforeach; ?>
   <form method="post" id="pubform" data-dirty="<?= $loaded ? '1' : '0' ?>" data-edition="<?= h($meta['edition'] ?? '') ?>" data-app="<?= h($meta['appVersion'] ?? '') ?>" data-csrf="<?= h($csrf) ?>">
@@ -1022,7 +1223,8 @@ details summary{cursor:pointer;font-weight:600}
   <?php if (!$versions): ?><p class="hint"><?= th('no_publications') ?></p><?php else: ?>
     <table><tr><th><?= th('col_published') ?></th><th></th></tr>
     <?php foreach ($versions as $i => $v): $hv = read_json(DATA . "/history/$edit/$v.json", []); ?>
-      <tr><td><?= h(date('d/m/Y H:i', (int)($hv['at'] ?? 0))) ?><?= $i === 0 ? ' <span class="pill ok">' . th('current') . '</span>' : '' ?><?= !empty($hv['pin']) ? ' <span class="pill mute">' . th('pin_changed') . '</span>' : '' ?></td>
+      <tr><td><?= h(date('d/m/Y H:i', (int)($hv['at'] ?? 0))) ?><?= $i === 0 ? ' <span class="pill ok">' . th('current') . '</span>' : '' ?><?= !empty($hv['pin']) ? ' <span class="pill mute">' . th('pin_changed') . '</span>' : '' ?><?= ($hv['source'] ?? '') === 'phone' ? ' <span class="pill warn">' . th('from_phone') . '</span>' : '' ?><?= ($hv['source'] ?? '') === 'calendar' ? ' <span class="pill mute">' . th('from_calendar') . '</span>' : '' ?>
+        <?php if (!empty($hv['changes'])): ?><div class="hint"><?= h(implode('; ', (array)$hv['changes'])) ?></div><?php endif; ?></td>
       <td style="text-align:right"><?php if ($i > 0): ?><a class="btn sec" href="?edit=<?= h($edit) ?>&amp;from=<?= (int)$v ?>"><?= th('load_in_editor') ?></a><?php endif; ?></td></tr>
     <?php endforeach; ?></table>
   <?php endif; ?>
@@ -1058,6 +1260,16 @@ details summary{cursor:pointer;font-weight:600}
   <?php endif; ?>
   </div>
 
+  <details class="card" id="calendar" <?= !empty($meta['calendarUrl']) ? 'open' : '' ?>><summary><?= th('cal_title') ?></summary>
+    <p class="hint"><?= th('cal_hint') ?></p>
+    <form method="post"><input type="hidden" name="csrf" value="<?= h($csrf) ?>"><input type="hidden" name="act" value="calendar"><input type="hidden" name="id" value="<?= h($edit) ?>">
+      <label for="calurl"><?= th('cal_url') ?></label><input id="calurl" type="url" name="calendarUrl" value="<?= h($meta['calendarUrl'] ?? '') ?>" placeholder="https://calendar.google.com/calendar/ical/…/basic.ics">
+      <div class="row"><div><label for="callead"><?= th('cal_lead') ?></label><select id="callead" name="calendarLead">
+        <?php foreach ([0, 15, 30, 60, 120] as $n): ?><option value="<?= $n ?>" <?= (int)($meta['calendarLead'] ?? 60) === $n ? 'selected' : '' ?>><?= $n ? th('cal_lead_n', $n) : th('cal_lead_0') ?></option><?php endforeach; ?></select></div></div>
+      <label style="font-weight:400"><input type="checkbox" name="calendarEve" <?= !empty($meta['calendarEve']) ? 'checked' : '' ?>> <?= th('cal_eve') ?></label>
+      <p><button><?= th('cal_save') ?></button></p></form>
+    <?php if (!empty($meta['calendarUrl'])): ?><p class="hint"><?= !empty($meta['calendarError']) ? '<span class="pill bad">' . th('cal_error') . '</span>' : th('cal_status', (int)($meta['calendarCount'] ?? 0), ago(isset($meta['calendarAt']) ? (int)$meta['calendarAt'] : null)) ?></p><?php endif; ?>
+  </details>
   <details class="card"><summary><?= th('reinstalled') ?></summary>
     <p><?= th('reinstalled_text') ?></p>
     <form method="post"><input type="hidden" name="csrf" value="<?= h($csrf) ?>"><input type="hidden" name="act" value="forget"><input type="hidden" name="id" value="<?= h($edit) ?>">
@@ -1094,7 +1306,7 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
   const ta = document.getElementById('config');
   if (!ta) return;
 
-  const TYPES = Object.fromEntries(['app', 'call', 'wa_video', 'sms', 'url', 'shortcut', 'clock', 'weather', 'photos', 'missed_calls', 'search', 'sos'].map(k => [k, T('type_' + k)]));
+  const TYPES = Object.fromEntries(['app', 'call', 'wa_video', 'sms', 'url', 'shortcut', 'clock', 'weather', 'photos', 'missed_calls', 'messages', 'search', 'radio', 'sos'].map(k => [k, T('type_' + k)]));
   const FORM = document.getElementById('pubform');
   // Caricamento di un'immagine nel portale: restituisce «media:<sha256>».
   async function upload(file) {
@@ -1136,8 +1348,9 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
     'heart', 'music', 'radio', 'grid', 'shower', 'cart', 'doctor', 'cards', 'calendar', 'walk', 'food', 'bed', 'water'].map(k => [k, T('sym_' + k)]));
   const PRESETS = [['pill', 'preset_medicine'], ['shower', 'preset_shower'], ['cart', 'preset_shopping'], ['doctor', 'preset_visit'],
     ['cards', 'preset_cards'], ['walk', 'preset_walk'], ['water', 'preset_water'], ['food', 'preset_meal']];
-  const PALETTE = [['#1F4FA8', T('c_blue')], ['#0B6E4F', T('c_green')], ['#6A1B9A', T('c_purple')], ['#1A1A1A', T('c_black')], ['#B71C1C', T('c_red')],
-    ['#A84300', T('c_orange')], ['#00695C', T('c_teal')], ['#FFFFFF', T('c_white')], ['#FFF3C4', T('c_light_yellow')]];
+  // Stessi colori dell'app: 5 scuri e 4 chiari, ben distinti anche per la vista che invecchia.
+  const PALETTE = [['#1F4FA8', T('c_blue')], ['#1B7A34', T('c_green')], ['#6A1B9A', T('c_purple')], ['#1A1A1A', T('c_black')], ['#C62828', T('c_red')],
+    ['#FFA726', T('c_orange')], ['#4FC3F7', T('c_light_blue')], ['#FFFFFF', T('c_white')], ['#FFD54F', T('c_yellow')]];
   const DAYS = T('days_initials').split(',');
 
   // Se il telefono ha mandato l'elenco delle sue app, il menu mostra quelle (più i ruoli predefiniti).
@@ -1215,9 +1428,11 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
     const usesNew0100 = cfg.pages.some(p => p.tiles.some(t => t.type === 'missed_calls')) || !!cfg.phone.homeButton;
     const old090 = usesNew && !newer(app, '0.9.0'), old0100 = usesNew0100 && !newer(app, '0.10.0'), old0101 = cfg.pages.some(p => p.tiles.some(t => t.homeButton === false)) && !newer(app, '0.10.1'),
       old0120 = cfg.pages.some(p => p.tiles.some(t => t.type === 'search')) && !newer(app, '0.12.0'),
-      old0130 = (cfg.phone.autoAnswer || cfg.phone.announceCaller) && !newer(app, '0.13.0');
-    warn.hidden = !(app && (old090 || old0100 || old0101 || old0120 || old0130));
-    warn.textContent = old090 ? T('old_app_warn', app || '?') : old0100 ? T('old_app_warn_0100', app || '?') : old0101 ? T('old_app_warn_0101', app || '?') : old0120 ? T('old_app_warn_0120', app || '?') : T('old_app_warn_0130', app || '?');
+      old0130 = (cfg.phone.autoAnswer || cfg.phone.announceCaller) && !newer(app, '0.13.0'),
+      old0140 = (cfg.pages.some(p => p.tiles.some(t => ['messages', 'radio'].includes(t.type) || (t.icon && /^media:/.test(t.icon.ref || ''))))
+        || cfg.phone.nightQuiet || cfg.phone.chargeReminder || cfg.phone.holdToOpen || (cfg.phone.theme && cfg.phone.theme !== 'normal')) && !newer(app, '0.14.0');
+    warn.hidden = !(app && (old090 || old0100 || old0101 || old0120 || old0130 || old0140));
+    warn.textContent = old090 ? T('old_app_warn', app || '?') : old0100 ? T('old_app_warn_0100', app || '?') : old0101 ? T('old_app_warn_0101', app || '?') : old0120 ? T('old_app_warn_0120', app || '?') : old0130 ? T('old_app_warn_0130', app || '?') : T('old_app_warn_0140', app || '?');
     const p = problems(), box = document.getElementById('issues');
     box.replaceChildren(...(p.length ? [el('b', {}, T('p_title')), el('ul', {}, p.map(x => el('li', {}, x)))] : []));
     document.getElementById('pubbtn').disabled = p.length > 0;
@@ -1269,7 +1484,7 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
         class: 'tile' + (t.id === selId ? ' sel' : '') + (isL ? ' light' : ''), role: 'button', tabindex: '0',
         style: 'grid-column:' + (t.col + 1) + ' / span ' + w + ';grid-row:' + (t.row + 1) + ' / span ' + h + ';background:' + (t.color || '#1F4FA8') + ';color:' + (isL ? '#1A1A1A' : '#fff'),
         onclick: () => { selId = t.id; render(); }, onkeydown: e => { if (e.key === 'Enter') { selId = t.id; render(); } }
-      }, t.type === 'clock' ? '🕑 ' + T('clock') : t.type === 'weather' ? '☀ ' + (t.label || T('type_weather')) : t.type === 'photos' ? '🖼 ' + (t.label || T('type_photos')) : t.type === 'missed_calls' ? '📞 ' + (t.label || T('def_missed')) : t.type === 'search' ? '🔍 ' + (t.label || T('def_search')) : t.type === 'sos' ? '⚠ ' + (t.label || 'SOS') : name(t)));
+      }, t.type === 'clock' ? '🕑 ' + T('clock') : t.type === 'weather' ? '☀ ' + (t.label || T('type_weather')) : t.type === 'photos' ? '🖼 ' + (t.label || T('type_photos')) : t.type === 'missed_calls' ? '📞 ' + (t.label || T('def_missed')) : t.type === 'search' ? '🔍 ' + (t.label || T('def_search')) : t.type === 'messages' ? '💬 ' + (t.label || T('def_messages_unread')) : t.type === 'radio' ? '📻 ' + (t.label || T('def_radio')) : t.type === 'sos' ? '⚠ ' + (t.label || 'SOS') : name(t)));
     });
     for (let r = 0; r < p.rows; r++) for (let c = 0; c < p.cols; c++) if (!occ[r][c]) {
       kids.push(el('button', {type: 'button', class: 'cell', title: T('add_tile_here'), 'aria-label': T('add_tile_at', r + 1, c + 1),
@@ -1292,10 +1507,16 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
     t.icon = t.icon || {kind: 'auto', ref: ''};
     const parts = [el('h3', {}, T('selected_tile')),
       field(T('what_it_does'), select(TYPES, t.type, v => {
+        // Il valore del tipo precedente non vale per il nuovo (es. «@dialer» per una videochiamata).
+        const phoneTypes = ['call', 'wa_video', 'sms'];
+        const keep = (phoneTypes.includes(t.type) && phoneTypes.includes(v)) || t.type === v;
+        if (!keep) t.target = '';
         t.type = v;
         if (v === 'clock') { t.color = '#FFFFFF'; delete t.label; }
         if (v === 'photos' && !t.label) t.label = T('def_photos');
         if (v === 'search') { t.label = T('def_search'); t.target = ''; t.icon = {kind: 'auto', ref: ''}; }
+        if (v === 'messages') { t.label = T('def_messages_unread'); t.target = ''; t.icon = {kind: 'auto', ref: ''}; }
+        if (v === 'radio') { t.label = t.label || T('def_radio'); t.target = ''; t.stations = t.stations || [{name: '', url: ''}]; }
         if (v === 'missed_calls') { t.label = T('def_missed'); t.target = ''; t.icon = {kind: 'auto', ref: ''}; }
         if (v === 'sos') { t.color = '#B71C1C'; t.label = 'SOS'; t.w = Math.min(2, p.cols); }
         if (['call', 'wa_video', 'sms'].includes(v) && t.icon.kind === 'symbol') t.icon = {kind: 'auto', ref: ''};
@@ -1339,6 +1560,16 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
         field(T('upload_photos'), fileInput(true, refs => { t.photos = [...new Set(t.photos.concat(refs))]; changed(); render(); })));
     }
     if (t.type === 'search') parts.push(el('p', {class: 'hint'}, T('search_hint')));
+    if (t.type === 'messages') parts.push(el('p', {class: 'hint'}, T(FORM.dataset.edition === 'completo' ? 'messages_hint' : 'messages_hint_basic')));
+    if (t.type === 'radio') {
+      t.stations = t.stations || [];
+      parts.push(el('p', {class: 'hint'}, T('radio_hint')));
+      t.stations.forEach((st, i) => parts.push(el('div', {class: 'card', style: 'padding:10px;margin:8px 0'},
+        field(T('radio_name'), el('input', {type: 'text', value: st.name || '', maxlength: '40', onchange: e => { st.name = e.target.value.trim(); changed(); }})),
+        field(T('radio_url'), el('input', {type: 'url', value: st.url || '', placeholder: 'https://…', onchange: e => { st.url = e.target.value.trim(); changed(); issues(); }})),
+        el('button', {type: 'button', class: 'small danger', onclick: () => { t.stations.splice(i, 1); changed(); render(); }}, T('radio_remove')))));
+      parts.push(el('p', {}, el('button', {type: 'button', class: 'sec', onclick: () => { t.stations.push({name: '', url: ''}); changed(); render(); }}, T('radio_add'))));
+    }
     if (t.type === 'missed_calls') {
       parts.push(el('p', {class: 'hint'}, T('missed_hint')));
       if (FORM.dataset.edition === 'play') parts.push(el('p', {class: 'msg warn'}, T('missed_hint_play')));
@@ -1347,9 +1578,17 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
     if (t.type === 'shortcut') parts.push(field(T('shortcut'), el('input', {type: 'text', value: t.target || '', placeholder: T('shortcut_placeholder'), onchange: e => upd('target', e.target.value.trim())}), T('experts')));
     if (t.type !== 'clock') parts.push(field(T('tile_text'), el('input', {type: 'text', value: t.label || '', maxlength: '30', onchange: e => upd('label', e.target.value)})));
 
-    if (!['clock', 'sos', 'weather', 'photos', 'missed_calls'].includes(t.type)) {
-      parts.push(field(T('icon'), select(ICONS, t.icon.kind || 'auto', v => { t.icon = {kind: v, ref: v === 'symbol' ? (t.icon.ref && SYMBOLS[t.icon.ref] ? t.icon.ref : 'phone') : (v === 'photo' || v === 'auto' ? (t.icon.ref || '').startsWith('contact:') ? t.icon.ref : '' : '')}; changed(); render(); })));
+    if (!['clock', 'sos', 'weather', 'photos', 'missed_calls', 'messages', 'search'].includes(t.type)) {
+      parts.push(field(T('icon'), select(ICONS, t.icon.kind || 'auto', v => { t.icon = {kind: v, ref: v === 'symbol' ? (t.icon.ref && SYMBOLS[t.icon.ref] ? t.icon.ref : 'phone') : (v === 'photo' || v === 'auto' ? /^(contact|media):/.test(t.icon.ref || '') ? t.icon.ref : '' : '')}; changed(); render(); })));
       if (t.icon.kind === 'symbol') parts.push(field(T('symbol'), select(SYMBOLS, t.icon.ref || 'phone', v => { t.icon.ref = v; changed(); render(); })));
+      // Foto del familiare caricata da qui: non serve averla nella rubrica del telefono.
+      if (['call', 'wa_video', 'sms'].includes(t.type)) {
+        const media = (t.icon.ref || '').startsWith('media:') ? t.icon.ref : '';
+        parts.push(el('label', {}, T('family_photo')),
+          media ? thumb(media, () => { t.icon = {kind: 'auto', ref: '', fill: t.icon.fill}; if (!t.icon.fill) delete t.icon.fill; changed(); render(); }) : '',
+          fileInput(false, refs => { t.icon = Object.assign({}, t.icon, {kind: 'photo', ref: refs[0]}); changed(); render(); }),
+          el('div', {class: 'hint'}, T('family_photo_hint')));
+      }
       if (t.icon.kind === 'photo' || (t.icon.kind === 'auto' && ['call', 'wa_video', 'sms'].includes(t.type)))
         parts.push(el('p', {class: 'hint'}, T('photo_hint')),
           el('label', {style: 'font-weight:400'}, el('input', {type: 'checkbox', checked: !!t.icon.fill,
@@ -1372,6 +1611,24 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
       field(T('row'), select(nums(p.rows), String(t.row + 1), v => upd('row', +v - 1)))));
     const clash = p.tiles.find(o => o !== t && overlap(t, o));
     if (clash) parts.push(el('p', {class: 'issues'}, T('overlaps_move', name(clash))));
+    // Spostamento su un'altra pagina: primo posto libero dove entra con la sua misura; se non c'è, solo un avviso.
+    if (cfg.pages.length > 1) {
+      const moveMsg = el('p', {class: 'issues', hidden: true});
+      const others = Object.fromEntries([['', T('move_choose')]].concat(cfg.pages.map((_, i) => [String(i), T('page_n', i + 1)]).filter(([i]) => +i !== page)));
+      parts.push(field(T('move_to_page'), select(others, '', v => {
+        if (v === '') return;
+        const dest = cfg.pages[+v], w = Math.min(t.w || 1, dest.cols), h = Math.min(t.h || 1, dest.rows);
+        let spot = null;
+        for (let r = 0; r + h <= dest.rows && !spot; r++) for (let c = 0; c + w <= dest.cols && !spot; c++) {
+          const probe = {col: c, row: r, w, h};
+          if (!dest.tiles.some(o => overlap(probe, o))) spot = probe;
+        }
+        if (!spot) { moveMsg.textContent = T('move_no_room', +v + 1); moveMsg.hidden = false; return; }
+        p.tiles = p.tiles.filter(x => x !== t);
+        Object.assign(t, spot); dest.tiles.push(t);
+        page = +v; changed(); render();
+      })), moveMsg);
+    }
     parts.push(el('p', {}, el('button', {type: 'button', class: 'danger', onclick: () => {
       const lastSos = t.type === 'sos' && cfg.pages.every(pp => pp.tiles.filter(x => x.type === 'sos' && x !== t).length === 0);
       if (!confirm(lastSos ? T('last_sos_confirm') : T('delete_confirm', name(t)))) return;
@@ -1464,10 +1721,26 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
       check('autoAnswer', T('auto_answer'), T('auto_answer_hint')),
       p.autoAnswer ? field(T('auto_answer_after'), select({5: '5 s', 10: '10 s', 15: '15 s', 20: '20 s', 30: '30 s'}, String(p.autoAnswerSeconds || 10), v => set('autoAnswerSeconds', +v))) : '',
       check('announceCaller', T('announce_caller'), T('announce_caller_hint')),
+      check('nightQuiet', T('night_quiet'), T('night_quiet_hint')),
+      p.nightQuiet ? el('div', {class: 'row', style: 'margin:0 0 12px 24px'},
+        field(T('night_from'), select(Object.fromEntries([18, 19, 20, 21, 22, 23].map(h => [`${h}:00`, `${h}:00`])), p.nightFrom || '22:00', v => set('nightFrom', v))),
+        field(T('night_to'), select(Object.fromEntries([5, 6, 7, 8, 9, 10].map(h => [`${String(h).padStart(2, '0')}:00`, `${h}:00`])), p.nightTo || '07:00', v => set('nightTo', v)))) : '',
       check('speakTiles', T('speak_tiles'), T('speak_tiles_hint')),
       check('voiceConfirm', T('voice_confirm'), T('voice_confirm_hint')),
       check('bedsideClock', T('bedside'), T('bedside_hint')),
+      check('chargeReminder', T('charge_reminder'), T('charge_reminder_hint')),
+      p.chargeReminder ? el('div', {class: 'row', style: 'margin:0 0 12px 24px'},
+        field(T('charge_time'), select(Object.fromEntries([17, 18, 19, 20, 21, 22, 23].map(h => [`${h}:00`, `${h}:00`])), p.chargeTime || '20:00', v => set('chargeTime', v))),
+        field(T('charge_below'), select(Object.fromEntries([20, 30, 40, 50, 60].map(n => [n, n + '%'])), String(p.chargeBelow || 40), v => set('chargeBelow', +v)))) : '',
+      check('holdToOpen', T('hold_to_open'), T('hold_to_open_hint')),
+      field(T('theme'), select({normal: T('theme_normal'), contrast: T('theme_contrast'), night: T('theme_night')}, p.theme || 'normal', v => set('theme', v))),
       check('homeButton', T('home_button'), T('home_button_hint')),
+      p.homeButton ? el('div', {style: 'margin:0 0 12px 24px'},
+        field(T('home_side'), select({right: T('home_side_right'), left: T('home_side_left')}, p.homeButtonSide || 'right', v => set('homeButtonSide', v))),
+        el('label', {style: 'font-weight:400'}, el('input', {type: 'checkbox', checked: p.homeButtonLabel !== false, onchange: e => set('homeButtonLabel', e.target.checked)}), ' ' + T('home_label')),
+        el('label', {}, T('home_color')),
+        el('div', {class: 'swatches'}, PALETTE.map(([hex, nm]) => el('button', {type: 'button', class: 'sw', title: nm, 'aria-label': nm,
+          'aria-pressed': String((p.homeButtonColor || '#1F4FA8').toUpperCase() === hex), style: 'background:' + hex, onclick: () => set('homeButtonColor', hex)})))) : '',
       check('freshStart', T('fresh_start'), T('fresh_start_hint')),
       check('ringerLock', T('ringer_lock'), T('ringer_lock_hint')),
       p.ringerLock ? field(T('min_volume'), select({30: '30%', 50: '50%', 70: '70%', 80: '80%', 90: '90%', 100: '100%'}, String(p.ringVolumePercent), v => set('ringVolumePercent', +v))) : '',
@@ -1532,7 +1805,7 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
         .filter(f => f.name && f.num);
       if (cfg.pages.some(p => p.tiles.length > 1) && !confirm(T('wiz_replace'))) return;
       const items = [];
-      const greens = ['#0B6E4F', '#00695C'];
+      const greens = ['#1B7A34', '#6A1B9A'];
       people.forEach((f, i) => {
         items.push({w: 1, t: {type: 'call', target: f.num, label: f.name, icon: {kind: 'auto', ref: ''}, color: greens[i % 2]}});
         if (f.video) items.push({w: 1, t: {type: 'wa_video', target: f.num, label: T('wiz_video_of', f.name), icon: {kind: 'auto', ref: ''}, color: '#00695C'}});
@@ -1549,7 +1822,7 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
         else if (a.k === 'search') items.push({w: 2, t: {type: 'search', target: '', label: T('def_search'), color: '#37474F'}});
         else if (a.k === 'photos') items.push({w: 1, t: {type: 'photos', target: '', label: T('def_photos'), photos: [], color: '#6A1B9A'}});
         else items.push({w: 1, t: {type: 'app', target: a.k, label: APP_LABEL[a.k] || a.label, icon: {kind: 'auto', ref: ''},
-          color: ['@camera', '@gallery'].includes(a.k) ? '#6A1B9A' : a.k === 'com.whatsapp' ? '#1B6E34' : '#1F4FA8'}});
+          color: ['@camera', '@gallery'].includes(a.k) ? '#6A1B9A' : a.k === 'com.whatsapp' ? '#1B7A34' : '#1F4FA8'}});
       });
       // Ordine di importanza: familiari, chiamate perse, meteo, app, ricerca. Un riquadro largo
       // che capiterebbe a metà riga aspetta l'inizio della riga successiva, così non restano buchi.

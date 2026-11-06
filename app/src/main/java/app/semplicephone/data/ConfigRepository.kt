@@ -42,6 +42,7 @@ class ConfigRepository(private val context: Context) {
         // Scrittura atomica: tmp + rename, così un crash non lascia un file troncato.
         val tmp = File(context.filesDir, "config.json.tmp")
         tmp.writeText(json.encodeToString(LauncherConfig.serializer(), cfg))
+        Backup.snapshot(context)
         if (!tmp.renameTo(file)) error("rename config fallito")
         _config.value = cfg
     }
@@ -75,6 +76,8 @@ class ConfigRepository(private val context: Context) {
         }
 
         /** Parse + validazione; null (con log) se il testo non è una config valida. */
+        fun toJson(cfg: LauncherConfig): String = json.encodeToString(LauncherConfig.serializer(), cfg)
+
         fun parse(text: String, origin: String): LauncherConfig? = try {
             val cfg = json.decodeFromString(LauncherConfig.serializer(), text)
             val problems = validate(cfg)
@@ -135,6 +138,20 @@ class ConfigRepository(private val context: Context) {
                     tile.row < o.row + o.h && o.row < tile.row + tile.h
             }
             return other?.let { TileConflict.Overlap(it) }
+        }
+
+        /**
+         * [tile] messo nel primo posto libero di [page] dove entra con la sua misura (ridotta solo se
+         * la pagina ha meno righe o colonne), cercando riga per riga dall'alto; null se non c'è posto.
+         */
+        fun placeOnPage(page: Page, tile: Tile): Tile? {
+            val w = tile.w.coerceAtMost(page.cols)
+            val h = tile.h.coerceAtMost(page.rows)
+            for (r in 0..page.rows - h) for (c in 0..page.cols - w) {
+                val probe = tile.copy(col = c, row = r, w = w, h = h)
+                if (conflict(page.copy(tiles = page.tiles.filter { it.id != tile.id }), probe) == null) return probe
+            }
+            return null
         }
 
         /** Prima cella libera di [page], o null se piena. */

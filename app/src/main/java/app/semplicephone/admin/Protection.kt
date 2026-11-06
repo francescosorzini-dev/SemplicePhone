@@ -23,6 +23,7 @@ class Protection(private val context: Context) {
         NO_INSTALL_APPS(R.string.prot_no_install, R.string.prot_no_install_detail),
         NO_CONFIG_WIFI(R.string.prot_no_wifi),
         NO_FACTORY_RESET(R.string.prot_no_reset, R.string.prot_no_reset_detail),
+        NO_LOCK_SCREEN(R.string.prot_no_lock, R.string.prot_no_lock_detail),
     }
 
     private val dpm = context.getSystemService(DevicePolicyManager::class.java)
@@ -40,7 +41,7 @@ class Protection(private val context: Context) {
             Item.NO_CONFIG_WIFI -> restriction(UserManager.DISALLOW_CONFIG_WIFI)
             Item.NO_FACTORY_RESET -> restriction(UserManager.DISALLOW_FACTORY_RESET)
             // Nessun getter di sistema per questi due: stato ricordato localmente.
-            Item.PIN_HOME, Item.STATUS_BAR -> prefs.getBoolean(item.name, false)
+            Item.PIN_HOME, Item.STATUS_BAR, Item.NO_LOCK_SCREEN -> prefs.getBoolean(item.name, false)
         }
     }
 
@@ -64,6 +65,8 @@ class Protection(private val context: Context) {
             Item.NO_INSTALL_APPS -> setRestriction(UserManager.DISALLOW_INSTALL_APPS, on)
             Item.NO_CONFIG_WIFI -> setRestriction(UserManager.DISALLOW_CONFIG_WIFI, on)
             Item.NO_FACTORY_RESET -> setRestriction(UserManager.DISALLOW_FACTORY_RESET, on)
+            // Niente schermata di blocco (vale solo se sul telefono non c'è PIN, sequenza o password).
+            Item.NO_LOCK_SCREEN -> dpm.setKeyguardDisabled(admin, on)
         }
         prefs.edit().putBoolean(item.name, on).apply()
     }

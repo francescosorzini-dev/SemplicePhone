@@ -10,6 +10,7 @@ import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Process
+import android.os.Build
 import android.os.SystemClock
 import android.provider.MediaStore
 import android.util.Log
@@ -28,9 +29,12 @@ class TileLauncher(
     val contacts: Contacts,
     private val onSos: () -> Unit = {},
     private val onSearch: () -> Unit = {},
+    private val onRadio: (Tile) -> Unit = {},
 ) {
 
     private val pm: PackageManager = context.packageManager
+    /** Contesto per chi disegna i riquadri (foto caricate, ecc.). */
+    val appContext: Context get() = context
     private var lastLaunch = 0L
 
     fun launch(tile: Tile, sos: SosConfig) {
@@ -51,7 +55,7 @@ class TileLauncher(
             TileType.CALL -> context.getString(R.string.voice_call, name)
             TileType.WA_VIDEO -> context.getString(R.string.voice_video, name)
             TileType.SMS -> context.getString(R.string.voice_sms, name)
-            TileType.APP, TileType.URL, TileType.SHORTCUT, TileType.SEARCH -> context.getString(R.string.voice_open, name)
+            TileType.APP, TileType.URL, TileType.SHORTCUT, TileType.SEARCH, TileType.RADIO -> context.getString(R.string.voice_open, name)
             else -> null
         }
     }
@@ -91,6 +95,8 @@ class TileLauncher(
                 TileType.WA_VIDEO -> whatsAppVideo(tile)
                 TileType.MISSED_CALLS -> openCallLog()
                 TileType.SEARCH -> onSearch()
+                TileType.RADIO -> onRadio(tile)
+                TileType.MESSAGES -> perform(tile.copy(type = TileType.APP, target = "@sms"), sos)
                 TileType.CLOCK, TileType.WEATHER, TileType.PHOTOS, TileType.UNKNOWN -> Unit
             }
         } catch (e: ActivityNotFoundException) {
@@ -109,6 +115,28 @@ class TileLauncher(
         val phone = app.semplicephone.data.ConfigRepository.get(context).config.value.phone
         if (phone.voiceConfirm && name.isNotBlank()) app.semplicephone.ui.Voice.speak(context, context.getString(R.string.voice_call, name)) { call(number) }
         else call(number)
+    }
+
+    /** Tocco breve con «tieni premuto per aprire»: dice il nome e ricorda come si apre. */
+    fun holdHint(tile: Tile) {
+        speakLabel(tile)
+        android.widget.Toast.makeText(context, R.string.hold_hint, android.widget.Toast.LENGTH_SHORT).show()
+    }
+
+    /** Apre la conversazione del messaggio (azione della sua notifica); in mancanza, l'app che l'ha mandato. */
+    fun openMessage(m: app.semplicephone.phone.UnreadMessage) {
+        val now = SystemClock.elapsedRealtime()
+        if (now - lastLaunch < DEBOUNCE_MS) return
+        lastLaunch = now
+        HomeButton.forNextApp(true)
+        val sent = m.open?.let { pi ->
+            runCatching {
+                val opts = if (Build.VERSION.SDK_INT >= 34) android.app.ActivityOptions.makeBasic()
+                    .setPendingIntentBackgroundActivityStartMode(android.app.ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED).toBundle() else null
+                pi.send(context, 0, null, null, null, null, opts)
+            }.isSuccess
+        } ?: false
+        if (!sent) context.packageManager.getLaunchIntentForPackage(m.pkg)?.let { start(it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
     }
 
     /** Registro chiamate del telefono (edizione Play o permesso non concesso); in mancanza, il tastierino. */

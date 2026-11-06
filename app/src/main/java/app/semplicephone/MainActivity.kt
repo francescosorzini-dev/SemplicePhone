@@ -70,8 +70,12 @@ sealed interface Screen {
     data object Reminders : Screen
     data object Remote : Screen
     data object Phone : Screen
+    /** Copie della configurazione (senza portale). */
+    data object Backup : Screen
     /** Ricerca delle app (riquadro «Cerca app»): non serve il PIN. */
     data object Search : Screen
+    /** Radio del riquadro [tile]. */
+    data class Radio(val tile: Tile) : Screen
 }
 
 class MainActivity : ComponentActivity() {
@@ -111,7 +115,7 @@ class MainActivity : ComponentActivity() {
         contacts = Contacts(applicationContext)
         protection = DeviceProtection(applicationContext)
         scheduler = ReminderScheduler(applicationContext)
-        launcher = TileLauncher(this, contacts, onSos = ::onSosRequested, onSearch = ::openSearch)
+        launcher = TileLauncher(this, contacts, onSos = ::onSosRequested, onSearch = ::openSearch, onRadio = { screen = Screen.Radio(it) })
         pins = PinStore(applicationContext)
         catalog = AppCatalog(applicationContext)
         apps = catalog.roles()
@@ -190,6 +194,9 @@ class MainActivity : ComponentActivity() {
                                 OutlinedButton(onClick = { screen = Screen.Protection }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
                                     Text(stringResource(R.string.layout_protection))
                                 }
+                                OutlinedButton(onClick = { screen = Screen.Backup }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
+                                    Text(stringResource(R.string.backup_title))
+                                }
                                 if (android.os.Build.VERSION.SDK_INT >= 33) {
                                     // Lingua solo per SemplicePhone (pagina di sistema «Lingua dell'app»).
                                     OutlinedButton(
@@ -222,6 +229,13 @@ class MainActivity : ComponentActivity() {
                             onDelete = { draft = d.withoutTile(s.pageIndex, s.tile.id); screen = Screen.Layout },
                             onCancel = { screen = Screen.Layout },
                             onExternalStart = { externalActivity = true },
+                            pageCount = d.pages.size,
+                            pageIndex = s.pageIndex,
+                            onMove = { t, n ->
+                                val moved = ConfigRepository.placeOnPage(d.pages[n], t)
+                                if (moved != null) { draft = d.withoutTile(s.pageIndex, t.id).withTile(n, moved); screen = Screen.Layout }
+                                moved != null
+                            },
                         )
                     }
                     Screen.Reminders -> draft?.let { d ->
@@ -234,6 +248,14 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                     Screen.Remote -> RemoteScreen(onBack = { screen = Screen.Layout })
+                    Screen.Backup -> draft?.let { d ->
+                        app.semplicephone.ui.settings.BackupScreen(
+                            current = d,
+                            onLoad = { draft = it; screen = Screen.Layout },
+                            onBack = { screen = Screen.Layout },
+                            onExternalStart = { externalActivity = true },
+                        )
+                    }
                     Screen.Phone -> draft?.let { d ->
                         PhoneEditor(
                             initial = d.phone,
@@ -244,6 +266,7 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                     Screen.Protection -> ProtectionScreen(protection, onBack = { screen = Screen.Layout })
+                    is Screen.Radio -> app.semplicephone.radio.RadioScreen(s.tile, onClose = { screen = Screen.Home })
                     Screen.Search -> AppSearchScreen(
                         apps = searchApps,
                         launcher = launcher,
@@ -317,8 +340,8 @@ class MainActivity : ComponentActivity() {
             Screen.Home -> Screen.Home
             is Screen.Pin -> if (draft != null) Screen.Layout else { closeSettings(); Screen.Home }
             Screen.Layout -> { closeSettings(); Screen.Home }
-            is Screen.EditTile, Screen.Sos, Screen.Protection, Screen.Reminders, Screen.Remote, Screen.Phone -> Screen.Layout
-            Screen.SosCountdown, Screen.Search -> Screen.Home
+            is Screen.EditTile, Screen.Sos, Screen.Protection, Screen.Reminders, Screen.Remote, Screen.Phone, Screen.Backup -> Screen.Layout
+            Screen.SosCountdown, Screen.Search, is Screen.Radio -> Screen.Home
         }
     }
 

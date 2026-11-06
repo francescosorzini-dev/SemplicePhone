@@ -93,10 +93,20 @@ fun HomeScreen(
             }
         },
     ) {
+    // Tema: alto contrasto sempre, oppure scuro la sera (dalle 21 alle 7).
+    val hour by androidx.compose.runtime.produceState(java.time.LocalTime.now().hour) {
+        while (true) { kotlinx.coroutines.delay(60_000); value = java.time.LocalTime.now().hour }
+    }
+    val look = TileLook(
+        contrast = config.phone.theme == "contrast",
+        night = config.phone.theme == "night" && (hour >= 21 || hour < 7),
+        holdToOpen = config.phone.holdToOpen,
+    )
+    androidx.compose.runtime.CompositionLocalProvider(LocalTileLook provides look) {
     Column(
         Modifier
             .fillMaxSize()
-            .background(Palette.Ground)
+            .background(if (look.contrast) Color.Black else if (look.night) Color(0xFF121212) else Palette.Ground)
             .windowInsetsPadding(WindowInsets.safeDrawing)
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(Gap),
@@ -115,6 +125,7 @@ fun HomeScreen(
         }
 
         if (pages.size > 1) PageDots(pages.size, pagerState.currentPage)
+    }
     }
     if (bedside) BedsideClock { bedside = false; lastTouch = android.os.SystemClock.elapsedRealtime() }
     }
@@ -171,7 +182,7 @@ private fun PageGrid(
                 tile = t,
                 sos = config.sos,
                 launcher = launcher,
-                modifier = Modifier
+                modifier0 = Modifier
                     .offset(x = (cellW + Gap) * t.col, y = (cellH + Gap) * t.row)
                     .size(width = cellW * t.w + Gap * (t.w - 1), height = cellH * t.h + Gap * (t.h - 1)),
                 onSecretTap = onOpenSettings,

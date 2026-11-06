@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Molte radio trasmettono ancora in http: lo stream audio è ammesso anche in chiaro.
+     Portale, aggiornamenti e meteo restano solo https (lo controlla il codice). -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

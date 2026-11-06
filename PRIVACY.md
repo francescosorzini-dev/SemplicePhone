@@ -18,6 +18,9 @@ invia dati allo sviluppatore.
 | Numeri delle chiamate bloccate | blocco dei numeri sconosciuti (se attivato) | solo se è attiva la gestione da remoto, verso il portale del familiare |
 | Foto scelte per i riquadri o i promemoria | foto di famiglia, foto del farmaco | no (le foto caricate dal portale vengono scaricate dal telefono) |
 | Registro chiamate (numero, tipo, ora) | riquadro «Chiamate perse» (edizioni fuori da Google Play) | no |
+| Messaggi non letti (mittente, app, testo, dalle notifiche) | riquadro «Messaggi da leggere» (edizione completa) | no: restano in memoria sul telefono, non vengono salvati né inviati al portale |
+| Copie di sicurezza della configurazione | tornare a una versione precedente, passare a un telefono nuovo | no; il file esportato va dove lo salva chi lo esporta |
+| Stazioni radio scelte | riquadro «Radio» | sì, il telefono si collega all'indirizzo della stazione per ascoltarla |
 | Coordinate della località del meteo | riquadro meteo | sì, al servizio Open-Meteo (open-meteo.com) per ottenere le previsioni; nessun dato personale |
 
 ## Gestione da remoto (facoltativa, disattivata all'installazione)
@@ -38,6 +41,10 @@ Il telefono invia al portale:
 Dal portale il telefono riceve, firmati, i messaggi scritti dal familiare: restano sul telefono
 finché non vengono letti.
 
+Se il familiare inserisce nel portale l'indirizzo di un calendario (iCal), è il portale a leggerlo
+e a trasformare gli appuntamenti dei 14 giorni seguenti in promemoria; il telefono riceve solo i
+promemoria.
+
 Il collegamento usa HTTPS. Le configurazioni ricevute devono essere firmate con la chiave del
 portale. Per interrompere l'invio basta spegnere «Gestione da remoto» o disinstallare l'app; i
 dati già inviati si cancellano dal portale.
@@ -48,6 +55,9 @@ dati già inviati si cancellano dal portale.
 - Contatti: per i riquadri e per riconoscere i contatti nel filtro chiamate.
 - Registro chiamate: per il riquadro «Chiamate perse» (non nell'edizione Google Play).
 - Mostra sopra altre app: per il pulsante «Casa», se attivato.
+- Servizio in primo piano per la riproduzione: per la radio, che continua a schermo spento.
+- Connessioni non cifrate (HTTP): solo per le stazioni radio che trasmettono senza HTTPS; la
+  gestione da remoto usa sempre HTTPS.
 - Rispondere alle chiamate e stato del telefono: solo per la risposta automatica ai numeri SOS, se
   attivata (per rispondere e mostrare poi la schermata della chiamata).
 - Posizione: per l'SOS.

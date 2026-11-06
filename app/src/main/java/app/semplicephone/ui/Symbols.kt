@@ -63,6 +63,8 @@ object Symbols {
         "storm" to listOf("M7 14h10a4 4 0 0 0 0-8a5.5 5.5 0 0 0-10.6 1.5A3.3 3.3 0 0 0 7 14z", "M12 14l-2 4h4l-2 4"),
         "fog" to listOf("M4 9h16M6 13h12M4 17h16"),
         "missed" to listOf("M5 6h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 15l5 2v3a2 2 0 0 1-2 2A16 16 0 0 1 3 8a2 2 0 0 1 2-2", "M15 3l5 5M20 3l-5 5"),
+        "battery" to listOf("M6 7h10a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2", "M21 10.5v3", "M11.5 8.5L9 12h4l-2.5 3.5"),
+        "radio" to listOf("M5 9h14a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1", "M7 9L16 4", "M13 14.5a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0-5 0", "M7 13h3M7 16h3"),
         "search" to listOf("M4 10a6 6 0 1 0 12 0a6 6 0 1 0-12 0", "M14.5 14.5L20 20"),
         "check" to listOf("M3 12a9 9 0 1 0 18 0a9 9 0 1 0-18 0", "M8 12.5l2.5 2.5 5.5-6"),
     )
@@ -83,6 +85,8 @@ object Symbols {
         TileType.PHOTOS -> "photo"
         TileType.MISSED_CALLS -> "missed"
         TileType.SEARCH -> "search"
+        TileType.MESSAGES -> "message"
+        TileType.RADIO -> "radio"
         else -> "grid"
     }
 

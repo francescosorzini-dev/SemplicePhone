@@ -66,7 +66,8 @@ object Permissions {
         required(context, cfg).filter { !granted(context, it.permission) }
 
     fun requiredSpecial(context: Context, cfg: LauncherConfig): List<Special> = buildList {
-        if (cfg.phone.badges && BuildConfig.FULL) add(
+        val messagesTile = cfg.pages.any { p -> p.tiles.any { it.type == TileType.MESSAGES } }
+        if ((cfg.phone.badges || messagesTile) && BuildConfig.FULL) add(
             Special("badges", context.getString(R.string.special_badges), context.getString(R.string.special_badges_why),
                 Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS),
         )

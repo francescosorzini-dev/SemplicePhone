@@ -74,6 +74,8 @@ private val TypeLabels = linkedMapOf(
     TileType.PHOTOS to R.string.type_photos,
     TileType.MISSED_CALLS to R.string.type_missed_calls,
     TileType.SEARCH to R.string.type_search,
+    TileType.MESSAGES to R.string.type_messages_unread,
+    TileType.RADIO to R.string.type_radio,
     TileType.SOS to 0,
 )
 
@@ -105,6 +107,11 @@ fun TileEditor(
     onDelete: () -> Unit,
     onCancel: () -> Unit,
     onExternalStart: () -> Unit = {},
+    /** Pagine della schermata e pagina del riquadro, per spostarlo su un'altra. */
+    pageCount: Int = 1,
+    pageIndex: Int = 0,
+    /** Sposta il riquadro sulla pagina indicata; false se lì non c'è posto. */
+    onMove: (Tile, Int) -> Boolean = { _, _ -> false },
 ) {
     val context = LocalContext.current
     var t by remember { mutableStateOf(initial) }
@@ -147,7 +154,10 @@ fun TileEditor(
                 color = Palette.Sos, fontSize = 16.sp, fontWeight = FontWeight.Bold)
 
             OptionPicker(stringResource(R.string.tile_action), TypeLabels.keys.toList(), t.type, { typeLabel(context, it) }) { type ->
-                t = t.copy(type = type, label = if (t.label.isBlank()) defaultLabel(context, type) else t.label)
+                // Il valore del tipo precedente non vale per il nuovo (es. «@dialer» per una videochiamata).
+                val phoneTypes = setOf(TileType.CALL, TileType.WA_VIDEO, TileType.SMS)
+                val keep = type == t.type || (type in phoneTypes && t.type in phoneTypes)
+                t = t.copy(type = type, target = if (keep) t.target else "", label = if (t.label.isBlank()) defaultLabel(context, type) else t.label)
             }
 
             when (t.type) {
@@ -216,20 +226,54 @@ fun TileEditor(
                     stringResource(if (app.semplicephone.data.MissedCalls.supported()) R.string.tile_missed_hint else R.string.tile_missed_hint_play),
                 )
                 TileType.SEARCH -> Hint(stringResource(R.string.tile_search_hint))
+                TileType.RADIO -> {
+                    Hint(stringResource(R.string.tile_radio_hint))
+                    t.stations.forEachIndexed { i, st ->
+                        androidx.compose.material3.OutlinedTextField(
+                            value = st.name, onValueChange = { v -> t = t.copy(stations = t.stations.toMutableList().also { it[i] = st.copy(name = v) }) },
+                            label = { Text(stringResource(R.string.tile_radio_name)) }, singleLine = true, modifier = Modifier.fillMaxWidth(),
+                        )
+                        androidx.compose.material3.OutlinedTextField(
+                            value = st.url, onValueChange = { v -> t = t.copy(stations = t.stations.toMutableList().also { it[i] = st.copy(url = v.trim()) }) },
+                            label = { Text(stringResource(R.string.tile_radio_url)) }, singleLine = true, modifier = Modifier.fillMaxWidth(),
+                        )
+                        androidx.compose.material3.TextButton(onClick = { t = t.copy(stations = t.stations.filterIndexed { j, _ -> j != i }) }) {
+                            Text(stringResource(R.string.tile_radio_remove), color = Palette.Sos)
+                        }
+                    }
+                    androidx.compose.material3.OutlinedButton(
+                        onClick = { t = t.copy(stations = t.stations + app.semplicephone.model.Station()) },
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
+                    ) { Text(stringResource(R.string.tile_radio_add)) }
+                }
+                TileType.MESSAGES -> Hint(stringResource(if (app.semplicephone.BuildConfig.FULL) R.string.tile_messages_hint else R.string.tile_messages_hint_basic))
                 TileType.UNKNOWN -> Hint(stringResource(R.string.tile_unknown_hint))
                 TileType.SOS -> Hint(stringResource(R.string.tile_sos_hint))
             }
 
             if (t.type != TileType.CLOCK) Field(stringResource(R.string.tile_label), t.label) { t = t.copy(label = it) }
 
-            if (t.type !in setOf(TileType.CLOCK, TileType.SOS, TileType.WEATHER, TileType.PHOTOS, TileType.MISSED_CALLS, TileType.UNKNOWN)) {
+            if (t.type !in setOf(TileType.CLOCK, TileType.SOS, TileType.WEATHER, TileType.PHOTOS, TileType.MISSED_CALLS, TileType.MESSAGES, TileType.UNKNOWN)) {
                 OptionPicker(stringResource(R.string.tile_icon), IconLabels.keys.toList(), t.icon.kind, { context.getString(IconLabels.getValue(it)) }) { k ->
-                    t = t.copy(icon = TileIcon(k, if (k == IconKind.SYMBOL) t.icon.ref.ifBlank { Symbols.defaultFor(t.type) } else ""))
+                    t = t.copy(icon = TileIcon(k, when {
+                        k == IconKind.SYMBOL -> t.icon.ref.ifBlank { Symbols.defaultFor(t.type) }
+                        k == IconKind.PHOTO && t.icon.ref.startsWith("media:") -> t.icon.ref
+                        else -> ""
+                    }, t.icon.fill))
                 }
                 if (t.icon.kind == IconKind.SYMBOL) SymbolGrid(t.icon.ref) { t = t.copy(icon = TileIcon(IconKind.SYMBOL, it)) }
                 if (t.icon.kind == IconKind.PHOTO) Hint(stringResource(R.string.tile_photo_hint))
                 val withPhoto = t.icon.kind == IconKind.PHOTO ||
                     (t.icon.kind == IconKind.AUTO && t.type in setOf(TileType.CALL, TileType.WA_VIDEO, TileType.SMS))
+                if (t.type in setOf(TileType.CALL, TileType.WA_VIDEO, TileType.SMS)) {
+                    // Foto scelta o scattata qui (anche se il numero non ha foto in rubrica).
+                    SectionLabel(stringResource(R.string.tile_own_photo))
+                    SinglePhotoField(
+                        ref = t.icon.ref.takeIf { it.startsWith("media:") }.orEmpty(),
+                        onChange = { r -> t = t.copy(icon = if (r.isBlank()) t.icon.copy(kind = IconKind.AUTO, ref = "") else t.icon.copy(kind = IconKind.PHOTO, ref = r)) },
+                        onExternalStart = onExternalStart,
+                    )
+                }
                 if (withPhoto) Toggle(
                     stringResource(R.string.tile_photo_fill), stringResource(R.string.tile_photo_fill_hint), t.icon.fill,
                 ) { t = t.copy(icon = t.icon.copy(fill = it)) }
@@ -239,6 +283,20 @@ fun TileEditor(
                 Toggle(stringResource(R.string.tile_home_button), stringResource(R.string.tile_home_button_detail), t.homeButton) {
                     t = t.copy(homeButton = it)
                 }
+            }
+
+            if (!isNew && pageCount > 1) {
+                var noRoom by remember { mutableStateOf<Int?>(null) }
+                SectionLabel(stringResource(R.string.tile_move_page))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                    (0 until pageCount).filter { it != pageIndex }.take(4).forEach { n ->
+                        androidx.compose.material3.OutlinedButton(
+                            onClick = { if (!onMove(t, n)) noRoom = n },
+                            modifier = Modifier.weight(1f).heightIn(min = 52.dp),
+                        ) { Text(stringResource(R.string.tile_page_n, n + 1)) }
+                    }
+                }
+                noRoom?.let { Text(stringResource(R.string.tile_move_no_room, it + 1), color = Palette.Sos, fontSize = 15.sp) }
             }
 
             SectionLabel(stringResource(R.string.tile_color))
@@ -310,6 +368,8 @@ fun defaultLabel(context: Context, type: TileType): String = when (type) {
     TileType.PHOTOS -> context.getString(R.string.label_photos)
     TileType.MISSED_CALLS -> context.getString(R.string.label_missed_calls)
     TileType.SEARCH -> context.getString(R.string.label_search)
+    TileType.MESSAGES -> context.getString(R.string.label_messages_unread)
+    TileType.RADIO -> context.getString(R.string.label_radio)
     TileType.UNKNOWN -> ""
     TileType.SOS -> "SOS"
 }

@@ -35,7 +35,7 @@ object Media {
 
     /** Riferimenti usati dalla config: riquadri foto e foto dei promemoria. */
     fun referenced(cfg: LauncherConfig): Set<String> =
-        (cfg.pages.flatMap { p -> p.tiles.flatMap { it.photos } } + cfg.reminders.map { it.photo })
+        (cfg.pages.flatMap { p -> p.tiles.flatMap { it.photos + it.icon.ref } } + cfg.reminders.map { it.photo })
             .filter { hashOf(it) != null }.toSet()
 
     /** Importa un'immagine scelta sul telefono: ridotta a 1600 px, JPEG, nominata col suo hash. */

@@ -29,6 +29,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -38,6 +39,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
@@ -81,21 +83,35 @@ private val TileShape = RoundedCornerShape(18.dp)
 @Composable
 private fun Dp.fixedSp(): TextUnit = with(LocalDensity.current) { this@fixedSp.toSp() }
 
+/** Aspetto della Home: tema (normale, alto contrasto, notte) e apertura dei riquadri tenendo premuto. */
+data class TileLook(val contrast: Boolean = false, val night: Boolean = false, val holdToOpen: Boolean = false)
+
+val LocalTileLook = androidx.compose.runtime.staticCompositionLocalOf { TileLook() }
+
 @Composable
 fun TileView(
     tile: Tile,
     sos: SosConfig,
     launcher: TileLauncher,
-    modifier: Modifier = Modifier,
+    modifier0: Modifier = Modifier,
     onSecretTap: () -> Unit = {},
     badge: Int = 0,
 ) {
+    val look = LocalTileLook.current
+    // Alto contrasto: bordo bianco spesso su fondo nero. Notte: riquadri velati, meno abbaglianti.
+    val modifier = modifier0
+        .then(if (look.contrast) Modifier.border(4.dp, Color.White, TileShape) else Modifier)
+        .then(
+            if (look.night) Modifier.clip(TileShape).drawWithContent { drawContent(); drawRect(Color.Black.copy(alpha = 0.38f)) }
+            else Modifier,
+        )
     when (tile.type) {
         TileType.CLOCK -> ClockTile(tile, launcher, modifier, onSecretTap)
         TileType.SOS -> SosTile(tile, sos, launcher, modifier)
         TileType.WEATHER -> WeatherTile(tile, launcher, modifier)
         TileType.PHOTOS -> PhotosTile(tile, launcher, modifier)
         TileType.MISSED_CALLS -> MissedCallsTile(tile, sos, launcher, modifier)
+        TileType.MESSAGES -> MessagesTile(tile, sos, launcher, modifier)
         TileType.UNKNOWN -> Box(modifier.clip(TileShape).background(Color(0xFFD9D3C7)))
         else -> ActionTile(tile, sos, launcher, modifier, badge)
     }
@@ -108,6 +124,7 @@ private fun ActionTile(tile: Tile, sos: SosConfig, launcher: TileLauncher, modif
     val fg = contentColorFor(parseColor(tile.color))
     val wide = tile.w > tile.h
     val badgeDesc = stringResource(R.string.tile_badge_desc, badge)
+    val hold = LocalTileLook.current.holdToOpen
 
     Box(
         modifier
@@ -117,8 +134,9 @@ private fun ActionTile(tile: Tile, sos: SosConfig, launcher: TileLauncher, modif
             .combinedClickable(
                 role = Role.Button,
                 onClickLabel = tile.label,
-                onLongClick = { launcher.speakLabel(tile) },
-                onClick = { launcher.launch(tile, sos) },
+                // «Tieni premuto per aprire» (tremore): il tocco breve dice solo il nome.
+                onLongClick = { if (hold) launcher.launch(tile, sos) else launcher.speakLabel(tile) },
+                onClick = { if (hold) launcher.holdHint(tile) else launcher.launch(tile, sos) },
             )
             .semantics { if (badge > 0) stateDescription = badgeDesc },
         contentAlignment = Alignment.Center,
@@ -160,7 +178,7 @@ private fun FullPhoto(tile: Tile, launcher: TileLauncher, fallback: @Composable 
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val px = with(LocalDensity.current) { maxOf(maxWidth, maxHeight).roundToPx() }
         val photo by produceState<ImageBitmap?>(null, tile.icon.ref, tile.target, px) {
-            value = withContext(Dispatchers.IO) { launcher.contacts.photo(tile.icon.ref, tile.target, px)?.asImageBitmap() }
+            value = withContext(Dispatchers.IO) { tilePhoto(launcher, tile, px)?.asImageBitmap() }
         }
         val p = photo
         if (p == null) fallback()
@@ -253,7 +271,7 @@ private val PersonTypes = setOf(TileType.CALL, TileType.WA_VIDEO, TileType.SMS)
 private fun ContactPhoto(tile: Tile, launcher: TileLauncher, tint: Color, size: Dp, initialsFallback: Boolean) {
     val px = with(LocalDensity.current) { size.roundToPx() }
     val photo by produceState<ImageBitmap?>(null, tile.icon.ref, tile.target, px) {
-        value = withContext(Dispatchers.IO) { launcher.contacts.photo(tile.icon.ref, tile.target, px)?.asImageBitmap() }
+        value = withContext(Dispatchers.IO) { tilePhoto(launcher, tile, px)?.asImageBitmap() }
     }
     val p = photo
     when {
@@ -270,6 +288,11 @@ private fun ContactPhoto(tile: Tile, launcher: TileLauncher, tint: Color, size: 
         else -> Icon(Symbols.get(Symbols.defaultFor(tile.type)), null, Modifier.size(size), tint = tint)
     }
 }
+
+/** Foto del riquadro: caricata dal familiare («media:…», dal portale o dal telefono) o dalla rubrica. */
+private fun tilePhoto(launcher: TileLauncher, tile: Tile, px: Int): android.graphics.Bitmap? =
+    if (tile.icon.ref.startsWith("media:")) app.semplicephone.data.Media.bitmap(launcher.appContext, tile.icon.ref, px)
+    else launcher.contacts.photo(tile.icon.ref, tile.target, px)
 
 private fun initials(label: String): String =
     label.split(' ').filter { it.isNotBlank() }.take(2).joinToString("") { it.take(1).uppercase() }.ifEmpty { "?" }
@@ -636,4 +659,92 @@ private fun missedWhen(m: app.semplicephone.data.Missed): String {
         else -> at.format(DateTimeFormatter.ofPattern("EEE", locale)) + " " + time
     }
     return if (m.count > 1) day + " · " + stringResource(R.string.missed_times, m.count) else day
+}
+
+/**
+ * Messaggi da leggere (edizione Completa, dalle notifiche): chi ha scritto, con quale app, l'inizio
+ * del testo e l'ora. Un tocco apre quella conversazione, una pressione lunga lo legge ad alta voce.
+ * Senza accesso alle notifiche il riquadro apre l'app Messaggi.
+ */
+@Composable
+private fun MessagesTile(tile: Tile, sos: SosConfig, launcher: TileLauncher, modifier: Modifier) {
+    val context = LocalContext.current
+    val readable = app.semplicephone.BuildConfig.FULL && app.semplicephone.phone.Badges.isEnabled(context)
+    val messages by app.semplicephone.phone.Badges.messages.collectAsState()
+    val bg = parseColor(tile.color)
+    val fg = contentColorFor(bg)
+    val label = tile.label.ifBlank { stringResource(R.string.label_messages_unread) }
+    val spokenAll = if (!readable) label
+        else if (messages.isEmpty()) stringResource(R.string.messages_none)
+        else stringResource(R.string.messages_spoken_count, messages.size)
+    val base = modifier
+        .clip(TileShape)
+        .background(bg)
+        .border(if (bg.isLight()) 2.dp else 0.dp, Palette.Ink, TileShape)
+        .semantics { contentDescription = spokenAll }
+
+    if (!readable || messages.isEmpty()) {
+        Box(
+            base.combinedClickable(
+                role = Role.Button,
+                onLongClick = { launcher.speakText(spokenAll) },
+                onClick = { if (readable) launcher.speakText(spokenAll) else launcher.launch(tile, sos) },
+            ).padding(12.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            BoxWithConstraints(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                val icon = (minOf(maxWidth, maxHeight) * 0.42f).coerceAtMost(96.dp)
+                val tall = maxHeight > 140.dp
+                Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Icon(Symbols.get(if (readable) "check" else "message"), null, Modifier.size(icon), tint = fg)
+                    TileLabel(label, fg, 22.dp.fixedSp(), TextAlign.Center, Modifier.fillMaxWidth())
+                    if (readable && tall) Text(stringResource(R.string.messages_none), color = fg, fontSize = 17.dp.fixedSp(), textAlign = TextAlign.Center)
+                }
+            }
+        }
+        return
+    }
+
+    BoxWithConstraints(base.padding(8.dp)) {
+        val rowHeight = 72.dp
+        val fit = ((maxHeight - 34.dp) / (rowHeight + 6.dp)).toInt().coerceAtLeast(1)
+        Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(
+                Modifier.fillMaxWidth().padding(horizontal = 6.dp)
+                    .combinedClickable(onLongClick = { launcher.speakText(spokenAll) }, onClick = { launcher.speakText(spokenAll) }),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Icon(Symbols.get("message"), null, Modifier.size(26.dp), tint = fg)
+                Text("$label (${messages.size})", color = fg, fontSize = 19.dp.fixedSp(), fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
+            messages.take(fit).forEach { m ->
+                val spoken = stringResource(R.string.messages_spoken_one, m.sender.ifBlank { m.app }, m.app, m.text)
+                Row(
+                    Modifier.fillMaxWidth().height(rowHeight)
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(Color.White)
+                        .border(2.dp, Palette.Ink, RoundedCornerShape(14.dp))
+                        .combinedClickable(
+                            role = Role.Button,
+                            onClickLabel = spoken,
+                            onLongClick = { launcher.speakText(spoken) },
+                            onClick = { launcher.openMessage(m) },
+                        )
+                        .padding(horizontal = 12.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            m.sender.ifBlank { m.app } + " · " + m.app + " · " +
+                                java.time.Instant.ofEpochMilli(m.at).atZone(java.time.ZoneId.systemDefault())
+                                    .format(DateTimeFormatter.ofLocalizedTime(java.time.format.FormatStyle.SHORT)),
+                            color = Palette.Ink, fontSize = 17.dp.fixedSp(), fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                        )
+                        Text(m.text, color = Palette.Ink, fontSize = 17.dp.fixedSp(), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
+                }
+            }
+        }
+    }
 }

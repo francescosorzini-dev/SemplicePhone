@@ -1,0 +1,8 @@
+- Messages non lus : SMS et WhatsApp, lus à voix haute
+- Radio avec de gros boutons
+- Nuit tranquille (seuls les numéros SOS sonnent) et « mettez en charge » le soir
+- Photos des proches et calendrier familial depuis le portail
+- Ouverture en maintenant, contraste élevé, sombre le soir
+- Bouton Accueil déplaçable, couleur au choix, icône seule
+- Copies de sécurité et export des réglages
+- Modifications du téléphone enregistrées dans le portail

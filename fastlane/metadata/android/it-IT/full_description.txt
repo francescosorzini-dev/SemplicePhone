@@ -23,6 +23,9 @@ Blocco dei numeri sconosciuti (passano solo rubrica e familiari), vivavoce autom
 <b>Meteo, foto e comodino</b>
 Riquadro meteo, riquadro con le foto di famiglia che scorrono, orologio grande quando il telefono è in carica.
 
+<b>Messaggi, radio e notte tranquilla</b>
+Riquadro con i messaggi non letti (SMS, WhatsApp), letti ad alta voce; radio con le stazioni preferite e pulsanti enormi. Di notte squillano solo i numeri SOS; la sera ricorda di mettere in carica. Riquadri che si aprono solo tenendoli premuti, contro i tocchi involontari; alto contrasto o tema scuro la sera.
+
 <b>Non ci si perde</b>
 Un pulsante «Casa» resta visibile dentro le altre app: un tocco e si torna alla schermata semplice.
 

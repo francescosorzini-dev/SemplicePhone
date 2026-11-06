@@ -286,7 +286,7 @@ class RemoteClient(private val context: Context) {
         if (app.semplicephone.data.MissedCalls.supported() &&
             cfg.pages.any { p -> p.tiles.any { it.type == app.semplicephone.model.TileType.MISSED_CALLS } }
         ) out.put("callLog", app.semplicephone.data.MissedCalls.canRead(context))
-        if (cfg.phone.blockUnknown || cfg.phone.autoAnswer || cfg.phone.announceCaller) {
+        if (cfg.phone.blockUnknown || cfg.phone.autoAnswer || cfg.phone.announceCaller || cfg.phone.nightQuiet) {
             val roles = context.getSystemService(android.app.role.RoleManager::class.java)
             out.put("screening", runCatching { roles.isRoleHeld(android.app.role.RoleManager.ROLE_CALL_SCREENING) }.getOrDefault(false))
             out.put("contacts", app.semplicephone.launch.Permissions.granted(context, android.Manifest.permission.READ_CONTACTS))
@@ -373,7 +373,10 @@ class RemoteClient(private val context: Context) {
             .apply {
                 if (sendConfig) {
                     runCatching { JSONObject(configFile().readText()) }.getOrNull()?.let { put("config", it) }
-                    put("configSource", if (cfgHash == settings.configRemoteHash) "remote" else "local")
+                    // «local» solo se cambiata davvero dalle impostazioni del telefono: dopo un aggiornamento
+                    // dell'app l'impronta remota manca, ma senza salvataggi locali la config è quella del portale.
+                    val local = cfgHash != settings.configRemoteHash && (settings.configLocalAt > 0 || settings.lastSeq == 0L)
+                    put("configSource", if (local) "local" else "remote")
                     put("configAt", settings.configLocalAt.takeIf { it > 0 } ?: configFile().lastModified())
                 }
             }

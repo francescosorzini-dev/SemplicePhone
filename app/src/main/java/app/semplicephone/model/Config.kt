@@ -46,8 +46,26 @@ data class PhoneConfig(
     val autoAnswerSeconds: Int = 10,
     /** Durante lo squillo il telefono dice chi chiama («Chiama Maria»). */
     val announceCaller: Boolean = false,
+    /** Di notte il telefono non squilla, tranne per i numeri SOS (orari «HH:mm», anche a cavallo della mezzanotte). */
+    val nightQuiet: Boolean = false,
+    val nightFrom: String = "22:00",
+    val nightTo: String = "07:00",
+    /** «Metti in carica» la sera: all'ora [chargeTime], se la batteria è sotto [chargeBelow]%. */
+    val chargeReminder: Boolean = false,
+    val chargeTime: String = "20:00",
+    val chargeBelow: Int = 40,
+    /** Riquadri che si aprono solo tenendo premuto (tremore): il tocco breve legge il nome. */
+    val holdToOpen: Boolean = false,
+    /** Tema: "normal", "contrast" (alto contrasto), "night" (scuro la sera, dalle 21 alle 7). */
+    val theme: String = "normal",
     /** Pulsante «Casa» sempre visibile sopra le altre app: un tocco riporta al launcher. */
     val homeButton: Boolean = false,
+    /** Colore del pulsante «Casa» (uno dei colori dei riquadri). */
+    val homeButtonColor: String = "#1F4FA8",
+    /** Scritta «CASA» sotto l'icona; spenta = solo icona, più grande. */
+    val homeButtonLabel: Boolean = true,
+    /** Bordo di partenza: "right" o "left" (poi lo si può trascinare). */
+    val homeButtonSide: String = "right",
 )
 
 /** Promemoria (farmaci, attività, appuntamenti) a orario fisso, con ripetizione finché non viene confermato. */
@@ -105,6 +123,8 @@ data class Tile(
     val body: String = "",
     /** Solo per PHOTOS: immagini che scorrono ("media:<sha256>", vedi Media). */
     val photos: List<String> = emptyList(),
+    /** Solo per RADIO: stazioni (nome e indirizzo dello stream). */
+    val stations: List<Station> = emptyList(),
     /**
      * Solo per APP: «default» segue l'impostazione del telefono (PhoneConfig.freshStart),
      * «fresh» riparte sempre dalla schermata iniziale, «resume» riprende dall'ultima pagina.
@@ -134,6 +154,10 @@ enum class TileType(val code: String) {
     MISSED_CALLS("missed_calls"),
     /** Ricerca delle app dentro il launcher: si scrive parte del nome e un tocco la apre. */
     SEARCH("search"),
+    /** Messaggi da leggere (SMS, WhatsApp…) dalle notifiche; nelle edizioni senza accesso alle notifiche apre l'app Messaggi. */
+    MESSAGES("messages"),
+    /** Radio: una o più stazioni in streaming, con pulsanti grandi dentro il launcher. */
+    RADIO("radio"),
     UNKNOWN("unknown"),
 }
 
@@ -167,6 +191,10 @@ enum class IconKind {
     @SerialName("photo") PHOTO,
     @SerialName("none") NONE,
 }
+
+/** Stazione radio di un riquadro RADIO. */
+@Serializable
+data class Station(val name: String = "", val url: String = "")
 
 @Serializable
 data class SosConfig(
