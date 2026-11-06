@@ -20,7 +20,7 @@ object LocalizedDefaults {
         R.string.label_phone, R.string.label_messages, R.string.label_camera, R.string.label_photos,
         R.string.label_family, R.string.label_internet, R.string.label_app, R.string.label_call,
         R.string.label_video, R.string.label_message, R.string.label_shortcut, R.string.label_missed_calls,
-        R.string.label_search,
+        R.string.label_search, R.string.label_messages_unread,
     )
     private val REMINDER_TITLES = listOf(
         R.string.default_reminder_title, R.string.preset_medicine, R.string.preset_shower, R.string.preset_shopping,

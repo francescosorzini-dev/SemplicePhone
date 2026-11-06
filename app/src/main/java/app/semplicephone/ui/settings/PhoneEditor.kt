@@ -136,6 +136,20 @@ fun PhoneEditor(
                     Text(stringResource(R.string.phone_home_grant))
                 }
             }
+            if (p.homeButton) {
+                val sides = linkedMapOf(
+                    app.semplicephone.launch.HomeButton.SIDE_RIGHT to stringResource(R.string.phone_home_side_right),
+                    app.semplicephone.launch.HomeButton.SIDE_LEFT to stringResource(R.string.phone_home_side_left),
+                )
+                OptionPicker(stringResource(R.string.phone_home_side), sides.keys.toList(), p.homeButtonSide, { sides[it].orEmpty() }) {
+                    p = p.copy(homeButtonSide = it)
+                }
+                Toggle(stringResource(R.string.phone_home_label), stringResource(R.string.phone_home_label_detail), p.homeButtonLabel) {
+                    p = p.copy(homeButtonLabel = it)
+                }
+                SectionLabel(stringResource(R.string.phone_home_color))
+                ColorSwatches(p.homeButtonColor) { p = p.copy(homeButtonColor = it) }
+            }
 
             Toggle(
                 stringResource(R.string.phone_fresh_start),

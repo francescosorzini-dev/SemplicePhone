@@ -10,6 +10,7 @@ import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Process
+import android.os.Build
 import android.os.SystemClock
 import android.provider.MediaStore
 import android.util.Log
@@ -91,6 +92,7 @@ class TileLauncher(
                 TileType.WA_VIDEO -> whatsAppVideo(tile)
                 TileType.MISSED_CALLS -> openCallLog()
                 TileType.SEARCH -> onSearch()
+                TileType.MESSAGES -> perform(tile.copy(type = TileType.APP, target = "@sms"), sos)
                 TileType.CLOCK, TileType.WEATHER, TileType.PHOTOS, TileType.UNKNOWN -> Unit
             }
         } catch (e: ActivityNotFoundException) {
@@ -109,6 +111,22 @@ class TileLauncher(
         val phone = app.semplicephone.data.ConfigRepository.get(context).config.value.phone
         if (phone.voiceConfirm && name.isNotBlank()) app.semplicephone.ui.Voice.speak(context, context.getString(R.string.voice_call, name)) { call(number) }
         else call(number)
+    }
+
+    /** Apre la conversazione del messaggio (azione della sua notifica); in mancanza, l'app che l'ha mandato. */
+    fun openMessage(m: app.semplicephone.phone.UnreadMessage) {
+        val now = SystemClock.elapsedRealtime()
+        if (now - lastLaunch < DEBOUNCE_MS) return
+        lastLaunch = now
+        HomeButton.forNextApp(true)
+        val sent = m.open?.let { pi ->
+            runCatching {
+                val opts = if (Build.VERSION.SDK_INT >= 34) android.app.ActivityOptions.makeBasic()
+                    .setPendingIntentBackgroundActivityStartMode(android.app.ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED).toBundle() else null
+                pi.send(context, 0, null, null, null, null, opts)
+            }.isSuccess
+        } ?: false
+        if (!sent) context.packageManager.getLaunchIntentForPackage(m.pkg)?.let { start(it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
     }
 
     /** Registro chiamate del telefono (edizione Play o permesso non concesso); in mancanza, il tastierino. */

@@ -48,6 +48,12 @@ data class PhoneConfig(
     val announceCaller: Boolean = false,
     /** Pulsante «Casa» sempre visibile sopra le altre app: un tocco riporta al launcher. */
     val homeButton: Boolean = false,
+    /** Colore del pulsante «Casa» (uno dei colori dei riquadri). */
+    val homeButtonColor: String = "#1F4FA8",
+    /** Scritta «CASA» sotto l'icona; spenta = solo icona, più grande. */
+    val homeButtonLabel: Boolean = true,
+    /** Bordo di partenza: "right" o "left" (poi lo si può trascinare). */
+    val homeButtonSide: String = "right",
 )
 
 /** Promemoria (farmaci, attività, appuntamenti) a orario fisso, con ripetizione finché non viene confermato. */
@@ -134,6 +140,8 @@ enum class TileType(val code: String) {
     MISSED_CALLS("missed_calls"),
     /** Ricerca delle app dentro il launcher: si scrive parte del nome e un tocco la apre. */
     SEARCH("search"),
+    /** Messaggi da leggere (SMS, WhatsApp…) dalle notifiche; nelle edizioni senza accesso alle notifiche apre l'app Messaggi. */
+    MESSAGES("messages"),
     UNKNOWN("unknown"),
 }
 

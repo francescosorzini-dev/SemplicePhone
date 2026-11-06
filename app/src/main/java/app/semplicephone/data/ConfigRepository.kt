@@ -137,6 +137,20 @@ class ConfigRepository(private val context: Context) {
             return other?.let { TileConflict.Overlap(it) }
         }
 
+        /**
+         * [tile] messo nel primo posto libero di [page] dove entra con la sua misura (ridotta solo se
+         * la pagina ha meno righe o colonne), cercando riga per riga dall'alto; null se non c'è posto.
+         */
+        fun placeOnPage(page: Page, tile: Tile): Tile? {
+            val w = tile.w.coerceAtMost(page.cols)
+            val h = tile.h.coerceAtMost(page.rows)
+            for (r in 0..page.rows - h) for (c in 0..page.cols - w) {
+                val probe = tile.copy(col = c, row = r, w = w, h = h)
+                if (conflict(page.copy(tiles = page.tiles.filter { it.id != tile.id }), probe) == null) return probe
+            }
+            return null
+        }
+
         /** Prima cella libera di [page], o null se piena. */
         fun firstFreeCell(page: Page): Pair<Int, Int>? {
             for (r in 0 until page.rows) for (c in 0 until page.cols) {

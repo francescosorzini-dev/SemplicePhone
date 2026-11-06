@@ -222,6 +222,13 @@ class MainActivity : ComponentActivity() {
                             onDelete = { draft = d.withoutTile(s.pageIndex, s.tile.id); screen = Screen.Layout },
                             onCancel = { screen = Screen.Layout },
                             onExternalStart = { externalActivity = true },
+                            pageCount = d.pages.size,
+                            pageIndex = s.pageIndex,
+                            onMove = { t, n ->
+                                val moved = ConfigRepository.placeOnPage(d.pages[n], t)
+                                if (moved != null) { draft = d.withoutTile(s.pageIndex, t.id).withTile(n, moved); screen = Screen.Layout }
+                                moved != null
+                            },
                         )
                     }
                     Screen.Reminders -> draft?.let { d ->

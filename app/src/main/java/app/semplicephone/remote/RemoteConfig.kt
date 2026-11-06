@@ -373,7 +373,10 @@ class RemoteClient(private val context: Context) {
             .apply {
                 if (sendConfig) {
                     runCatching { JSONObject(configFile().readText()) }.getOrNull()?.let { put("config", it) }
-                    put("configSource", if (cfgHash == settings.configRemoteHash) "remote" else "local")
+                    // «local» solo se cambiata davvero dalle impostazioni del telefono: dopo un aggiornamento
+                    // dell'app l'impronta remota manca, ma senza salvataggi locali la config è quella del portale.
+                    val local = cfgHash != settings.configRemoteHash && (settings.configLocalAt > 0 || settings.lastSeq == 0L)
+                    put("configSource", if (local) "local" else "remote")
                     put("configAt", settings.configLocalAt.takeIf { it > 0 } ?: configFile().lastModified())
                 }
             }

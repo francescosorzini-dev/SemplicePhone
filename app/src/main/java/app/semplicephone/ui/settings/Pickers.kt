@@ -51,10 +51,15 @@ import app.semplicephone.ui.Symbols
 import app.semplicephone.ui.parseColor
 
 /** Palette ad alto contrasto: ogni colore regge testo bianco o nero a 4.5:1. */
+/**
+ * Colori dei riquadri: 5 scuri (scritta bianca) e 4 chiari (scritta nera), scelti per restare
+ * distinti anche con la vista che invecchia (il cristallino ingiallito confonde blu e verdi scuri).
+ * I colori di prima restano validi nelle configurazioni che li usano.
+ */
 val TilePalette = listOf(
-    "#1F4FA8" to R.string.color_blue, "#0B6E4F" to R.string.color_green, "#6A1B9A" to R.string.color_purple,
-    "#1A1A1A" to R.string.color_black, "#B71C1C" to R.string.color_red, "#A84300" to R.string.color_orange,
-    "#00695C" to R.string.color_teal, "#FFFFFF" to R.string.color_white, "#FFF3C4" to R.string.color_light_yellow,
+    "#1F4FA8" to R.string.color_blue, "#1B7A34" to R.string.color_green, "#6A1B9A" to R.string.color_purple,
+    "#1A1A1A" to R.string.color_black, "#C62828" to R.string.color_red, "#FFA726" to R.string.color_orange,
+    "#4FC3F7" to R.string.color_light_blue, "#FFFFFF" to R.string.color_white, "#FFD54F" to R.string.color_yellow,
 )
 
 @Composable

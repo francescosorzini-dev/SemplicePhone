@@ -97,9 +97,16 @@ object HomeButton {
         main.post {
             val enabled = ConfigRepository.get(app).config.value.phone.homeButton
             val show = shouldShow(enabled, Settings.canDrawOverlays(app), started > 0 || alarmVisible, inCall(app), suppressed)
+            val phone = ConfigRepository.get(app).config.value.phone
+            if (view != null && styleKey != "${phone.homeButtonColor}|${phone.homeButtonLabel}|${phone.homeButtonSide}") detach()
             if (show) attach() else detach()
         }
     }
+
+    const val SIDE_LEFT = "left"
+    const val SIDE_RIGHT = "right"
+    /** Aspetto del pulsante mostrato: se cambia (colore, scritta, lato) lo si ridisegna. */
+    private var styleKey = ""
 
     private fun detach() {
         val v = view ?: return
@@ -116,24 +123,33 @@ object HomeButton {
         val prefs = app.getSharedPreferences("home_button", Context.MODE_PRIVATE)
         // Dimensione fissa e testo che si rimpicciolisce da solo: «CASA», «ACCUEIL», «INICIO»…
         // entrano sempre, con qualsiasi carattere o dimensione di visualizzazione.
+        val phone = ConfigRepository.get(app).config.value.phone
+        val bg = runCatching { Color.parseColor(phone.homeButtonColor) }.getOrDefault(Color.parseColor("#1F4FA8"))
+        // Scritta e icona bianche sui colori scuri, nere su quelli chiari (giallo, azzurro, bianco…).
+        val lum = (0.299 * Color.red(bg) + 0.587 * Color.green(bg) + 0.114 * Color.blue(bg)) / 255
+        val fg = if (lum > 0.6) Color.parseColor("#1A1A1A") else Color.WHITE
         val width = dp(84f)
         val pill = LinearLayout(app).apply {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER
             setPadding(dp(6f), dp(8f), dp(6f), dp(8f))
+            minimumHeight = width
             background = GradientDrawable().apply {
                 cornerRadius = dp(18f).toFloat()
-                setColor(Color.parseColor("#1F4FA8"))
-                setStroke(dp(3f), Color.WHITE)
+                setColor(bg)
+                setStroke(dp(3f), if (fg == Color.WHITE) Color.WHITE else Color.parseColor("#1A1A1A"))
             }
             contentDescription = app.getString(R.string.home_button_desc)
+            // Solo icona: più grande e al centro; con scritta: icona sopra e «CASA» sotto.
+            val icon = if (phone.homeButtonLabel) 42f else 58f
             addView(android.widget.ImageView(app).apply {
                 setImageResource(R.drawable.ic_home_button)
-                layoutParams = LinearLayout.LayoutParams(dp(42f), dp(42f))
+                setColorFilter(fg)
+                layoutParams = LinearLayout.LayoutParams(dp(icon), dp(icon)).apply { gravity = Gravity.CENTER }
             })
-            addView(TextView(app).apply {
+            if (phone.homeButtonLabel) addView(TextView(app).apply {
                 text = app.getString(R.string.home_button_label)
-                setTextColor(Color.WHITE)
+                setTextColor(fg)
                 setTypeface(typeface, android.graphics.Typeface.BOLD)
                 gravity = Gravity.CENTER
                 maxLines = 1
@@ -142,6 +158,11 @@ object HomeButton {
                 setAutoSizeTextTypeUniformWithConfiguration(9, 17, 1, TypedValue.COMPLEX_UNIT_DIP)
             })
         }
+        val metrics = app.resources.displayMetrics
+        val margin = dp(10f)
+        // Lato: quello scelto trascinando, finché dal telefono o dal portale non se ne sceglie un altro.
+        val cfgSide = phone.homeButtonSide
+        val side = if (prefs.getString("cfgSide", cfgSide) == cfgSide) prefs.getString("side", cfgSide) ?: cfgSide else cfgSide
         val lp = WindowManager.LayoutParams(
             width,
             WindowManager.LayoutParams.WRAP_CONTENT,
@@ -150,35 +171,45 @@ object HomeButton {
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
             PixelFormat.TRANSLUCENT,
         ).apply {
-            gravity = Gravity.END or Gravity.TOP
-            x = dp(10f)
+            gravity = Gravity.START or Gravity.TOP
+            x = if (side == SIDE_LEFT) margin else metrics.widthPixels - width - margin
             // Predefinito a un terzo dello schermo: sotto le barre in alto, sopra tastiere e tastierini.
-            y = prefs.getInt("y", (app.resources.displayMetrics.heightPixels * 0.30f).toInt())
+            y = prefs.getInt("y", (metrics.heightPixels * 0.30f).toInt())
         }
-        // Trascinamento verticale; un tocco senza spostamento torna alla Home.
+        // Si trascina dove si vuole; lasciato, si aggancia al bordo più vicino. Un tocco torna alla Home.
+        var downX = 0f
         var downY = 0f
+        var startX = 0
         var startY = 0
         var moved = false
         pill.setOnTouchListener { _, e ->
             when (e.actionMasked) {
-                MotionEvent.ACTION_DOWN -> { downY = e.rawY; startY = lp.y; moved = false; pill.alpha = 0.8f }
+                MotionEvent.ACTION_DOWN -> { downX = e.rawX; downY = e.rawY; startX = lp.x; startY = lp.y; moved = false; pill.alpha = 0.8f }
                 MotionEvent.ACTION_MOVE -> {
+                    val dx = e.rawX - downX
                     val dy = e.rawY - downY
-                    if (abs(dy) > dp(12f)) moved = true
+                    if (abs(dx) > dp(12f) || abs(dy) > dp(12f)) moved = true
                     if (moved) {
-                        val max = app.resources.displayMetrics.heightPixels - pill.height - dp(24f)
-                        lp.y = (startY + dy.toInt()).coerceIn(dp(24f), max.coerceAtLeast(dp(24f)))
+                        val maxY = metrics.heightPixels - pill.height - dp(24f)
+                        lp.x = (startX + dx.toInt()).coerceIn(0, (metrics.widthPixels - width).coerceAtLeast(0))
+                        lp.y = (startY + dy.toInt()).coerceIn(dp(24f), maxY.coerceAtLeast(dp(24f)))
                         runCatching { wm.updateViewLayout(pill, lp) }
                     }
                 }
                 MotionEvent.ACTION_UP -> {
                     pill.alpha = 1f
-                    if (moved) prefs.edit().putInt("y", lp.y).apply() else goHome()
+                    if (moved) {
+                        val left = lp.x + width / 2 < metrics.widthPixels / 2
+                        lp.x = if (left) margin else metrics.widthPixels - width - margin
+                        runCatching { wm.updateViewLayout(pill, lp) }
+                        prefs.edit().putInt("y", lp.y).putString("side", if (left) SIDE_LEFT else SIDE_RIGHT).putString("cfgSide", cfgSide).apply()
+                    } else goHome()
                 }
                 MotionEvent.ACTION_CANCEL -> pill.alpha = 1f
             }
             true
         }
+        styleKey = "${phone.homeButtonColor}|${phone.homeButtonLabel}|$cfgSide"
         runCatching { wm.addView(pill, lp) }.onSuccess { view = pill }.onFailure { android.util.Log.w("HomeButton", "pulsante non mostrato", it) }
     }
 

@@ -29,6 +29,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -96,6 +97,7 @@ fun TileView(
         TileType.WEATHER -> WeatherTile(tile, launcher, modifier)
         TileType.PHOTOS -> PhotosTile(tile, launcher, modifier)
         TileType.MISSED_CALLS -> MissedCallsTile(tile, sos, launcher, modifier)
+        TileType.MESSAGES -> MessagesTile(tile, sos, launcher, modifier)
         TileType.UNKNOWN -> Box(modifier.clip(TileShape).background(Color(0xFFD9D3C7)))
         else -> ActionTile(tile, sos, launcher, modifier, badge)
     }
@@ -636,4 +638,92 @@ private fun missedWhen(m: app.semplicephone.data.Missed): String {
         else -> at.format(DateTimeFormatter.ofPattern("EEE", locale)) + " " + time
     }
     return if (m.count > 1) day + " · " + stringResource(R.string.missed_times, m.count) else day
+}
+
+/**
+ * Messaggi da leggere (edizione Completa, dalle notifiche): chi ha scritto, con quale app, l'inizio
+ * del testo e l'ora. Un tocco apre quella conversazione, una pressione lunga lo legge ad alta voce.
+ * Senza accesso alle notifiche il riquadro apre l'app Messaggi.
+ */
+@Composable
+private fun MessagesTile(tile: Tile, sos: SosConfig, launcher: TileLauncher, modifier: Modifier) {
+    val context = LocalContext.current
+    val readable = app.semplicephone.BuildConfig.FULL && app.semplicephone.phone.Badges.isEnabled(context)
+    val messages by app.semplicephone.phone.Badges.messages.collectAsState()
+    val bg = parseColor(tile.color)
+    val fg = contentColorFor(bg)
+    val label = tile.label.ifBlank { stringResource(R.string.label_messages_unread) }
+    val spokenAll = if (!readable) label
+        else if (messages.isEmpty()) stringResource(R.string.messages_none)
+        else stringResource(R.string.messages_spoken_count, messages.size)
+    val base = modifier
+        .clip(TileShape)
+        .background(bg)
+        .border(if (bg.isLight()) 2.dp else 0.dp, Palette.Ink, TileShape)
+        .semantics { contentDescription = spokenAll }
+
+    if (!readable || messages.isEmpty()) {
+        Box(
+            base.combinedClickable(
+                role = Role.Button,
+                onLongClick = { launcher.speakText(spokenAll) },
+                onClick = { if (readable) launcher.speakText(spokenAll) else launcher.launch(tile, sos) },
+            ).padding(12.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            BoxWithConstraints(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                val icon = (minOf(maxWidth, maxHeight) * 0.42f).coerceAtMost(96.dp)
+                val tall = maxHeight > 140.dp
+                Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Icon(Symbols.get(if (readable) "check" else "message"), null, Modifier.size(icon), tint = fg)
+                    TileLabel(label, fg, 22.dp.fixedSp(), TextAlign.Center, Modifier.fillMaxWidth())
+                    if (readable && tall) Text(stringResource(R.string.messages_none), color = fg, fontSize = 17.dp.fixedSp(), textAlign = TextAlign.Center)
+                }
+            }
+        }
+        return
+    }
+
+    BoxWithConstraints(base.padding(8.dp)) {
+        val rowHeight = 72.dp
+        val fit = ((maxHeight - 34.dp) / (rowHeight + 6.dp)).toInt().coerceAtLeast(1)
+        Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(
+                Modifier.fillMaxWidth().padding(horizontal = 6.dp)
+                    .combinedClickable(onLongClick = { launcher.speakText(spokenAll) }, onClick = { launcher.speakText(spokenAll) }),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Icon(Symbols.get("message"), null, Modifier.size(26.dp), tint = fg)
+                Text("$label (${messages.size})", color = fg, fontSize = 19.dp.fixedSp(), fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
+            messages.take(fit).forEach { m ->
+                val spoken = stringResource(R.string.messages_spoken_one, m.sender.ifBlank { m.app }, m.app, m.text)
+                Row(
+                    Modifier.fillMaxWidth().height(rowHeight)
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(Color.White)
+                        .border(2.dp, Palette.Ink, RoundedCornerShape(14.dp))
+                        .combinedClickable(
+                            role = Role.Button,
+                            onClickLabel = spoken,
+                            onLongClick = { launcher.speakText(spoken) },
+                            onClick = { launcher.openMessage(m) },
+                        )
+                        .padding(horizontal = 12.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            m.sender.ifBlank { m.app } + " · " + m.app + " · " +
+                                java.time.Instant.ofEpochMilli(m.at).atZone(java.time.ZoneId.systemDefault())
+                                    .format(DateTimeFormatter.ofLocalizedTime(java.time.format.FormatStyle.SHORT)),
+                            color = Palette.Ink, fontSize = 17.dp.fixedSp(), fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                        )
+                        Text(m.text, color = Palette.Ink, fontSize = 17.dp.fixedSp(), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
+                }
+            }
+        }
+    }
 }

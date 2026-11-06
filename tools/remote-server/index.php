@@ -104,6 +104,8 @@ function settings(): array {
         'offlineHours' => 24,
         // Riepilogo settimanale il lunedì mattina (stessi canali degli avvisi).
         'weeklySummary' => true,
+        // Fuso orario per date e ore del portale (il server spesso è in UTC).
+        'timezone' => 'Europe/Rome',
         // Lingua degli avvisi: quella con cui l'amministratore usa il pannello.
         'lang' => 'it',
     ], read_json(DATA . '/settings.json', []));
@@ -269,15 +271,41 @@ function phone_media_refs($cfg): array {
 }
 
 /**
- * Config del telefono da caricare nell'editor al posto di quella pubblicata: se è stata cambiata
- * sul telefono dopo l'ultima pubblicazione, o se dal portale non è mai stato pubblicato nulla.
+ * Differenze tra due configurazioni, a parole («riquadro Maria aggiunto»…), al massimo 5.
+ * Si confrontano solo i campi che contano: i valori predefiniti aggiunti dall'app non sono differenze.
  */
-function phone_newer(string $id, array $meta): ?array {
-    $ph = read_json(dev_path($id, 'phone.json'), null);
-    if (!is_array($ph) || !isset($ph['config'])) return null;
-    $published = is_file(dev_path($id, 'config.json'));
-    if (!$published) return $ph;
-    return ($ph['source'] ?? '') === 'local' && (int)($ph['at'] ?? 0) > (int)($meta['publishedAt'] ?? 0) ? $ph : null;
+function config_diff(array $a, array $b): array {
+    $tiles = function (array $c): array {
+        $out = [];
+        foreach ((array)($c['pages'] ?? []) as $pi => $p) foreach ((array)($p['tiles'] ?? []) as $t) {
+            $icon = (array)($t['icon'] ?? []);
+            $out[(string)($t['id'] ?? '')] = [
+                'label' => (string)($t['label'] ?? ''), 'type' => (string)($t['type'] ?? ''), 'target' => (string)($t['target'] ?? ''),
+                'pos' => $pi . ':' . (int)($t['col'] ?? 0) . ',' . (int)($t['row'] ?? 0) . ',' . (int)($t['w'] ?? 1) . ',' . (int)($t['h'] ?? 1),
+                'look' => strtoupper((string)($t['color'] ?? '')) . '|' . ($icon['kind'] ?? 'auto') . '|' . ($icon['ref'] ?? '') . '|' . json_encode($t['photos'] ?? []),
+            ];
+        }
+        return $out;
+    };
+    $name = fn($t) => $t['label'] !== '' ? $t['label'] : $t['type'];
+    $out = [];
+    $ta = $tiles($a); $tb = $tiles($b);
+    foreach ($tb as $id => $t) if (!isset($ta[$id])) $out[] = t('chg_tile_added', $name($t));
+    foreach ($ta as $id => $t) if (!isset($tb[$id])) $out[] = t('chg_tile_removed', $name($t));
+    foreach ($tb as $id => $t) if (isset($ta[$id]) && $ta[$id] !== $t) {
+        $o = $ta[$id];
+        $out[] = $o['pos'] !== $t['pos'] && array_diff_key($o, ['pos' => 1]) === array_diff_key($t, ['pos' => 1])
+            ? t('chg_tile_moved', $name($t)) : t('chg_tile_changed', $name($t));
+    }
+    if (count((array)($a['pages'] ?? [])) !== count((array)($b['pages'] ?? []))) $out[] = t('chg_pages', count((array)($b['pages'] ?? [])));
+    $rem = fn($c) => array_column(array_map(fn($r) => ['id' => (string)($r['id'] ?? ''), 'v' => json_encode([$r['time'] ?? '', $r['title'] ?? '', $r['days'] ?? [], $r['date'] ?? '', $r['enabled'] ?? true, $r['photo'] ?? '', $r['icon'] ?? 'pill'])], (array)($c['reminders'] ?? [])), 'v', 'id');
+    $ra = $rem($a); $rb = $rem($b);
+    if ($ra != $rb) $out[] = t('chg_reminders', count($rb));
+    $sos = fn($c) => json_encode([(array)($c['sos']['numbers'] ?? []), (string)($c['sos']['message'] ?? '')]);
+    if ($sos($a) !== $sos($b)) $out[] = t('chg_sos');
+    $pa = (array)($a['phone'] ?? []); $pb = (array)($b['phone'] ?? []);
+    foreach (array_intersect_key($pb, $pa) as $k => $v) if ($pa[$k] != $v) { $out[] = t('chg_phone'); break; }
+    return array_slice($out, 0, 5);
 }
 
 /** Accessi mancanti sul telefono per le funzioni attive (dal report del telefono). */
@@ -289,6 +317,8 @@ function access_warnings(array $meta): array {
 }
 
 $LANG = in_array(settings()['lang'], langs(), true) ? settings()['lang'] : 'en';
+// Date e ore nel fuso scelto (predefinito Europe/Rome), non in quello del server.
+if (in_array(settings()['timezone'], timezone_identifiers_list(), true)) date_default_timezone_set(settings()['timezone']);
 
 if (PHP_SAPI === 'cli') {
     if (($argv[1] ?? '') === 'cron') { run_checks(true); exit(0); }
@@ -386,6 +416,17 @@ if (isset($_GET['device'])) {
             $needMedia = array_values(array_filter(phone_media_refs($r['config']), fn($h) => !is_file(media_path($h))));
         }
         write_atomic(dev_path($id, 'meta.json'), json_encode($meta));
+        // Modifica fatta sul telefono (o portale mai usato per questo telefono): diventa la versione
+        // attuale anche qui, con la voce «dal telefono» nello storico. Solo se c'è davvero qualcosa di diverso.
+        if (isset($r['config']) && is_array($r['config']) && isset($r['config']['pages'])) {
+            $curFile = dev_path($id, 'config.json');
+            $cur = is_file($curFile) ? json_decode((string)file_get_contents($curFile), true) : null;
+            $changes = is_array($cur) ? config_diff($cur, $r['config']) : [t('chg_first')];
+            if ((($r['configSource'] ?? '') === 'local' || !is_array($cur)) && $changes) {
+                write_atomic($curFile, json_encode($r['config'], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+                publish($id, $r['config'], null, ['source' => 'phone', 'changes' => $changes]);
+            }
+        }
         if ($backOnline) send_alert(ev_title('online'), t('back_online_text'), $id);
         // Il telefono rimanda l'elenco app solo se cambia: se qui manca (portale nuovo, telefono
         // rimosso e ricollegato…) glielo si chiede esplicitamente.
@@ -484,7 +525,7 @@ function pin_hash(string $pin): string {
 }
 
 /** Firma e pubblica: seq monotono, payload = byte esatti firmati. Tiene le ultime versioni nello storico. */
-function publish(string $id, $cfg, ?string $pin): int {
+function publish(string $id, $cfg, ?string $pin, array $note = []): int {
     $meta = read_json(dev_path($id, 'meta.json'), []);
     $seq = max((int)($meta['seq'] ?? 0) + 1, time());
     $payload = ['seq' => $seq, 'device' => $id, 'issuedAt' => (int)(microtime(true) * 1000), 'config' => $cfg];
@@ -498,7 +539,7 @@ function publish(string $id, $cfg, ?string $pin): int {
 
     $dir = DATA . "/history/$id";
     if (!is_dir($dir)) mkdir($dir, 0700, true);
-    write_atomic("$dir/$seq.json", json_encode(['seq' => $seq, 'at' => time(), 'pin' => $pin !== null && $pin !== '', 'config' => $cfg], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+    write_atomic("$dir/$seq.json", json_encode(['seq' => $seq, 'at' => time(), 'pin' => $pin !== null && $pin !== '', 'config' => $cfg] + $note, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
     $all = glob("$dir/*.json") ?: [];
     rsort($all, SORT_NATURAL);
     foreach (array_slice($all, HISTORY_KEEP) as $old) @unlink($old);
@@ -524,7 +565,7 @@ const DEFAULT_CONFIG = <<<'JSON'
         { "id": "sms", "col": 1, "row": 1, "type": "app", "target": "@sms", "label": "Messaggi", "icon": { "kind": "symbol", "ref": "message" }, "color": "#1F4FA8" },
         { "id": "camera", "col": 0, "row": 2, "type": "app", "target": "@camera", "label": "Fotocamera", "icon": { "kind": "symbol", "ref": "camera" }, "color": "#6A1B9A" },
         { "id": "gallery", "col": 1, "row": 2, "type": "app", "target": "@gallery", "label": "Foto", "icon": { "kind": "symbol", "ref": "photo" }, "color": "#6A1B9A" },
-        { "id": "whatsapp", "col": 0, "row": 3, "type": "app", "target": "com.whatsapp", "label": "WhatsApp", "color": "#0B6E4F" },
+        { "id": "whatsapp", "col": 0, "row": 3, "type": "app", "target": "com.whatsapp", "label": "WhatsApp", "color": "#1B7A34" },
         { "id": "browser", "col": 1, "row": 3, "type": "app", "target": "@browser", "label": "Internet", "icon": { "kind": "symbol", "ref": "web" }, "color": "#1A1A1A" },
         { "id": "sos", "col": 0, "row": 4, "w": 2, "h": 1, "type": "sos", "label": "SOS", "color": "#B71C1C" }
       ]
@@ -618,6 +659,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         foreach (['telegramToken', 'telegramChat', 'emailTo', 'emailFrom'] as $k) $s[$k] = trim((string)($_POST[$k] ?? ''));
         foreach (array_keys($s['notify']) as $k) $s['notify'][$k] = !empty($_POST['notify_' . $k]);
         $s['offlineHours'] = max(1, min(168, (int)($_POST['offlineHours'] ?? 24)));
+        if (in_array($_POST['timezone'] ?? '', timezone_identifiers_list(), true)) $s['timezone'] = $_POST['timezone'];
         $s['weeklySummary'] = !empty($_POST['weeklySummary']);
         if ($s['emailTo'] !== '' && !filter_var(explode(',', $s['emailTo'])[0], FILTER_VALIDATE_EMAIL)) $err[] = t('e_email');
         if ($s['telegramToken'] !== '' && !preg_match('/^\d+:[\w-]{20,}$/', $s['telegramToken'])) $err[] = t('e_telegram');
@@ -809,7 +851,8 @@ details summary{cursor:pointer;font-weight:600}
     <?php endforeach; ?>
     <label style="font-weight:400"><input type="checkbox" name="weeklySummary" <?= !empty($s['weeklySummary']) ? 'checked' : '' ?>> <?= th('weekly_enable') ?></label>
     <div class="hint"><?= th('weekly_hint') ?></div>
-    <div class="row"><div><label for="oh"><?= th('offline_hours') ?></label><input id="oh" type="number" name="offlineHours" min="1" max="168" value="<?= (int)$s['offlineHours'] ?>"></div><div></div></div>
+    <div class="row"><div><label for="oh"><?= th('offline_hours') ?></label><input id="oh" type="number" name="offlineHours" min="1" max="168" value="<?= (int)$s['offlineHours'] ?>"></div>
+      <div><label for="tz"><?= th('timezone') ?></label><select id="tz" name="timezone"><?php foreach (timezone_identifiers_list() as $tz): ?><option <?= $tz === $s['timezone'] ? 'selected' : '' ?>><?= h($tz) ?></option><?php endforeach; ?></select></div></div>
 
     <h3>Telegram <span class="hint"><?= th('telegram_hint') ?></span></h3>
     <details><summary><?= th('how_setup') ?></summary>
@@ -897,12 +940,6 @@ details summary{cursor:pointer;font-weight:600}
         $hv = read_json($hf, []);
         $src = json_encode($hv['config'] ?? [], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         $loaded = t('loaded_version', date('d/m/Y H:i', (int)($hv['at'] ?? 0)));
-    } elseif (!isset($_POST['config']) && !isset($_GET['published']) && !isset($_GET['copy']) && ($ph = phone_newer($edit, $meta))) {
-        $src = json_encode($ph['config'], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-        $loaded = is_file(dev_path($edit, 'config.json'))
-            ? t('loaded_from_phone', date('d/m/Y H:i', (int)$ph['at']))
-            : t('loaded_phone_current');
-        $fromPhone = true;
     } elseif (!isset($_POST['config']) && isset($_GET['copy']) && valid_id($cp = strtolower((string)$_GET['copy'])) && is_file(dev_path($cp, 'config.json'))) {
         $src = file_get_contents(dev_path($cp, 'config.json'));
         $loaded = t('copied_from', device_name($cp));
@@ -922,7 +959,9 @@ details summary{cursor:pointer;font-weight:600}
     <?php if (isset($meta['battery']) && $meta['battery'] >= 0): ?><?= th('battery_lower', (int)$meta['battery']) ?><?php endif; ?>
     <?php if (!empty($meta['appVersion'])): ?><?= th('app_version', $meta['appVersion']) ?><?php endif; ?></p>
 
-  <?php if ($loaded): ?><div class="msg warn"><?= h($loaded) ?><?php if (!empty($fromPhone) && is_file(dev_path($edit, 'config.json'))): ?> <a href="?edit=<?= h($edit) ?>&amp;published=1"><?= th('use_published') ?></a><?php endif; ?></div><?php endif; ?>
+  <?php if ($loaded): ?><div class="msg warn"><?= h($loaded) ?></div><?php endif; ?>
+  <?php $lastV = history($edit)[0] ?? null; $lastH = $lastV ? read_json(DATA . "/history/$edit/$lastV.json", []) : [];
+    if (!$loaded && ($lastH['source'] ?? '') === 'phone'): ?><p class="hint">📱 <?= th('phone_changed_info', date('d/m/Y H:i', (int)($lastH['at'] ?? 0)), implode('; ', (array)($lastH['changes'] ?? []))) ?></p><?php endif; ?>
   <?php if (isset($meta['badgesAccess']) && !$meta['badgesAccess']): ?><div class="msg warn"><?= th('no_notif_access') ?></div><?php endif; ?>
   <?php foreach (access_warnings($meta) as $w): ?><div class="msg warn"><?= h($w) ?></div><?php endforeach; ?>
   <form method="post" id="pubform" data-dirty="<?= $loaded ? '1' : '0' ?>" data-edition="<?= h($meta['edition'] ?? '') ?>" data-app="<?= h($meta['appVersion'] ?? '') ?>" data-csrf="<?= h($csrf) ?>">
@@ -1022,7 +1061,8 @@ details summary{cursor:pointer;font-weight:600}
   <?php if (!$versions): ?><p class="hint"><?= th('no_publications') ?></p><?php else: ?>
     <table><tr><th><?= th('col_published') ?></th><th></th></tr>
     <?php foreach ($versions as $i => $v): $hv = read_json(DATA . "/history/$edit/$v.json", []); ?>
-      <tr><td><?= h(date('d/m/Y H:i', (int)($hv['at'] ?? 0))) ?><?= $i === 0 ? ' <span class="pill ok">' . th('current') . '</span>' : '' ?><?= !empty($hv['pin']) ? ' <span class="pill mute">' . th('pin_changed') . '</span>' : '' ?></td>
+      <tr><td><?= h(date('d/m/Y H:i', (int)($hv['at'] ?? 0))) ?><?= $i === 0 ? ' <span class="pill ok">' . th('current') . '</span>' : '' ?><?= !empty($hv['pin']) ? ' <span class="pill mute">' . th('pin_changed') . '</span>' : '' ?><?= ($hv['source'] ?? '') === 'phone' ? ' <span class="pill warn">' . th('from_phone') . '</span>' : '' ?>
+        <?php if (!empty($hv['changes'])): ?><div class="hint"><?= h(implode('; ', (array)$hv['changes'])) ?></div><?php endif; ?></td>
       <td style="text-align:right"><?php if ($i > 0): ?><a class="btn sec" href="?edit=<?= h($edit) ?>&amp;from=<?= (int)$v ?>"><?= th('load_in_editor') ?></a><?php endif; ?></td></tr>
     <?php endforeach; ?></table>
   <?php endif; ?>
@@ -1136,8 +1176,9 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
     'heart', 'music', 'radio', 'grid', 'shower', 'cart', 'doctor', 'cards', 'calendar', 'walk', 'food', 'bed', 'water'].map(k => [k, T('sym_' + k)]));
   const PRESETS = [['pill', 'preset_medicine'], ['shower', 'preset_shower'], ['cart', 'preset_shopping'], ['doctor', 'preset_visit'],
     ['cards', 'preset_cards'], ['walk', 'preset_walk'], ['water', 'preset_water'], ['food', 'preset_meal']];
-  const PALETTE = [['#1F4FA8', T('c_blue')], ['#0B6E4F', T('c_green')], ['#6A1B9A', T('c_purple')], ['#1A1A1A', T('c_black')], ['#B71C1C', T('c_red')],
-    ['#A84300', T('c_orange')], ['#00695C', T('c_teal')], ['#FFFFFF', T('c_white')], ['#FFF3C4', T('c_light_yellow')]];
+  // Stessi colori dell'app: 5 scuri e 4 chiari, ben distinti anche per la vista che invecchia.
+  const PALETTE = [['#1F4FA8', T('c_blue')], ['#1B7A34', T('c_green')], ['#6A1B9A', T('c_purple')], ['#1A1A1A', T('c_black')], ['#C62828', T('c_red')],
+    ['#FFA726', T('c_orange')], ['#4FC3F7', T('c_light_blue')], ['#FFFFFF', T('c_white')], ['#FFD54F', T('c_yellow')]];
   const DAYS = T('days_initials').split(',');
 
   // Se il telefono ha mandato l'elenco delle sue app, il menu mostra quelle (più i ruoli predefiniti).
@@ -1292,6 +1333,10 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
     t.icon = t.icon || {kind: 'auto', ref: ''};
     const parts = [el('h3', {}, T('selected_tile')),
       field(T('what_it_does'), select(TYPES, t.type, v => {
+        // Il valore del tipo precedente non vale per il nuovo (es. «@dialer» per una videochiamata).
+        const phoneTypes = ['call', 'wa_video', 'sms'];
+        const keep = (phoneTypes.includes(t.type) && phoneTypes.includes(v)) || t.type === v;
+        if (!keep) t.target = '';
         t.type = v;
         if (v === 'clock') { t.color = '#FFFFFF'; delete t.label; }
         if (v === 'photos' && !t.label) t.label = T('def_photos');
@@ -1372,6 +1417,24 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
       field(T('row'), select(nums(p.rows), String(t.row + 1), v => upd('row', +v - 1)))));
     const clash = p.tiles.find(o => o !== t && overlap(t, o));
     if (clash) parts.push(el('p', {class: 'issues'}, T('overlaps_move', name(clash))));
+    // Spostamento su un'altra pagina: primo posto libero dove entra con la sua misura; se non c'è, solo un avviso.
+    if (cfg.pages.length > 1) {
+      const moveMsg = el('p', {class: 'issues', hidden: true});
+      const others = Object.fromEntries([['', T('move_choose')]].concat(cfg.pages.map((_, i) => [String(i), T('page_n', i + 1)]).filter(([i]) => +i !== page)));
+      parts.push(field(T('move_to_page'), select(others, '', v => {
+        if (v === '') return;
+        const dest = cfg.pages[+v], w = Math.min(t.w || 1, dest.cols), h = Math.min(t.h || 1, dest.rows);
+        let spot = null;
+        for (let r = 0; r + h <= dest.rows && !spot; r++) for (let c = 0; c + w <= dest.cols && !spot; c++) {
+          const probe = {col: c, row: r, w, h};
+          if (!dest.tiles.some(o => overlap(probe, o))) spot = probe;
+        }
+        if (!spot) { moveMsg.textContent = T('move_no_room', +v + 1); moveMsg.hidden = false; return; }
+        p.tiles = p.tiles.filter(x => x !== t);
+        Object.assign(t, spot); dest.tiles.push(t);
+        page = +v; changed(); render();
+      })), moveMsg);
+    }
     parts.push(el('p', {}, el('button', {type: 'button', class: 'danger', onclick: () => {
       const lastSos = t.type === 'sos' && cfg.pages.every(pp => pp.tiles.filter(x => x.type === 'sos' && x !== t).length === 0);
       if (!confirm(lastSos ? T('last_sos_confirm') : T('delete_confirm', name(t)))) return;
@@ -1468,6 +1531,12 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
       check('voiceConfirm', T('voice_confirm'), T('voice_confirm_hint')),
       check('bedsideClock', T('bedside'), T('bedside_hint')),
       check('homeButton', T('home_button'), T('home_button_hint')),
+      p.homeButton ? el('div', {style: 'margin:0 0 12px 24px'},
+        field(T('home_side'), select({right: T('home_side_right'), left: T('home_side_left')}, p.homeButtonSide || 'right', v => set('homeButtonSide', v))),
+        el('label', {style: 'font-weight:400'}, el('input', {type: 'checkbox', checked: p.homeButtonLabel !== false, onchange: e => set('homeButtonLabel', e.target.checked)}), ' ' + T('home_label')),
+        el('label', {}, T('home_color')),
+        el('div', {class: 'swatches'}, PALETTE.map(([hex, nm]) => el('button', {type: 'button', class: 'sw', title: nm, 'aria-label': nm,
+          'aria-pressed': String((p.homeButtonColor || '#1F4FA8').toUpperCase() === hex), style: 'background:' + hex, onclick: () => set('homeButtonColor', hex)})))) : '',
       check('freshStart', T('fresh_start'), T('fresh_start_hint')),
       check('ringerLock', T('ringer_lock'), T('ringer_lock_hint')),
       p.ringerLock ? field(T('min_volume'), select({30: '30%', 50: '50%', 70: '70%', 80: '80%', 90: '90%', 100: '100%'}, String(p.ringVolumePercent), v => set('ringVolumePercent', +v))) : '',
@@ -1532,7 +1601,7 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
         .filter(f => f.name && f.num);
       if (cfg.pages.some(p => p.tiles.length > 1) && !confirm(T('wiz_replace'))) return;
       const items = [];
-      const greens = ['#0B6E4F', '#00695C'];
+      const greens = ['#1B7A34', '#6A1B9A'];
       people.forEach((f, i) => {
         items.push({w: 1, t: {type: 'call', target: f.num, label: f.name, icon: {kind: 'auto', ref: ''}, color: greens[i % 2]}});
         if (f.video) items.push({w: 1, t: {type: 'wa_video', target: f.num, label: T('wiz_video_of', f.name), icon: {kind: 'auto', ref: ''}, color: '#00695C'}});
@@ -1549,7 +1618,7 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
         else if (a.k === 'search') items.push({w: 2, t: {type: 'search', target: '', label: T('def_search'), color: '#37474F'}});
         else if (a.k === 'photos') items.push({w: 1, t: {type: 'photos', target: '', label: T('def_photos'), photos: [], color: '#6A1B9A'}});
         else items.push({w: 1, t: {type: 'app', target: a.k, label: APP_LABEL[a.k] || a.label, icon: {kind: 'auto', ref: ''},
-          color: ['@camera', '@gallery'].includes(a.k) ? '#6A1B9A' : a.k === 'com.whatsapp' ? '#1B6E34' : '#1F4FA8'}});
+          color: ['@camera', '@gallery'].includes(a.k) ? '#6A1B9A' : a.k === 'com.whatsapp' ? '#1B7A34' : '#1F4FA8'}});
       });
       // Ordine di importanza: familiari, chiamate perse, meteo, app, ricerca. Un riquadro largo
       // che capiterebbe a metà riga aspetta l'inizio della riga successiva, così non restano buchi.

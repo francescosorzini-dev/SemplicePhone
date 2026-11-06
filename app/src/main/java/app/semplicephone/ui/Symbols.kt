@@ -83,6 +83,7 @@ object Symbols {
         TileType.PHOTOS -> "photo"
         TileType.MISSED_CALLS -> "missed"
         TileType.SEARCH -> "search"
+        TileType.MESSAGES -> "message"
         else -> "grid"
     }
 
