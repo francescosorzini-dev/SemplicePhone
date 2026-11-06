@@ -75,6 +75,7 @@ private val TypeLabels = linkedMapOf(
     TileType.MISSED_CALLS to R.string.type_missed_calls,
     TileType.SEARCH to R.string.type_search,
     TileType.MESSAGES to R.string.type_messages_unread,
+    TileType.RADIO to R.string.type_radio,
     TileType.SOS to 0,
 )
 
@@ -225,6 +226,26 @@ fun TileEditor(
                     stringResource(if (app.semplicephone.data.MissedCalls.supported()) R.string.tile_missed_hint else R.string.tile_missed_hint_play),
                 )
                 TileType.SEARCH -> Hint(stringResource(R.string.tile_search_hint))
+                TileType.RADIO -> {
+                    Hint(stringResource(R.string.tile_radio_hint))
+                    t.stations.forEachIndexed { i, st ->
+                        androidx.compose.material3.OutlinedTextField(
+                            value = st.name, onValueChange = { v -> t = t.copy(stations = t.stations.toMutableList().also { it[i] = st.copy(name = v) }) },
+                            label = { Text(stringResource(R.string.tile_radio_name)) }, singleLine = true, modifier = Modifier.fillMaxWidth(),
+                        )
+                        androidx.compose.material3.OutlinedTextField(
+                            value = st.url, onValueChange = { v -> t = t.copy(stations = t.stations.toMutableList().also { it[i] = st.copy(url = v.trim()) }) },
+                            label = { Text(stringResource(R.string.tile_radio_url)) }, singleLine = true, modifier = Modifier.fillMaxWidth(),
+                        )
+                        androidx.compose.material3.TextButton(onClick = { t = t.copy(stations = t.stations.filterIndexed { j, _ -> j != i }) }) {
+                            Text(stringResource(R.string.tile_radio_remove), color = Palette.Sos)
+                        }
+                    }
+                    androidx.compose.material3.OutlinedButton(
+                        onClick = { t = t.copy(stations = t.stations + app.semplicephone.model.Station()) },
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
+                    ) { Text(stringResource(R.string.tile_radio_add)) }
+                }
                 TileType.MESSAGES -> Hint(stringResource(if (app.semplicephone.BuildConfig.FULL) R.string.tile_messages_hint else R.string.tile_messages_hint_basic))
                 TileType.UNKNOWN -> Hint(stringResource(R.string.tile_unknown_hint))
                 TileType.SOS -> Hint(stringResource(R.string.tile_sos_hint))
@@ -348,6 +369,7 @@ fun defaultLabel(context: Context, type: TileType): String = when (type) {
     TileType.MISSED_CALLS -> context.getString(R.string.label_missed_calls)
     TileType.SEARCH -> context.getString(R.string.label_search)
     TileType.MESSAGES -> context.getString(R.string.label_messages_unread)
+    TileType.RADIO -> context.getString(R.string.label_radio)
     TileType.UNKNOWN -> ""
     TileType.SOS -> "SOS"
 }

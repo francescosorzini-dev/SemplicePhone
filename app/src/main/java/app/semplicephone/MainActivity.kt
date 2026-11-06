@@ -74,6 +74,8 @@ sealed interface Screen {
     data object Backup : Screen
     /** Ricerca delle app (riquadro «Cerca app»): non serve il PIN. */
     data object Search : Screen
+    /** Radio del riquadro [tile]. */
+    data class Radio(val tile: Tile) : Screen
 }
 
 class MainActivity : ComponentActivity() {
@@ -113,7 +115,7 @@ class MainActivity : ComponentActivity() {
         contacts = Contacts(applicationContext)
         protection = DeviceProtection(applicationContext)
         scheduler = ReminderScheduler(applicationContext)
-        launcher = TileLauncher(this, contacts, onSos = ::onSosRequested, onSearch = ::openSearch)
+        launcher = TileLauncher(this, contacts, onSos = ::onSosRequested, onSearch = ::openSearch, onRadio = { screen = Screen.Radio(it) })
         pins = PinStore(applicationContext)
         catalog = AppCatalog(applicationContext)
         apps = catalog.roles()
@@ -264,6 +266,7 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                     Screen.Protection -> ProtectionScreen(protection, onBack = { screen = Screen.Layout })
+                    is Screen.Radio -> app.semplicephone.radio.RadioScreen(s.tile, onClose = { screen = Screen.Home })
                     Screen.Search -> AppSearchScreen(
                         apps = searchApps,
                         launcher = launcher,
@@ -338,7 +341,7 @@ class MainActivity : ComponentActivity() {
             is Screen.Pin -> if (draft != null) Screen.Layout else { closeSettings(); Screen.Home }
             Screen.Layout -> { closeSettings(); Screen.Home }
             is Screen.EditTile, Screen.Sos, Screen.Protection, Screen.Reminders, Screen.Remote, Screen.Phone, Screen.Backup -> Screen.Layout
-            Screen.SosCountdown, Screen.Search -> Screen.Home
+            Screen.SosCountdown, Screen.Search, is Screen.Radio -> Screen.Home
         }
     }
 

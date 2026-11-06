@@ -86,6 +86,7 @@ object Symbols {
         TileType.MISSED_CALLS -> "missed"
         TileType.SEARCH -> "search"
         TileType.MESSAGES -> "message"
+        TileType.RADIO -> "radio"
         else -> "grid"
     }
 

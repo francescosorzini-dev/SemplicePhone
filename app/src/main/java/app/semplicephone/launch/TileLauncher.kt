@@ -29,6 +29,7 @@ class TileLauncher(
     val contacts: Contacts,
     private val onSos: () -> Unit = {},
     private val onSearch: () -> Unit = {},
+    private val onRadio: (Tile) -> Unit = {},
 ) {
 
     private val pm: PackageManager = context.packageManager
@@ -54,7 +55,7 @@ class TileLauncher(
             TileType.CALL -> context.getString(R.string.voice_call, name)
             TileType.WA_VIDEO -> context.getString(R.string.voice_video, name)
             TileType.SMS -> context.getString(R.string.voice_sms, name)
-            TileType.APP, TileType.URL, TileType.SHORTCUT, TileType.SEARCH -> context.getString(R.string.voice_open, name)
+            TileType.APP, TileType.URL, TileType.SHORTCUT, TileType.SEARCH, TileType.RADIO -> context.getString(R.string.voice_open, name)
             else -> null
         }
     }
@@ -94,6 +95,7 @@ class TileLauncher(
                 TileType.WA_VIDEO -> whatsAppVideo(tile)
                 TileType.MISSED_CALLS -> openCallLog()
                 TileType.SEARCH -> onSearch()
+                TileType.RADIO -> onRadio(tile)
                 TileType.MESSAGES -> perform(tile.copy(type = TileType.APP, target = "@sms"), sos)
                 TileType.CLOCK, TileType.WEATHER, TileType.PHOTOS, TileType.UNKNOWN -> Unit
             }

@@ -28,7 +28,7 @@ const MAX_REPORT = 262144;
 const HISTORY_KEEP = 30;
 const SOURCE_URL = 'https://github.com/francescosorzini-dev/SemplicePhone';
 const VERSION = '0.5.1'; // aggiornata in automatico nelle release
-const TILE_TYPES = ['app', 'call', 'wa_video', 'sms', 'url', 'shortcut', 'clock', 'sos', 'weather', 'photos', 'missed_calls', 'search'];
+const TILE_TYPES = ['app', 'call', 'wa_video', 'sms', 'url', 'shortcut', 'clock', 'sos', 'weather', 'photos', 'missed_calls', 'search', 'messages', 'radio'];
 const MEDIA_MAX = 8 * 1024 * 1024;
 // Versione dell'app che conosce meteo, foto e promemoria in una data: le precedenti li ignorano o scartano.
 const APP_FEATURES_090 = '0.9.0';
@@ -1135,7 +1135,7 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
   const ta = document.getElementById('config');
   if (!ta) return;
 
-  const TYPES = Object.fromEntries(['app', 'call', 'wa_video', 'sms', 'url', 'shortcut', 'clock', 'weather', 'photos', 'missed_calls', 'search', 'sos'].map(k => [k, T('type_' + k)]));
+  const TYPES = Object.fromEntries(['app', 'call', 'wa_video', 'sms', 'url', 'shortcut', 'clock', 'weather', 'photos', 'missed_calls', 'messages', 'search', 'radio', 'sos'].map(k => [k, T('type_' + k)]));
   const FORM = document.getElementById('pubform');
   // Caricamento di un'immagine nel portale: restituisce «media:<sha256>».
   async function upload(file) {
@@ -1257,9 +1257,11 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
     const usesNew0100 = cfg.pages.some(p => p.tiles.some(t => t.type === 'missed_calls')) || !!cfg.phone.homeButton;
     const old090 = usesNew && !newer(app, '0.9.0'), old0100 = usesNew0100 && !newer(app, '0.10.0'), old0101 = cfg.pages.some(p => p.tiles.some(t => t.homeButton === false)) && !newer(app, '0.10.1'),
       old0120 = cfg.pages.some(p => p.tiles.some(t => t.type === 'search')) && !newer(app, '0.12.0'),
-      old0130 = (cfg.phone.autoAnswer || cfg.phone.announceCaller) && !newer(app, '0.13.0');
-    warn.hidden = !(app && (old090 || old0100 || old0101 || old0120 || old0130));
-    warn.textContent = old090 ? T('old_app_warn', app || '?') : old0100 ? T('old_app_warn_0100', app || '?') : old0101 ? T('old_app_warn_0101', app || '?') : old0120 ? T('old_app_warn_0120', app || '?') : T('old_app_warn_0130', app || '?');
+      old0130 = (cfg.phone.autoAnswer || cfg.phone.announceCaller) && !newer(app, '0.13.0'),
+      old0140 = (cfg.pages.some(p => p.tiles.some(t => ['messages', 'radio'].includes(t.type) || (t.icon && /^media:/.test(t.icon.ref || ''))))
+        || cfg.phone.nightQuiet || cfg.phone.chargeReminder || cfg.phone.holdToOpen || (cfg.phone.theme && cfg.phone.theme !== 'normal')) && !newer(app, '0.14.0');
+    warn.hidden = !(app && (old090 || old0100 || old0101 || old0120 || old0130 || old0140));
+    warn.textContent = old090 ? T('old_app_warn', app || '?') : old0100 ? T('old_app_warn_0100', app || '?') : old0101 ? T('old_app_warn_0101', app || '?') : old0120 ? T('old_app_warn_0120', app || '?') : old0130 ? T('old_app_warn_0130', app || '?') : T('old_app_warn_0140', app || '?');
     const p = problems(), box = document.getElementById('issues');
     box.replaceChildren(...(p.length ? [el('b', {}, T('p_title')), el('ul', {}, p.map(x => el('li', {}, x)))] : []));
     document.getElementById('pubbtn').disabled = p.length > 0;
@@ -1311,7 +1313,7 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
         class: 'tile' + (t.id === selId ? ' sel' : '') + (isL ? ' light' : ''), role: 'button', tabindex: '0',
         style: 'grid-column:' + (t.col + 1) + ' / span ' + w + ';grid-row:' + (t.row + 1) + ' / span ' + h + ';background:' + (t.color || '#1F4FA8') + ';color:' + (isL ? '#1A1A1A' : '#fff'),
         onclick: () => { selId = t.id; render(); }, onkeydown: e => { if (e.key === 'Enter') { selId = t.id; render(); } }
-      }, t.type === 'clock' ? '🕑 ' + T('clock') : t.type === 'weather' ? '☀ ' + (t.label || T('type_weather')) : t.type === 'photos' ? '🖼 ' + (t.label || T('type_photos')) : t.type === 'missed_calls' ? '📞 ' + (t.label || T('def_missed')) : t.type === 'search' ? '🔍 ' + (t.label || T('def_search')) : t.type === 'sos' ? '⚠ ' + (t.label || 'SOS') : name(t)));
+      }, t.type === 'clock' ? '🕑 ' + T('clock') : t.type === 'weather' ? '☀ ' + (t.label || T('type_weather')) : t.type === 'photos' ? '🖼 ' + (t.label || T('type_photos')) : t.type === 'missed_calls' ? '📞 ' + (t.label || T('def_missed')) : t.type === 'search' ? '🔍 ' + (t.label || T('def_search')) : t.type === 'messages' ? '💬 ' + (t.label || T('def_messages_unread')) : t.type === 'radio' ? '📻 ' + (t.label || T('def_radio')) : t.type === 'sos' ? '⚠ ' + (t.label || 'SOS') : name(t)));
     });
     for (let r = 0; r < p.rows; r++) for (let c = 0; c < p.cols; c++) if (!occ[r][c]) {
       kids.push(el('button', {type: 'button', class: 'cell', title: T('add_tile_here'), 'aria-label': T('add_tile_at', r + 1, c + 1),
@@ -1342,6 +1344,8 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
         if (v === 'clock') { t.color = '#FFFFFF'; delete t.label; }
         if (v === 'photos' && !t.label) t.label = T('def_photos');
         if (v === 'search') { t.label = T('def_search'); t.target = ''; t.icon = {kind: 'auto', ref: ''}; }
+        if (v === 'messages') { t.label = T('def_messages_unread'); t.target = ''; t.icon = {kind: 'auto', ref: ''}; }
+        if (v === 'radio') { t.label = t.label || T('def_radio'); t.target = ''; t.stations = t.stations || [{name: '', url: ''}]; }
         if (v === 'missed_calls') { t.label = T('def_missed'); t.target = ''; t.icon = {kind: 'auto', ref: ''}; }
         if (v === 'sos') { t.color = '#B71C1C'; t.label = 'SOS'; t.w = Math.min(2, p.cols); }
         if (['call', 'wa_video', 'sms'].includes(v) && t.icon.kind === 'symbol') t.icon = {kind: 'auto', ref: ''};
@@ -1385,6 +1389,16 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
         field(T('upload_photos'), fileInput(true, refs => { t.photos = [...new Set(t.photos.concat(refs))]; changed(); render(); })));
     }
     if (t.type === 'search') parts.push(el('p', {class: 'hint'}, T('search_hint')));
+    if (t.type === 'messages') parts.push(el('p', {class: 'hint'}, T(FORM.dataset.edition === 'completo' ? 'messages_hint' : 'messages_hint_basic')));
+    if (t.type === 'radio') {
+      t.stations = t.stations || [];
+      parts.push(el('p', {class: 'hint'}, T('radio_hint')));
+      t.stations.forEach((st, i) => parts.push(el('div', {class: 'card', style: 'padding:10px;margin:8px 0'},
+        field(T('radio_name'), el('input', {type: 'text', value: st.name || '', maxlength: '40', onchange: e => { st.name = e.target.value.trim(); changed(); }})),
+        field(T('radio_url'), el('input', {type: 'url', value: st.url || '', placeholder: 'https://…', onchange: e => { st.url = e.target.value.trim(); changed(); issues(); }})),
+        el('button', {type: 'button', class: 'small danger', onclick: () => { t.stations.splice(i, 1); changed(); render(); }}, T('radio_remove')))));
+      parts.push(el('p', {}, el('button', {type: 'button', class: 'sec', onclick: () => { t.stations.push({name: '', url: ''}); changed(); render(); }}, T('radio_add'))));
+    }
     if (t.type === 'missed_calls') {
       parts.push(el('p', {class: 'hint'}, T('missed_hint')));
       if (FORM.dataset.edition === 'play') parts.push(el('p', {class: 'msg warn'}, T('missed_hint_play')));
@@ -1393,7 +1407,7 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
     if (t.type === 'shortcut') parts.push(field(T('shortcut'), el('input', {type: 'text', value: t.target || '', placeholder: T('shortcut_placeholder'), onchange: e => upd('target', e.target.value.trim())}), T('experts')));
     if (t.type !== 'clock') parts.push(field(T('tile_text'), el('input', {type: 'text', value: t.label || '', maxlength: '30', onchange: e => upd('label', e.target.value)})));
 
-    if (!['clock', 'sos', 'weather', 'photos', 'missed_calls'].includes(t.type)) {
+    if (!['clock', 'sos', 'weather', 'photos', 'missed_calls', 'messages', 'search'].includes(t.type)) {
       parts.push(field(T('icon'), select(ICONS, t.icon.kind || 'auto', v => { t.icon = {kind: v, ref: v === 'symbol' ? (t.icon.ref && SYMBOLS[t.icon.ref] ? t.icon.ref : 'phone') : (v === 'photo' || v === 'auto' ? /^(contact|media):/.test(t.icon.ref || '') ? t.icon.ref : '' : '')}; changed(); render(); })));
       if (t.icon.kind === 'symbol') parts.push(field(T('symbol'), select(SYMBOLS, t.icon.ref || 'phone', v => { t.icon.ref = v; changed(); render(); })));
       // Foto del familiare caricata da qui: non serve averla nella rubrica del telefono.
@@ -1536,9 +1550,19 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
       check('autoAnswer', T('auto_answer'), T('auto_answer_hint')),
       p.autoAnswer ? field(T('auto_answer_after'), select({5: '5 s', 10: '10 s', 15: '15 s', 20: '20 s', 30: '30 s'}, String(p.autoAnswerSeconds || 10), v => set('autoAnswerSeconds', +v))) : '',
       check('announceCaller', T('announce_caller'), T('announce_caller_hint')),
+      check('nightQuiet', T('night_quiet'), T('night_quiet_hint')),
+      p.nightQuiet ? el('div', {class: 'row', style: 'margin:0 0 12px 24px'},
+        field(T('night_from'), select(Object.fromEntries([18, 19, 20, 21, 22, 23].map(h => [`${h}:00`, `${h}:00`])), p.nightFrom || '22:00', v => set('nightFrom', v))),
+        field(T('night_to'), select(Object.fromEntries([5, 6, 7, 8, 9, 10].map(h => [`${String(h).padStart(2, '0')}:00`, `${h}:00`])), p.nightTo || '07:00', v => set('nightTo', v)))) : '',
       check('speakTiles', T('speak_tiles'), T('speak_tiles_hint')),
       check('voiceConfirm', T('voice_confirm'), T('voice_confirm_hint')),
       check('bedsideClock', T('bedside'), T('bedside_hint')),
+      check('chargeReminder', T('charge_reminder'), T('charge_reminder_hint')),
+      p.chargeReminder ? el('div', {class: 'row', style: 'margin:0 0 12px 24px'},
+        field(T('charge_time'), select(Object.fromEntries([17, 18, 19, 20, 21, 22, 23].map(h => [`${h}:00`, `${h}:00`])), p.chargeTime || '20:00', v => set('chargeTime', v))),
+        field(T('charge_below'), select(Object.fromEntries([20, 30, 40, 50, 60].map(n => [n, n + '%'])), String(p.chargeBelow || 40), v => set('chargeBelow', +v)))) : '',
+      check('holdToOpen', T('hold_to_open'), T('hold_to_open_hint')),
+      field(T('theme'), select({normal: T('theme_normal'), contrast: T('theme_contrast'), night: T('theme_night')}, p.theme || 'normal', v => set('theme', v))),
       check('homeButton', T('home_button'), T('home_button_hint')),
       p.homeButton ? el('div', {style: 'margin:0 0 12px 24px'},
         field(T('home_side'), select({right: T('home_side_right'), left: T('home_side_left')}, p.homeButtonSide || 'right', v => set('homeButtonSide', v))),

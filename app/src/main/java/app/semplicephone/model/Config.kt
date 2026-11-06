@@ -123,6 +123,8 @@ data class Tile(
     val body: String = "",
     /** Solo per PHOTOS: immagini che scorrono ("media:<sha256>", vedi Media). */
     val photos: List<String> = emptyList(),
+    /** Solo per RADIO: stazioni (nome e indirizzo dello stream). */
+    val stations: List<Station> = emptyList(),
     /**
      * Solo per APP: «default» segue l'impostazione del telefono (PhoneConfig.freshStart),
      * «fresh» riparte sempre dalla schermata iniziale, «resume» riprende dall'ultima pagina.
@@ -154,6 +156,8 @@ enum class TileType(val code: String) {
     SEARCH("search"),
     /** Messaggi da leggere (SMS, WhatsApp…) dalle notifiche; nelle edizioni senza accesso alle notifiche apre l'app Messaggi. */
     MESSAGES("messages"),
+    /** Radio: una o più stazioni in streaming, con pulsanti grandi dentro il launcher. */
+    RADIO("radio"),
     UNKNOWN("unknown"),
 }
 
@@ -187,6 +191,10 @@ enum class IconKind {
     @SerialName("photo") PHOTO,
     @SerialName("none") NONE,
 }
+
+/** Stazione radio di un riquadro RADIO. */
+@Serializable
+data class Station(val name: String = "", val url: String = "")
 
 @Serializable
 data class SosConfig(
