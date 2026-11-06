@@ -86,6 +86,8 @@ server suo (non dello sviluppatore). Per prudenza dichiararli come raccolti, fac
 - Contatti: usati solo sul telefono, **non** raccolti.
 - Meteo: il riquadro meteo chiede a Open-Meteo solo le coordinate del luogo scelto dal familiare, senza ID; dichiararlo non è necessario (nessun dato utente).
 - Foto di famiglia/pastiglie: scelte dal familiare, scaricate dal suo portale; restano sul telefono.
+- Copie di sicurezza: restano sul telefono; l'esportazione la avvia l'utente (selettore file di sistema).
+- Calendario di famiglia: lo legge il portale del familiare, non il telefono.
 
 ### Dichiarazioni dei permessi
 
@@ -98,6 +100,8 @@ server suo (non dello sviluppatore). Per prudenza dichiararli come raccolti, fac
 | Mostra sopra altre app (`SYSTEM_ALERT_WINDOW`) | Nessuna dichiarazione: è un accesso speciale che l'utente concede da Impostazioni. Nella scheda: «pulsante Casa sopra le altre app, perché una persona anziana possa sempre tornare alla schermata semplice; facoltativo, attivato dal familiare». |
 | Rispondere alle chiamate (`ANSWER_PHONE_CALLS`) e stato del telefono (`READ_PHONE_STATE`) | «Facoltativo: risponde da solo, in vivavoce, alle chiamate dei numeri di emergenza impostati dalla famiglia, per una persona anziana caduta o che non trova il telefono.» |
 | Registro chiamate (`READ_CALL_LOG`) | **Non presente** nell'edizione Play (riservato alle app telefono predefinite): il riquadro «Chiamate perse» apre il registro chiamate del telefono. Il controllo nella release blocca l'AAB se compare. |
+| Servizio in primo piano «riproduzione multimediale» (`FOREGROUND_SERVICE_MEDIA_PLAYBACK`) | Dichiarazione dei servizi in primo piano: tipo «Riproduzione di contenuti multimediali». «Riquadro Radio: la persona anziana ascolta una stazione radio in streaming, che continua a schermo spento; si ferma con il pulsante FERMA, dalla notifica o quando arriva una chiamata.» Serve un breve video della radio in riproduzione con la notifica. |
+| Traffico in chiaro (`usesCleartextTraffic` tramite `network_security_config`) | Nessuna dichiarazione. Serve solo per le stazioni radio che trasmettono in HTTP; configurazione e portale restano solo HTTPS. |
 | Accesso a «Non disturbare» | «Riattiva la suoneria se la persona anziana mette il telefono in silenzioso per errore; attivabile solo dalle impostazioni protette da PIN.» |
 
 ## 5. Pubblicazione

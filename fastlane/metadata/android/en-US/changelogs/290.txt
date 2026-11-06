@@ -1,0 +1,8 @@
+- Unread messages: unread SMS and WhatsApp, read aloud
+- Radio with big buttons
+- Quiet night (only SOS numbers ring) and "charge the phone" in the evening
+- Family photos and family calendar from the portal
+- Hold to open, high contrast, dark theme in the evening
+- Movable Home button, colour of choice, icon only if wanted
+- Backups and export of the settings
+- Changes made on the phone saved in the portal

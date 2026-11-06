@@ -1,0 +1,8 @@
+- Mensajes sin leer: SMS y WhatsApp, leídos en voz alta
+- Radio con botones grandes
+- Noche tranquila (solo suenan los números SOS) y «ponga a cargar» por la noche
+- Fotos de familiares y calendario familiar desde el portal
+- Abrir manteniendo pulsado, alto contraste, oscuro por la noche
+- Botón Inicio movible, color a elegir, también solo icono
+- Copias de seguridad y exportación de los ajustes
+- Cambios del teléfono guardados en el portal

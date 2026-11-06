@@ -41,6 +41,17 @@ e una pagina web da cui la famiglia sistema tutto da lontano. Gratis, senza pubb
   rubrica e familiari. Vivavoce automatico, il telefono dice chi chiama e, se chiama un familiare e
   nessuno risponde, risponde da solo in vivavoce (per chi è caduto o non trova il telefono).
 - **Messaggi dalla famiglia** a tutto schermo e letti ad alta voce, finché non si tocca «HO LETTO».
+- **Messaggi da leggere.** Un riquadro elenca SMS e WhatsApp non letti (edizione completa): un tocco
+  apre la conversazione, una pressione lunga la legge ad alta voce.
+- **Radio.** Un riquadro con le stazioni preferite: ASCOLTA/FERMA enormi, stazione dopo, volume.
+- **Notte tranquilla.** Di notte il telefono non squilla, tranne per i numeri SOS. La sera, se la
+  batteria è bassa, ricorda a voce di metterlo in carica.
+- **Contro i tocchi involontari**: i riquadri si possono aprire solo tenendoli premuti. Temi ad
+  alto contrasto o scuro la sera.
+- **Copia di sicurezza** delle impostazioni sul telefono, da esportare in un file e reimportare
+  su un telefono nuovo, anche senza portale.
+- **SOS di Android**: su molti telefoni premere 5 volte il tasto di accensione chiama i soccorsi
+  (Impostazioni › Sicurezza ed emergenza › SOS di emergenza). Vale la pena attivarlo.
 
 <p align="center">
   <img src="fastlane/metadata/android/it-IT/images/phoneScreenshots/2_sos.png" width="200" alt="SOS con conto alla rovescia">
@@ -58,12 +69,16 @@ telefono. Le modifiche sono firmate: il telefono accetta solo quelle del proprio
 
 - **Avvisi** su Telegram o email: SOS con posizione, promemoria non confermato, batteria scarica,
   telefono che non si fa sentire, chiamate bloccate.
+- **Foto dei familiari** sui riquadri di chiamata, caricate dal portale.
+- **Calendario di famiglia**: gli appuntamenti di un calendario Google, Outlook o iCloud (indirizzo
+  iCal) diventano promemoria sul telefono, anche la sera prima.
 - **Configurazione guidata**: poche domande (chi chiama, cosa serve, quali medicine) e la schermata è pronta.
 - **Messaggio al telefono** (a tutto schermo e letto a voce, con conferma di lettura) e **«Fai squillare»**
   a tutto volume anche in silenzioso, per ritrovarlo in casa.
 - **«Dov'è?»**: posizione del telefono su richiesta, solo se consentito sul telefono.
 - **Riepilogo settimanale** ogni lunedì e scheda «Ultimi 7 giorni» per ogni telefono.
-- **Vede anche le modifiche fatte sul telefono** (foto comprese) e segnala i permessi che mancano.
+- **Le modifiche fatte sul telefono** (foto comprese) diventano la versione attuale anche nel portale,
+  con l'elenco di cosa è cambiato; segnala i permessi che mancano.
 - **Storico delle versioni**, copia della configurazione da un telefono all'altro.
 
 Le impostazioni si possono cambiare anche sul telefono: 5 tocchi sull'orologio e PIN.
@@ -166,6 +181,7 @@ Così si sbloccano:
   ripristino di fabbrica.
 - **Permessi** concessi in automatico (non l'accesso alle notifiche).
 - **Aggiornamenti** dell'app silenziosi, solo nell'edizione completa.
+- **Niente blocco schermo**: si accende e si è già sulla Home.
 
 Ogni opzione si toglie da Impostazioni › Protezione, compreso il ruolo di Device Owner.
 
@@ -225,11 +241,12 @@ Valori di default sovrascrivibili con `-P` o in `gradle.properties`: `semplice.r
 
 ```json
 { "id": "t1", "col": 0, "row": 1, "w": 2, "h": 1,
-  "type": "app | call | wa_video | sms | url | shortcut | clock | sos | weather | photos | missed_calls | search",
+  "type": "app | call | wa_video | sms | url | shortcut | clock | sos | weather | photos | missed_calls | search | messages | radio",
   "target": "package | @ruolo | numero | https://… | pacchetto/shortcutId",
   "label": "Telefono",
   "icon": { "kind": "auto | app | symbol | photo | none", "ref": "phone | contact:<lookupKey>" },
-  "color": "#1F4FA8", "body": "testo SMS" }
+  "color": "#1F4FA8", "body": "testo SMS",
+  "stations": [{ "name": "Radio", "url": "https://…/stream.mp3" }] }
 ```
 
 Una config con tile fuori griglia, sovrapposti, id duplicati o orari non validi viene scartata
@@ -254,6 +271,7 @@ validazione.
 | M11 – chiamate perse, pulsante «Casa», riepilogo settimanale | ✅ |
 | M12 – riquadro «Cerca app» (anche a voce) | ✅ |
 | M13 – messaggi dalla famiglia, «Fai squillare», risposta automatica, configurazione guidata | ✅ |
+| M14 – messaggi da leggere, radio, notte tranquilla, «metti in carica», calendario, foto dal portale, temi, copie di sicurezza | ✅ |
 
 ### Limiti noti
 

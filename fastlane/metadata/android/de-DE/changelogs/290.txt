@@ -1,0 +1,8 @@
+- Ungelesene Nachrichten: SMS und WhatsApp, vorgelesen
+- Radio mit großen Tasten
+- Ruhige Nacht (nur SOS-Nummern klingeln) und abends „Telefon laden“
+- Familienfotos und Familienkalender aus dem Portal
+- Öffnen durch Halten, hoher Kontrast, abends dunkel
+- Verschiebbare Home-Taste, Farbe wählbar, auch nur Symbol
+- Sicherungen und Export der Einstellungen
+- Änderungen am Telefon im Portal gespeichert

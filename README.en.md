@@ -40,6 +40,17 @@ and a web page where the family sets everything up from afar. Free, no ads, free
   Automatic speakerphone, the phone says who is calling and, if a family member calls and nobody
   answers, it answers by itself on speakerphone (for someone who has fallen or cannot find the phone).
 - **Messages from the family** full screen and read aloud, until someone taps "GOT IT".
+- **Unread messages.** A tile lists unread SMS and WhatsApp messages (Full edition): a tap opens the
+  conversation, a long press reads it aloud.
+- **Radio.** A tile with favourite stations: huge PLAY/STOP buttons, next station, volume.
+- **Quiet night.** At night the phone does not ring, except for SOS numbers. In the evening, if the
+  battery is low, it reminds aloud to put it on charge.
+- **Against accidental touches**: tiles can be set to open only when held. High-contrast theme, or
+  dark in the evening.
+- **Backup** of the settings on the phone, exportable to a file and importable on a new phone, even
+  without the portal.
+- **Android's own SOS**: on many phones pressing the power button 5 times calls emergency services
+  (Settings › Safety & emergency › Emergency SOS). Worth turning on.
 
 <p align="center">
   <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/2_sos.png" width="200" alt="SOS countdown">
@@ -57,12 +68,16 @@ Changes are signed: the phone only accepts those from its own portal.
 
 - **Alerts** on Telegram or email: SOS with location, unconfirmed reminder, low battery, phone
   out of contact, blocked calls.
+- **Family photos** on call tiles, uploaded from the portal.
+- **Family calendar**: appointments from a Google, Outlook or iCloud calendar (iCal address) become
+  reminders on the phone, also the evening before.
 - **Guided setup**: a few questions (who they call, what they need, which medicines) and the screen is ready.
 - **Message to the phone** (full screen, read aloud, with read receipt) and **"Ring the phone"** at full
   volume even on silent, to find it at home.
 - **"Where is it?"**: phone location on request, only if allowed on the phone.
 - **Weekly summary** every Monday and a "Last 7 days" card for each phone.
-- **It also sees changes made on the phone** (photos included) and flags missing permissions.
+- **Changes made on the phone** (photos included) become the current version in the portal too,
+  with a list of what changed; it flags missing permissions.
 - **Version history**, copy a configuration from one phone to another.
 
 Settings can also be changed on the phone: tap the clock 5 times and enter the PIN.
