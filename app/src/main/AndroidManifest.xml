@@ -113,6 +113,9 @@
             android:name=".remote.FamilyReceiver"
             android:exported="false" />
         <receiver
+            android:name=".reminders.ChargeReceiver"
+            android:exported="false" />
+        <receiver
             android:name=".reminders.ReminderReceiver"
             android:exported="false">
             <intent-filter>

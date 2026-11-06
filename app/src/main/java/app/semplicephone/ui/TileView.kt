@@ -39,6 +39,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
@@ -82,15 +83,28 @@ private val TileShape = RoundedCornerShape(18.dp)
 @Composable
 private fun Dp.fixedSp(): TextUnit = with(LocalDensity.current) { this@fixedSp.toSp() }
 
+/** Aspetto della Home: tema (normale, alto contrasto, notte) e apertura dei riquadri tenendo premuto. */
+data class TileLook(val contrast: Boolean = false, val night: Boolean = false, val holdToOpen: Boolean = false)
+
+val LocalTileLook = androidx.compose.runtime.staticCompositionLocalOf { TileLook() }
+
 @Composable
 fun TileView(
     tile: Tile,
     sos: SosConfig,
     launcher: TileLauncher,
-    modifier: Modifier = Modifier,
+    modifier0: Modifier = Modifier,
     onSecretTap: () -> Unit = {},
     badge: Int = 0,
 ) {
+    val look = LocalTileLook.current
+    // Alto contrasto: bordo bianco spesso su fondo nero. Notte: riquadri velati, meno abbaglianti.
+    val modifier = modifier0
+        .then(if (look.contrast) Modifier.border(4.dp, Color.White, TileShape) else Modifier)
+        .then(
+            if (look.night) Modifier.clip(TileShape).drawWithContent { drawContent(); drawRect(Color.Black.copy(alpha = 0.38f)) }
+            else Modifier,
+        )
     when (tile.type) {
         TileType.CLOCK -> ClockTile(tile, launcher, modifier, onSecretTap)
         TileType.SOS -> SosTile(tile, sos, launcher, modifier)
@@ -110,6 +124,7 @@ private fun ActionTile(tile: Tile, sos: SosConfig, launcher: TileLauncher, modif
     val fg = contentColorFor(parseColor(tile.color))
     val wide = tile.w > tile.h
     val badgeDesc = stringResource(R.string.tile_badge_desc, badge)
+    val hold = LocalTileLook.current.holdToOpen
 
     Box(
         modifier
@@ -119,8 +134,9 @@ private fun ActionTile(tile: Tile, sos: SosConfig, launcher: TileLauncher, modif
             .combinedClickable(
                 role = Role.Button,
                 onClickLabel = tile.label,
-                onLongClick = { launcher.speakLabel(tile) },
-                onClick = { launcher.launch(tile, sos) },
+                // «Tieni premuto per aprire» (tremore): il tocco breve dice solo il nome.
+                onLongClick = { if (hold) launcher.launch(tile, sos) else launcher.speakLabel(tile) },
+                onClick = { if (hold) launcher.holdHint(tile) else launcher.launch(tile, sos) },
             )
             .semantics { if (badge > 0) stateDescription = badgeDesc },
         contentAlignment = Alignment.Center,
@@ -162,7 +178,7 @@ private fun FullPhoto(tile: Tile, launcher: TileLauncher, fallback: @Composable 
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val px = with(LocalDensity.current) { maxOf(maxWidth, maxHeight).roundToPx() }
         val photo by produceState<ImageBitmap?>(null, tile.icon.ref, tile.target, px) {
-            value = withContext(Dispatchers.IO) { launcher.contacts.photo(tile.icon.ref, tile.target, px)?.asImageBitmap() }
+            value = withContext(Dispatchers.IO) { tilePhoto(launcher, tile, px)?.asImageBitmap() }
         }
         val p = photo
         if (p == null) fallback()
@@ -255,7 +271,7 @@ private val PersonTypes = setOf(TileType.CALL, TileType.WA_VIDEO, TileType.SMS)
 private fun ContactPhoto(tile: Tile, launcher: TileLauncher, tint: Color, size: Dp, initialsFallback: Boolean) {
     val px = with(LocalDensity.current) { size.roundToPx() }
     val photo by produceState<ImageBitmap?>(null, tile.icon.ref, tile.target, px) {
-        value = withContext(Dispatchers.IO) { launcher.contacts.photo(tile.icon.ref, tile.target, px)?.asImageBitmap() }
+        value = withContext(Dispatchers.IO) { tilePhoto(launcher, tile, px)?.asImageBitmap() }
     }
     val p = photo
     when {
@@ -272,6 +288,11 @@ private fun ContactPhoto(tile: Tile, launcher: TileLauncher, tint: Color, size: 
         else -> Icon(Symbols.get(Symbols.defaultFor(tile.type)), null, Modifier.size(size), tint = tint)
     }
 }
+
+/** Foto del riquadro: caricata dal familiare («media:…», dal portale o dal telefono) o dalla rubrica. */
+private fun tilePhoto(launcher: TileLauncher, tile: Tile, px: Int): android.graphics.Bitmap? =
+    if (tile.icon.ref.startsWith("media:")) app.semplicephone.data.Media.bitmap(launcher.appContext, tile.icon.ref, px)
+    else launcher.contacts.photo(tile.icon.ref, tile.target, px)
 
 private fun initials(label: String): String =
     label.split(' ').filter { it.isNotBlank() }.take(2).joinToString("") { it.take(1).uppercase() }.ifEmpty { "?" }

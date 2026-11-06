@@ -51,8 +51,10 @@ class CallBlocker : CallScreeningService() {
             RemoteEvents.enqueue(this, "call_blocked", getString(R.string.call_blocked_event, who), mapOf("number" to number))
             return
         }
-        respondToCall(details, CallResponse.Builder().build())
-        if (incoming) IncomingCall.onRinging(applicationContext, cfg, number)
+        // Notte tranquilla: la chiamata arriva ma senza squillo, tranne per i numeri SOS.
+        val silence = incoming && NightQuiet.silence(cfg, number, java.time.LocalTime.now())
+        respondToCall(details, CallResponse.Builder().setSilenceCall(silence).build())
+        if (incoming && !silence) IncomingCall.onRinging(applicationContext, cfg, number)
     }
 
     /** Rubrica, numeri SOS e numeri dei riquadri passano; senza permesso Contatti passa tutto. */
@@ -127,4 +129,18 @@ object IncomingCall {
             }
         }
     }
+}
+
+/** Notte tranquilla: fascia oraria senza squillo, tranne i familiari (numeri SOS). */
+object NightQuiet {
+    /** Pura (testabile): [now] è dentro la fascia [from]–[to]? Gestisce la mezzanotte (22:00–07:00). */
+    fun inWindow(from: String, to: String, now: java.time.LocalTime): Boolean {
+        val f = runCatching { java.time.LocalTime.parse(from) }.getOrNull() ?: return false
+        val t = runCatching { java.time.LocalTime.parse(to) }.getOrNull() ?: return false
+        return if (f <= t) now >= f && now < t else now >= f || now < t
+    }
+
+    fun silence(cfg: app.semplicephone.model.LauncherConfig, number: String, now: java.time.LocalTime): Boolean =
+        cfg.phone.nightQuiet && inWindow(cfg.phone.nightFrom, cfg.phone.nightTo, now) &&
+            !(number.isNotBlank() && CallFilter.allowed(number, cfg.sos.numbers))
 }

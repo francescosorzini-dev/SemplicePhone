@@ -469,5 +469,7 @@
  "chg_sos": "SOS-Nummern oder -Nachricht geändert",
  "chg_phone": "Telefoneinstellungen geändert",
  "from_phone": "vom Telefon",
- "phone_changed_info": "Letzte Änderung am Telefon am {0}: {1}. Sie ist hier schon gespeichert; unter „Frühere Versionen“ kann man zurück."
+ "phone_changed_info": "Letzte Änderung am Telefon am {0}: {1}. Sie ist hier schon gespeichert; unter „Frühere Versionen“ kann man zurück.",
+ "family_photo": "Foto des Familienmitglieds",
+ "family_photo_hint": "Optional: hier hochgeladen erscheint sie auf der Kachel, auch wenn die Nummer im Adressbuch kein Foto hat."
 }

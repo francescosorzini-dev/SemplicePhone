@@ -266,6 +266,7 @@ function phone_media_refs($cfg): array {
     $out = [];
     foreach ((array)($cfg['pages'] ?? []) as $p) foreach ((array)($p['tiles'] ?? []) as $t) foreach ((array)($t['photos'] ?? []) as $ref) $out[] = (string)$ref;
     foreach ((array)($cfg['reminders'] ?? []) as $r) $out[] = (string)($r['photo'] ?? '');
+    foreach ((array)($cfg['pages'] ?? []) as $p) foreach ((array)($p['tiles'] ?? []) as $t) $out[] = (string)($t['icon']['ref'] ?? '');
     $out = array_map(fn($r) => substr($r, 6), array_filter($out, fn($r) => preg_match('/^media:[0-9a-f]{64}$/', $r)));
     return array_values(array_unique($out));
 }
@@ -1393,8 +1394,16 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
     if (t.type !== 'clock') parts.push(field(T('tile_text'), el('input', {type: 'text', value: t.label || '', maxlength: '30', onchange: e => upd('label', e.target.value)})));
 
     if (!['clock', 'sos', 'weather', 'photos', 'missed_calls'].includes(t.type)) {
-      parts.push(field(T('icon'), select(ICONS, t.icon.kind || 'auto', v => { t.icon = {kind: v, ref: v === 'symbol' ? (t.icon.ref && SYMBOLS[t.icon.ref] ? t.icon.ref : 'phone') : (v === 'photo' || v === 'auto' ? (t.icon.ref || '').startsWith('contact:') ? t.icon.ref : '' : '')}; changed(); render(); })));
+      parts.push(field(T('icon'), select(ICONS, t.icon.kind || 'auto', v => { t.icon = {kind: v, ref: v === 'symbol' ? (t.icon.ref && SYMBOLS[t.icon.ref] ? t.icon.ref : 'phone') : (v === 'photo' || v === 'auto' ? /^(contact|media):/.test(t.icon.ref || '') ? t.icon.ref : '' : '')}; changed(); render(); })));
       if (t.icon.kind === 'symbol') parts.push(field(T('symbol'), select(SYMBOLS, t.icon.ref || 'phone', v => { t.icon.ref = v; changed(); render(); })));
+      // Foto del familiare caricata da qui: non serve averla nella rubrica del telefono.
+      if (['call', 'wa_video', 'sms'].includes(t.type)) {
+        const media = (t.icon.ref || '').startsWith('media:') ? t.icon.ref : '';
+        parts.push(el('label', {}, T('family_photo')),
+          media ? thumb(media, () => { t.icon = {kind: 'auto', ref: '', fill: t.icon.fill}; if (!t.icon.fill) delete t.icon.fill; changed(); render(); }) : '',
+          fileInput(false, refs => { t.icon = Object.assign({}, t.icon, {kind: 'photo', ref: refs[0]}); changed(); render(); }),
+          el('div', {class: 'hint'}, T('family_photo_hint')));
+      }
       if (t.icon.kind === 'photo' || (t.icon.kind === 'auto' && ['call', 'wa_video', 'sms'].includes(t.type)))
         parts.push(el('p', {class: 'hint'}, T('photo_hint')),
           el('label', {style: 'font-weight:400'}, el('input', {type: 'checkbox', checked: !!t.icon.fill,

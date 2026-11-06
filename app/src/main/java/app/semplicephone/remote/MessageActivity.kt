@@ -59,12 +59,16 @@ class MessageActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
-        val m = FamilyMessages.unread(this) ?: return finish()
-        val title = if (m.from.isNotBlank()) getString(R.string.message_from, m.from) else getString(R.string.message_title)
-        val spoken = "$title. ${m.text}"
+        // Avviso del telefono (es. «Metti in carica») o messaggio della famiglia.
+        val notice = if (intent.getBooleanExtra(Notice.EXTRA, false)) Notice.read(this) else null
+        val m = if (notice == null) FamilyMessages.unread(this) ?: return finish() else null
+        val title = notice?.title ?: if (m!!.from.isNotBlank()) getString(R.string.message_from, m.from) else getString(R.string.message_title)
+        val body = notice?.text ?: m!!.text
+        val symbol = notice?.symbol ?: "message"
+        val spoken = "$title. $body"
 
         setContent {
-            LaunchedEffect(m.id) { Voice.speak(this@MessageActivity, spoken) }
+            LaunchedEffect(spoken) { Voice.speak(this@MessageActivity, spoken) }
             SempliceTheme {
                 Column(
                     Modifier.fillMaxSize().background(Color(0xFFE8F1FB)).windowInsetsPadding(WindowInsets.safeDrawing).padding(24.dp),
@@ -72,10 +76,10 @@ class MessageActivity : ComponentActivity() {
                     verticalArrangement = Arrangement.spacedBy(18.dp),
                 ) {
                     Spacer(Modifier.heightIn(min = 12.dp))
-                    Icon(Symbols.get("message"), null, Modifier.size(96.dp), tint = Palette.Ink)
+                    Icon(Symbols.get(symbol), null, Modifier.size(96.dp), tint = Palette.Ink)
                     Text(title, fontSize = 30.sp, fontWeight = FontWeight.Bold, color = Palette.Ink, textAlign = TextAlign.Center)
                     Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(m.text, fontSize = 34.sp, lineHeight = 42.sp, color = Palette.Ink, textAlign = TextAlign.Center)
+                        Text(body, fontSize = 34.sp, lineHeight = 42.sp, color = Palette.Ink, textAlign = TextAlign.Center)
                     }
                     OutlinedButton(
                         onClick = { Voice.speak(this@MessageActivity, spoken) },
@@ -84,13 +88,14 @@ class MessageActivity : ComponentActivity() {
                     ) { Text(stringResource(R.string.message_read_again), fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Palette.Ink) }
                     Button(
                         onClick = {
-                            sendBroadcast(Intent(this@MessageActivity, FamilyReceiver::class.java).setAction(FamilyMessages.ACTION_READ))
+                            if (notice != null) Notice.dismiss(this@MessageActivity)
+                            else sendBroadcast(Intent(this@MessageActivity, FamilyReceiver::class.java).setAction(FamilyMessages.ACTION_READ))
                             finishAndRemoveTask()
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1B6E34)),
                         shape = RoundedCornerShape(24.dp),
                         modifier = Modifier.fillMaxWidth().heightIn(min = 120.dp),
-                    ) { Text(stringResource(R.string.message_ok), fontSize = 40.sp, fontWeight = FontWeight.Bold) }
+                    ) { Text(stringResource(if (notice != null) R.string.notice_ok else R.string.message_ok), fontSize = 40.sp, fontWeight = FontWeight.Bold) }
                 }
             }
         }

@@ -234,12 +234,25 @@ fun TileEditor(
 
             if (t.type !in setOf(TileType.CLOCK, TileType.SOS, TileType.WEATHER, TileType.PHOTOS, TileType.MISSED_CALLS, TileType.MESSAGES, TileType.UNKNOWN)) {
                 OptionPicker(stringResource(R.string.tile_icon), IconLabels.keys.toList(), t.icon.kind, { context.getString(IconLabels.getValue(it)) }) { k ->
-                    t = t.copy(icon = TileIcon(k, if (k == IconKind.SYMBOL) t.icon.ref.ifBlank { Symbols.defaultFor(t.type) } else ""))
+                    t = t.copy(icon = TileIcon(k, when {
+                        k == IconKind.SYMBOL -> t.icon.ref.ifBlank { Symbols.defaultFor(t.type) }
+                        k == IconKind.PHOTO && t.icon.ref.startsWith("media:") -> t.icon.ref
+                        else -> ""
+                    }, t.icon.fill))
                 }
                 if (t.icon.kind == IconKind.SYMBOL) SymbolGrid(t.icon.ref) { t = t.copy(icon = TileIcon(IconKind.SYMBOL, it)) }
                 if (t.icon.kind == IconKind.PHOTO) Hint(stringResource(R.string.tile_photo_hint))
                 val withPhoto = t.icon.kind == IconKind.PHOTO ||
                     (t.icon.kind == IconKind.AUTO && t.type in setOf(TileType.CALL, TileType.WA_VIDEO, TileType.SMS))
+                if (t.type in setOf(TileType.CALL, TileType.WA_VIDEO, TileType.SMS)) {
+                    // Foto scelta o scattata qui (anche se il numero non ha foto in rubrica).
+                    SectionLabel(stringResource(R.string.tile_own_photo))
+                    SinglePhotoField(
+                        ref = t.icon.ref.takeIf { it.startsWith("media:") }.orEmpty(),
+                        onChange = { r -> t = t.copy(icon = if (r.isBlank()) t.icon.copy(kind = IconKind.AUTO, ref = "") else t.icon.copy(kind = IconKind.PHOTO, ref = r)) },
+                        onExternalStart = onExternalStart,
+                    )
+                }
                 if (withPhoto) Toggle(
                     stringResource(R.string.tile_photo_fill), stringResource(R.string.tile_photo_fill_hint), t.icon.fill,
                 ) { t = t.copy(icon = t.icon.copy(fill = it)) }

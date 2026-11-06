@@ -469,5 +469,7 @@
  "chg_sos": "números o mensaje SOS cambiados",
  "chg_phone": "ajustes del teléfono cambiados",
  "from_phone": "desde el teléfono",
- "phone_changed_info": "Último cambio hecho en el teléfono el {0}: {1}. Ya está guardado aquí; puede volver atrás desde «Versiones anteriores»."
+ "phone_changed_info": "Último cambio hecho en el teléfono el {0}: {1}. Ya está guardado aquí; puede volver atrás desde «Versiones anteriores».",
+ "family_photo": "Foto del familiar",
+ "family_photo_hint": "Opcional: si la sube aquí aparece en el mosaico aunque el número no tenga foto en la agenda del teléfono."
 }

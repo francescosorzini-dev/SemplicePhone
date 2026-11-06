@@ -42,6 +42,7 @@ class ConfigRepository(private val context: Context) {
         // Scrittura atomica: tmp + rename, così un crash non lascia un file troncato.
         val tmp = File(context.filesDir, "config.json.tmp")
         tmp.writeText(json.encodeToString(LauncherConfig.serializer(), cfg))
+        Backup.snapshot(context)
         if (!tmp.renameTo(file)) error("rename config fallito")
         _config.value = cfg
     }
@@ -75,6 +76,8 @@ class ConfigRepository(private val context: Context) {
         }
 
         /** Parse + validazione; null (con log) se il testo non è una config valida. */
+        fun toJson(cfg: LauncherConfig): String = json.encodeToString(LauncherConfig.serializer(), cfg)
+
         fun parse(text: String, origin: String): LauncherConfig? = try {
             val cfg = json.decodeFromString(LauncherConfig.serializer(), text)
             val problems = validate(cfg)

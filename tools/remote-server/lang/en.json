@@ -469,5 +469,7 @@
  "chg_sos": "SOS numbers or message changed",
  "chg_phone": "phone settings changed",
  "from_phone": "from the phone",
- "phone_changed_info": "Last change made on the phone on {0}: {1}. It is already saved here; you can go back from \"Previous versions\"."
+ "phone_changed_info": "Last change made on the phone on {0}: {1}. It is already saved here; you can go back from \"Previous versions\".",
+ "family_photo": "Family member photo",
+ "family_photo_hint": "Optional: if you upload it here it appears on the tile even if the number has no photo in the phone contacts."
 }

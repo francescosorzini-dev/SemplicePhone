@@ -286,7 +286,7 @@ class RemoteClient(private val context: Context) {
         if (app.semplicephone.data.MissedCalls.supported() &&
             cfg.pages.any { p -> p.tiles.any { it.type == app.semplicephone.model.TileType.MISSED_CALLS } }
         ) out.put("callLog", app.semplicephone.data.MissedCalls.canRead(context))
-        if (cfg.phone.blockUnknown || cfg.phone.autoAnswer || cfg.phone.announceCaller) {
+        if (cfg.phone.blockUnknown || cfg.phone.autoAnswer || cfg.phone.announceCaller || cfg.phone.nightQuiet) {
             val roles = context.getSystemService(android.app.role.RoleManager::class.java)
             out.put("screening", runCatching { roles.isRoleHeld(android.app.role.RoleManager.ROLE_CALL_SCREENING) }.getOrDefault(false))
             out.put("contacts", app.semplicephone.launch.Permissions.granted(context, android.Manifest.permission.READ_CONTACTS))

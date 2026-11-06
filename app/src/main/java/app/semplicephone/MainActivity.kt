@@ -70,6 +70,8 @@ sealed interface Screen {
     data object Reminders : Screen
     data object Remote : Screen
     data object Phone : Screen
+    /** Copie della configurazione (senza portale). */
+    data object Backup : Screen
     /** Ricerca delle app (riquadro «Cerca app»): non serve il PIN. */
     data object Search : Screen
 }
@@ -190,6 +192,9 @@ class MainActivity : ComponentActivity() {
                                 OutlinedButton(onClick = { screen = Screen.Protection }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
                                     Text(stringResource(R.string.layout_protection))
                                 }
+                                OutlinedButton(onClick = { screen = Screen.Backup }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
+                                    Text(stringResource(R.string.backup_title))
+                                }
                                 if (android.os.Build.VERSION.SDK_INT >= 33) {
                                     // Lingua solo per SemplicePhone (pagina di sistema «Lingua dell'app»).
                                     OutlinedButton(
@@ -241,6 +246,14 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                     Screen.Remote -> RemoteScreen(onBack = { screen = Screen.Layout })
+                    Screen.Backup -> draft?.let { d ->
+                        app.semplicephone.ui.settings.BackupScreen(
+                            current = d,
+                            onLoad = { draft = it; screen = Screen.Layout },
+                            onBack = { screen = Screen.Layout },
+                            onExternalStart = { externalActivity = true },
+                        )
+                    }
                     Screen.Phone -> draft?.let { d ->
                         PhoneEditor(
                             initial = d.phone,
@@ -324,7 +337,7 @@ class MainActivity : ComponentActivity() {
             Screen.Home -> Screen.Home
             is Screen.Pin -> if (draft != null) Screen.Layout else { closeSettings(); Screen.Home }
             Screen.Layout -> { closeSettings(); Screen.Home }
-            is Screen.EditTile, Screen.Sos, Screen.Protection, Screen.Reminders, Screen.Remote, Screen.Phone -> Screen.Layout
+            is Screen.EditTile, Screen.Sos, Screen.Protection, Screen.Reminders, Screen.Remote, Screen.Phone, Screen.Backup -> Screen.Layout
             Screen.SosCountdown, Screen.Search -> Screen.Home
         }
     }

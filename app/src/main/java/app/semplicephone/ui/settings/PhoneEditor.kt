@@ -96,7 +96,7 @@ fun PhoneEditor(
                 p = p.copy(blockUnknown = it)
                 if (it) { requestContacts(); requestScreening() }
             }
-            if ((p.blockUnknown || p.autoAnswer || p.announceCaller) && !screening) {
+            if ((p.blockUnknown || p.autoAnswer || p.announceCaller || p.nightQuiet) && !screening) {
                 Text(stringResource(R.string.phone_block_needs_role), fontSize = 15.sp, color = Palette.Sos)
                 androidx.compose.material3.OutlinedButton(onClick = ::requestScreening, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
                     Text(stringResource(R.string.phone_block_grant))
@@ -117,6 +117,16 @@ fun PhoneEditor(
                 Stepper(stringResource(R.string.phone_auto_answer_after), (p.autoAnswerSeconds / 5).coerceIn(1, 6), 1..6, { p = p.copy(autoAnswerSeconds = it * 5) }, format = { "${it * 5} s" })
                 if (!hasSosNumbers) Text(stringResource(R.string.phone_auto_answer_no_sos), fontSize = 15.sp, color = Palette.Sos)
             }
+            Toggle(stringResource(R.string.phone_night), stringResource(R.string.phone_night_detail), p.nightQuiet) {
+                p = p.copy(nightQuiet = it)
+                if (it) requestScreening()
+            }
+            if (p.nightQuiet) {
+                val fromH = p.nightFrom.take(2).toIntOrNull() ?: 22
+                val toH = p.nightTo.take(2).toIntOrNull() ?: 7
+                Stepper(stringResource(R.string.phone_night_from), fromH, 18..23, { p = p.copy(nightFrom = "%02d:00".format(it)) }, format = { "$it:00" })
+                Stepper(stringResource(R.string.phone_night_to), toH, 5..10, { p = p.copy(nightTo = "%02d:00".format(it)) }, format = { "$it:00" })
+            }
             Toggle(stringResource(R.string.phone_announce), stringResource(R.string.phone_announce_detail), p.announceCaller) {
                 p = p.copy(announceCaller = it)
                 if (it) { requestContacts(); requestScreening() }
@@ -126,6 +136,18 @@ fun PhoneEditor(
             Toggle(stringResource(R.string.phone_speak_tiles), stringResource(R.string.phone_speak_tiles_detail), p.speakTiles) { p = p.copy(speakTiles = it) }
             Toggle(stringResource(R.string.phone_voice_confirm), stringResource(R.string.phone_voice_confirm_detail), p.voiceConfirm) { p = p.copy(voiceConfirm = it) }
             Toggle(stringResource(R.string.phone_bedside), stringResource(R.string.phone_bedside_detail), p.bedsideClock) { p = p.copy(bedsideClock = it) }
+            Toggle(stringResource(R.string.phone_charge), stringResource(R.string.phone_charge_detail), p.chargeReminder) { p = p.copy(chargeReminder = it) }
+            if (p.chargeReminder) {
+                Stepper(stringResource(R.string.phone_charge_time), p.chargeTime.take(2).toIntOrNull() ?: 20, 17..23, { p = p.copy(chargeTime = "%02d:00".format(it)) }, format = { "$it:00" })
+                Stepper(stringResource(R.string.phone_charge_below), p.chargeBelow / 10, 2..8, { p = p.copy(chargeBelow = it * 10) }, format = { "${it * 10}%" })
+            }
+            Toggle(stringResource(R.string.phone_hold), stringResource(R.string.phone_hold_detail), p.holdToOpen) { p = p.copy(holdToOpen = it) }
+            val themes = linkedMapOf(
+                "normal" to stringResource(R.string.phone_theme_normal),
+                "contrast" to stringResource(R.string.phone_theme_contrast),
+                "night" to stringResource(R.string.phone_theme_night),
+            )
+            OptionPicker(stringResource(R.string.phone_theme), themes.keys.toList(), p.theme, { themes[it].orEmpty() }) { p = p.copy(theme = it) }
             Toggle(stringResource(R.string.phone_home_button), stringResource(R.string.phone_home_button_detail), p.homeButton) {
                 p = p.copy(homeButton = it)
                 if (it) requestOverlay()

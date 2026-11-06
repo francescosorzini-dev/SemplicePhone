@@ -40,6 +40,7 @@ class ReminderScheduler(private val context: Context) {
         (previous - active.map { it.id }.toSet()).forEach { cancel(it) }
         active.forEach { scheduleDaily(it) }
         prefs.edit().putStringSet(KEY_IDS, active.map { it.id }.toSet()).apply()
+        ChargeReminder.schedule(context, cfg.phone)
     }
 
     fun scheduleDaily(r: Reminder, now: ZonedDateTime = ZonedDateTime.now()) {

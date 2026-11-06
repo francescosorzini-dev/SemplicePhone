@@ -32,6 +32,8 @@ class TileLauncher(
 ) {
 
     private val pm: PackageManager = context.packageManager
+    /** Contesto per chi disegna i riquadri (foto caricate, ecc.). */
+    val appContext: Context get() = context
     private var lastLaunch = 0L
 
     fun launch(tile: Tile, sos: SosConfig) {
@@ -111,6 +113,12 @@ class TileLauncher(
         val phone = app.semplicephone.data.ConfigRepository.get(context).config.value.phone
         if (phone.voiceConfirm && name.isNotBlank()) app.semplicephone.ui.Voice.speak(context, context.getString(R.string.voice_call, name)) { call(number) }
         else call(number)
+    }
+
+    /** Tocco breve con «tieni premuto per aprire»: dice il nome e ricorda come si apre. */
+    fun holdHint(tile: Tile) {
+        speakLabel(tile)
+        android.widget.Toast.makeText(context, R.string.hold_hint, android.widget.Toast.LENGTH_SHORT).show()
     }
 
     /** Apre la conversazione del messaggio (azione della sua notifica); in mancanza, l'app che l'ha mandato. */

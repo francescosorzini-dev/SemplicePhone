@@ -155,6 +155,48 @@ object FamilyMessages {
     }
 }
 
+/**
+ * Avviso del telefono stesso (es. «Metti in carica»): stessa schermata a tutto schermo del messaggio,
+ * letta a voce, con «OK». Non va al portale.
+ */
+object Notice {
+    const val NOTIFICATION_ID = 0x5E03
+    const val EXTRA = "notice"
+    private val json = Json { ignoreUnknownKeys = true }
+
+    @Serializable
+    data class Data(val title: String, val text: String, val symbol: String = "alert")
+
+    private fun file(context: Context) = File(context.filesDir, "notice.json")
+
+    fun read(context: Context): Data? = runCatching { json.decodeFromString(Data.serializer(), file(context).readText()) }.getOrNull()
+
+    fun show(context: Context, title: String, text: String, symbol: String = "alert") {
+        file(context).writeText(json.encodeToString(Data.serializer(), Data(title, text, symbol)))
+        ReminderScheduler.ensureChannel(context)
+        val open = PendingIntent.getActivity(
+            context, 3, Intent(context, MessageActivity::class.java).putExtra(EXTRA, true).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+        )
+        val n = NotificationCompat.Builder(context, ReminderScheduler.CHANNEL)
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setContentTitle(title)
+            .setContentText(text)
+            .setCategory(NotificationCompat.CATEGORY_REMINDER)
+            .setPriority(NotificationCompat.PRIORITY_MAX)
+            .setAutoCancel(true)
+            .setFullScreenIntent(open, true)
+            .setContentIntent(open)
+            .build()
+        runCatching { context.getSystemService(NotificationManager::class.java).notify(NOTIFICATION_ID, n) }
+    }
+
+    fun dismiss(context: Context) {
+        file(context).delete()
+        context.getSystemService(NotificationManager::class.java).cancel(NOTIFICATION_ID)
+    }
+}
+
 /** Azioni dai pulsanti di notifica e dalla schermata del messaggio (processo principale). */
 class FamilyReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
