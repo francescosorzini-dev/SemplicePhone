@@ -45,7 +45,8 @@ object Badges {
     /** Messaggi leggibili da una notifica: stile «conversazione» se c'è, altrimenti titolo e testo. */
     internal fun messagesOf(context: Context, sbn: StatusBarNotification, smsPackage: String?): List<UnreadMessage> {
         val n = sbn.notification
-        val isMessage = sbn.packageName in MESSAGE_PACKAGES || sbn.packageName == smsPackage || n.category == Notification.CATEGORY_MESSAGE
+        val isMessage = sbn.packageName in MESSAGE_PACKAGES || sbn.packageName == smsPackage || n.category == Notification.CATEGORY_MESSAGE ||
+            n.extras.getString(Notification.EXTRA_TEMPLATE) == Notification.MessagingStyle::class.java.name
         if (!isMessage || sbn.isOngoing || n.flags and Notification.FLAG_GROUP_SUMMARY != 0) return emptyList()
         val app = runCatching {
             context.packageManager.getApplicationLabel(context.packageManager.getApplicationInfo(sbn.packageName, 0)).toString()
