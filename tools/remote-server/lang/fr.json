@@ -472,7 +472,6 @@
  "phone_changed_info": "Dernière modification faite sur le téléphone le {0} : {1}. Elle est déjà enregistrée ici ; vous pouvez revenir en arrière depuis « Versions précédentes ».",
  "family_photo": "Photo du proche",
  "family_photo_hint": "Facultative : envoyée ici, elle apparaît sur la tuile même si le numéro n'a pas de photo dans les contacts du téléphone.",
- "type_messages_unread": "💬 Messages non lus",
  "type_radio": "📻 Radio",
  "def_messages_unread": "Nouveaux messages",
  "def_radio": "Radio",
@@ -512,5 +511,6 @@
  "cal_tomorrow": "Demain : {0}",
  "cal_at": "à {0}",
  "chg_calendar": "rendez-vous du calendrier : {0} rappels",
- "from_calendar": "du calendrier"
+ "from_calendar": "du calendrier",
+ "type_messages": "💬 Messages non lus"
 }

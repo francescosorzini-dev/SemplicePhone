@@ -472,7 +472,6 @@
  "phone_changed_info": "Último cambio hecho en el teléfono el {0}: {1}. Ya está guardado aquí; puede volver atrás desde «Versiones anteriores».",
  "family_photo": "Foto del familiar",
  "family_photo_hint": "Opcional: si la sube aquí aparece en el mosaico aunque el número no tenga foto en la agenda del teléfono.",
- "type_messages_unread": "💬 Mensajes sin leer",
  "type_radio": "📻 Radio",
  "def_messages_unread": "Mensajes nuevos",
  "def_radio": "Radio",
@@ -512,5 +511,6 @@
  "cal_tomorrow": "Mañana: {0}",
  "cal_at": "a las {0}",
  "chg_calendar": "citas del calendario: {0} recordatorios",
- "from_calendar": "del calendario"
+ "from_calendar": "del calendario",
+ "type_messages": "💬 Mensajes sin leer"
 }

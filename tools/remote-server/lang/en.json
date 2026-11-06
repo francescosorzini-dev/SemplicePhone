@@ -472,7 +472,6 @@
  "phone_changed_info": "Last change made on the phone on {0}: {1}. It is already saved here; you can go back from \"Previous versions\".",
  "family_photo": "Family member photo",
  "family_photo_hint": "Optional: if you upload it here it appears on the tile even if the number has no photo in the phone contacts.",
- "type_messages_unread": "💬 Unread messages",
  "type_radio": "📻 Radio",
  "def_messages_unread": "New messages",
  "def_radio": "Radio",
@@ -512,5 +511,6 @@
  "cal_tomorrow": "Tomorrow: {0}",
  "cal_at": "at {0}",
  "chg_calendar": "calendar appointments: {0} reminders",
- "from_calendar": "from the calendar"
+ "from_calendar": "from the calendar",
+ "type_messages": "💬 Unread messages"
 }

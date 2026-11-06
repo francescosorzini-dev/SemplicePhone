@@ -472,7 +472,6 @@
  "phone_changed_info": "Letzte Änderung am Telefon am {0}: {1}. Sie ist hier schon gespeichert; unter „Frühere Versionen“ kann man zurück.",
  "family_photo": "Foto des Familienmitglieds",
  "family_photo_hint": "Optional: hier hochgeladen erscheint sie auf der Kachel, auch wenn die Nummer im Adressbuch kein Foto hat.",
- "type_messages_unread": "💬 Ungelesene Nachrichten",
  "type_radio": "📻 Radio",
  "def_messages_unread": "Neue Nachrichten",
  "def_radio": "Radio",
@@ -512,5 +511,6 @@
  "cal_tomorrow": "Morgen: {0}",
  "cal_at": "um {0}",
  "chg_calendar": "Kalendertermine: {0} Erinnerungen",
- "from_calendar": "aus dem Kalender"
+ "from_calendar": "aus dem Kalender",
+ "type_messages": "💬 Ungelesene Nachrichten"
 }

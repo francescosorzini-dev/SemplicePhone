@@ -472,7 +472,6 @@
  "phone_changed_info": "Ultima modifica fatta sul telefono il {0}: {1}. È già salvata qui; puoi tornare indietro da «Versioni precedenti».",
  "family_photo": "Foto del familiare",
  "family_photo_hint": "Facoltativa: se la carichi qui compare sul riquadro anche se il numero non ha la foto nella rubrica del telefono.",
- "type_messages_unread": "💬 Messaggi da leggere",
  "type_radio": "📻 Radio",
  "def_messages_unread": "Messaggi nuovi",
  "def_radio": "Radio",
@@ -512,5 +511,6 @@
  "cal_tomorrow": "Domani: {0}",
  "cal_at": "alle {0}",
  "chg_calendar": "appuntamenti dal calendario: {0} promemoria",
- "from_calendar": "dal calendario"
+ "from_calendar": "dal calendario",
+ "type_messages": "💬 Messaggi da leggere"
 }
