@@ -210,8 +210,10 @@ J
 adb push /tmp/n.json /data/local/tmp/n.json >/dev/null
 adb shell am force-stop $P
 adb shell "run-as $P sh -c 'cp /data/local/tmp/n.json files/config.json'"
-adb shell cmd notification allow_listener $P/$P.phone.BadgeListener || true
-adb shell cmd notification post -S messaging --conversation Famiglia --message "Anna:Ciao nonna, stasera passo" anna1 "Ciao" || true
+adb shell cmd notification allow_listener $P/$P.phone.BadgeListener > "$OUT/v14_notif.txt" 2>&1 || true
+adb shell cmd notification post -S messaging --conversation Famiglia --message "Anna:Ciao nonna, stasera passo" anna1 "Ciao" >> "$OUT/v14_notif.txt" 2>&1 || true
+sleep 2
+adb shell dumpsys notification | grep -E "semplicephone|NotificationRecord.*shell|mEnabledListener|Live notifications" | head -12 >> "$OUT/v14_notif.txt" || true
 home; sleep 4; shot v14_1_home 2
 grep -o 'text="[^"]\+"' "$OUT/v14_1_home.xml" | tr '\n' ' ' > "$OUT/v14_home.txt"
 # Tocco breve con «tenere premuto»: non apre, dice il nome
@@ -223,7 +225,7 @@ adb shell dumpsys media_session | grep -iE "state|semplice" | head -5 > "$OUT/v1
 adb shell dumpsys activity services $P | grep -E "RadioService|isForeground" | head -4 >> "$OUT/v14_radio.txt"
 python3 tap.py "FERMA" >/dev/null || python3 tap.py "STOP" >/dev/null || true; sleep 2
 python3 tap.py "Dopo ›" >/dev/null || true; sleep 1
-python3 tap.py "ASCOLTA" >/dev/null || true; shot v14_4_radio_bad 6
+python3 tap.py "ASCOLTA" >/dev/null || true; shot v14_4_radio_bad 25
 python3 tap.py "FERMA" >/dev/null || true
 # Pulsante Casa a sinistra, arancione, solo icona, sopra un'altra app
 adb shell am start -W -a android.intent.action.MAIN -c android.intent.category.APP_CONTACTS >/dev/null; shot v14_5_homebutton 4

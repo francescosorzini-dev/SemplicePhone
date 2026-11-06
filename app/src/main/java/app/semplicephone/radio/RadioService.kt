@@ -33,6 +33,8 @@ data class RadioState(val station: Station? = null, val playing: Boolean = false
 class RadioService : Service() {
     private var player: MediaPlayer? = null
     private var focus: AudioFocusRequest? = null
+    private val handler = android.os.Handler(android.os.Looper.getMainLooper())
+    private var timeout: Runnable? = null
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -87,6 +89,9 @@ class RadioService : Service() {
                 prepareAsync()
             }
         }.onFailure { Log.w(TAG, "stazione non valida", it); fail(st) }.getOrNull()
+        // Indirizzo che non risponde: dopo 20 secondi si dice «non si sente» invece di restare in attesa.
+        if (player != null) timeout = Runnable { if (_state.value.loading && _state.value.station == st) fail(st) }
+            .also { handler.postDelayed(it, LOAD_TIMEOUT_MS) }
     }
 
     private fun fail(st: Station) {
@@ -97,6 +102,8 @@ class RadioService : Service() {
     }
 
     private fun release() {
+        timeout?.let { handler.removeCallbacks(it) }
+        timeout = null
         runCatching { player?.stop() }
         runCatching { player?.release() }
         player = null
@@ -121,6 +128,7 @@ class RadioService : Service() {
         private const val TAG = "Radio"
         private const val CHANNEL = "radio"
         private const val NOTIFICATION_ID = 0x5E10
+        private const val LOAD_TIMEOUT_MS = 20_000L
         const val ACTION_PLAY = "app.semplicephone.RADIO_PLAY"
         const val ACTION_STOP = "app.semplicephone.RADIO_STOP"
         private const val EXTRA_NAME = "name"
