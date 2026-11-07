@@ -188,7 +188,12 @@ fun TileEditor(
                         shape = RoundedCornerShape(10.dp),
                     ) { Text(stringResource(R.string.tile_pick_contact), fontSize = 17.sp, color = Palette.Ink) }
                     Field(stringResource(R.string.tile_number), t.target, KeyboardType.Phone) { t = t.copy(target = it.filter { c -> c.isDigit() || c == '+' }) }
-                    if (t.type == TileType.WA_VIDEO) Hint(stringResource(R.string.tile_wa_hint))
+                    if (t.type == TileType.WA_VIDEO) {
+                        Hint(stringResource(R.string.tile_wa_hint))
+                        // Controllo subito: senza la riga «Videochiamata» di WhatsApp in rubrica si aprirebbe solo la chat.
+                        val waReady = remember(t.target) { t.target.filter(Char::isDigit).length < 6 || launcher.contacts.whatsAppVideoIntent(t.target) != null }
+                        if (!waReady) Text(stringResource(R.string.tile_wa_not_found), fontSize = 15.sp, color = Palette.Sos)
+                    }
                     if (t.type == TileType.SMS) Field(stringResource(R.string.tile_sms_text), t.body) { t = t.copy(body = it) }
                 }
                 TileType.URL -> Field(stringResource(R.string.tile_url), t.target, KeyboardType.Uri) { t = t.copy(target = it.trim()) }

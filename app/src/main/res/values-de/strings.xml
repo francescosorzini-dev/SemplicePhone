@@ -44,7 +44,7 @@
     <string name="launch_no_sos_numbers">Keine SOS-Nummern eingerichtet</string>
     <string name="launch_no_number">Keine Nummer eingestellt</string>
     <string name="launch_no_whatsapp">WhatsApp ist nicht installiert</string>
-    <string name="launch_whatsapp_chat">WhatsApp-Chat wird geöffnet</string>
+    <string name="launch_whatsapp_chat">Videoanruf für diese Nummer nicht verfügbar: WhatsApp-Chat wird geöffnet</string>
     <string name="launch_set_home">SemplicePhone als Startbildschirm festlegen</string>
     <string name="launch_unavailable">%1$s nicht verfügbar</string>
     <string name="sos_title">Notruf</string>
@@ -399,6 +399,7 @@
     <string name="tpl_back">Zurück</string>
     <string name="tpl_apply">Diese Vorlage verwenden</string>
     <string name="tpl_confirm">Die Kachelanordnung wird ersetzt. Familie, SOS, Erinnerungen, Wetter und Album bleiben. Bis du Speichern drückst, kannst du zurück.</string>
+    <string name="tile_wa_not_found">WhatsApp hat für diese Nummer noch keinen Videoanruf: in den Kontakten speichern, WhatsApp öffnen und Kontakte aktualisieren (Neuer Chat › ⋮ › Aktualisieren). Bis dahin öffnet die Kachel den Chat.</string>
     <string name="color_blue">Blau</string>
     <string name="color_green">Grün</string>
     <string name="color_purple">Violett</string>

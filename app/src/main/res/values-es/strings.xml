@@ -44,7 +44,7 @@
     <string name="launch_no_sos_numbers">No hay números SOS configurados</string>
     <string name="launch_no_number">Número no configurado</string>
     <string name="launch_no_whatsapp">WhatsApp no está instalado</string>
-    <string name="launch_whatsapp_chat">Abriendo el chat de WhatsApp</string>
+    <string name="launch_whatsapp_chat">Videollamada no disponible para este número: abro el chat de WhatsApp</string>
     <string name="launch_set_home">Configura SemplicePhone como pantalla de inicio</string>
     <string name="launch_unavailable">%1$s no disponible</string>
     <string name="sos_title">Llamada de emergencia</string>
@@ -399,6 +399,7 @@
     <string name="tpl_back">Atrás</string>
     <string name="tpl_apply">Usar esta plantilla</string>
     <string name="tpl_confirm">La disposición de los mosaicos se sustituye. Familiares, SOS, recordatorios, tiempo y álbum se mantienen. Hasta que pulses Guardar puedes volver atrás.</string>
+    <string name="tile_wa_not_found">WhatsApp aún no tiene la videollamada para este número: guárdalo en contactos, abre WhatsApp y actualiza los contactos (Nuevo chat › ⋮ › Actualizar). Mientras tanto, el mosaico abre el chat.</string>
     <string name="color_blue">Azul</string>
     <string name="color_green">Verde</string>
     <string name="color_purple">Morado</string>
