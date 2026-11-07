@@ -22,7 +22,6 @@ Builds:
     subdir: app
     gradle:
       - completo
-
   - versionName: 0.17.1
     versionCode: 350
     commit: 9142faf31a5b8fed193d5c55a7bfb772bedcc61e
