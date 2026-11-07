@@ -144,3 +144,10 @@ dependencies {
 
     testImplementation("junit:junit:4.13.2")
 }
+
+// Il profilo ART di base (assets/dexopt/baseline.prof) non esce sempre identico tra due build:
+// F-Droid confronta l'APK byte per byte, quindi non lo generiamo (lo indica la guida F-Droid
+// sulle build riproducibili). Android ottimizza comunque l'app dopo i primi avvii.
+tasks.configureEach {
+    if (name.contains("ArtProfile")) enabled = false
+}
