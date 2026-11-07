@@ -373,7 +373,7 @@
     <string name="special_badges_restricted">Si el interruptor está en gris: Ajustes › Aplicaciones › SemplicePhone › menú ⋮ arriba › «Permitir ajustes restringidos», y vuelva aquí.</string>
     <string name="label_album">Álbum</string>
     <string name="album_folders">Carpetas del teléfono</string>
-    <string name="album_folders_hint">Las fotos y vídeos de las carpetas elegidas (p. ej. Cámara, WhatsApp Images, WhatsApp Video) aparecen solos, también los nuevos.</string>
+    <string name="album_folders_hint">Las fotos y vídeos de las carpetas elegidas y de todas sus subcarpetas (p. ej. DCIM, WhatsApp › Media) aparecen solos, también los nuevos. Se omiten las fotos enviadas desde WhatsApp y las carpetas ocultas.</string>
     <string name="album_folder_other_phone">carpeta de otro teléfono (aquí no se lee)</string>
     <string name="album_add_folder">+ Añadir una carpeta</string>
     <string name="video_error">Este vídeo no se puede ver.</string>

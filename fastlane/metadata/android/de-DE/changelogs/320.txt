@@ -1,1 +1,2 @@
 - WhatsApp-Videoanruf: die Nummer wird in jedem Format (+39, Leerzeichen) und bei mehreren Nummern pro Kontakt gefunden; Hinweis im Editor, wenn WhatsApp ihn noch nicht anbietet
+- Album: Fotos und Videos auch in Unterordnern der gewählten Ordner (z. B. DCIM, WhatsApp › Media)

@@ -373,7 +373,7 @@
     <string name="special_badges_restricted">Si l\'interrupteur est grisé : Paramètres › Applis › SemplicePhone › menu ⋮ en haut › « Autoriser les paramètres restreints », puis revenez ici.</string>
     <string name="label_album">Album</string>
     <string name="album_folders">Dossiers du téléphone</string>
-    <string name="album_folders_hint">Les photos et vidéos des dossiers choisis (ex. Appareil photo, WhatsApp Images, WhatsApp Video) apparaissent seules, y compris les nouvelles.</string>
+    <string name="album_folders_hint">Les photos et vidéos des dossiers choisis et de tous leurs sous-dossiers (ex. DCIM, WhatsApp › Media) apparaissent seules, y compris les nouvelles. Les photos envoyées depuis WhatsApp et les dossiers cachés sont ignorés.</string>
     <string name="album_folder_other_phone">dossier d\'un autre téléphone (illisible ici)</string>
     <string name="album_add_folder">+ Ajouter un dossier</string>
     <string name="video_error">Impossible de lire cette vidéo.</string>

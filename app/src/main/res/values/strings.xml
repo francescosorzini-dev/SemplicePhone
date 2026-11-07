@@ -374,7 +374,7 @@
     <string name="special_badges_restricted">If the switch is greyed out: Settings › Apps › SemplicePhone › ⋮ menu at the top › \"Allow restricted settings\", then come back here.</string>
     <string name="label_album">Album</string>
     <string name="album_folders">Phone folders</string>
-    <string name="album_folders_hint">Photos and videos from the chosen folders (e.g. Camera, WhatsApp Images, WhatsApp Video) appear by themselves, including new ones.</string>
+    <string name="album_folders_hint">Photos and videos from the chosen folders and all their subfolders (e.g. DCIM, WhatsApp › Media) appear by themselves, including new ones. Photos sent from WhatsApp and hidden folders are skipped.</string>
     <string name="album_folder_other_phone">folder from another phone (not readable here)</string>
     <string name="album_add_folder">+ Add a folder</string>
     <string name="video_error">This video cannot be played.</string>

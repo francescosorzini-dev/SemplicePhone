@@ -373,7 +373,7 @@
     <string name="special_badges_restricted">Se l\'interruttore è grigio: Impostazioni › App › SemplicePhone › menu ⋮ in alto › «Consenti impostazioni con restrizioni», poi torna qui.</string>
     <string name="label_album">Album</string>
     <string name="album_folders">Cartelle del telefono</string>
-    <string name="album_folders_hint">Foto e video delle cartelle scelte (es. Fotocamera, WhatsApp Images, WhatsApp Video) compaiono da soli, anche quelli che arrivano dopo.</string>
+    <string name="album_folders_hint">Foto e video delle cartelle scelte e di tutte le loro sottocartelle (es. DCIM, WhatsApp › Media) compaiono da soli, anche quelli che arrivano dopo. Le foto inviate da WhatsApp e le cartelle nascoste vengono saltate.</string>
     <string name="album_folder_other_phone">cartella di un altro telefono (qui non si legge)</string>
     <string name="album_add_folder">+ Aggiungi una cartella</string>
     <string name="video_error">Questo video non si riesce a vedere.</string>
