@@ -14,7 +14,7 @@ object CallFilter {
     /** Numeri sempre ammessi: SOS e numeri dei riquadri di chiamata, videochiamata e SMS. */
     fun knownNumbers(cfg: LauncherConfig): List<String> =
         cfg.sos.numbers + cfg.pages.flatMap { p ->
-            p.tiles.filter { it.type in setOf(TileType.CALL, TileType.WA_VIDEO, TileType.TG_VIDEO, TileType.SMS) }.map { it.target }
+            p.tiles.filter { it.type in setOf(TileType.CALL, TileType.WA_VIDEO, TileType.TG_VIDEO, TileType.CALL_ME, TileType.SMS) }.map { it.target }
         }
 
     /** [number] vuoto = numero nascosto: si blocca. Confronto sulle ultime 9 cifre, come per gli SMS. */
@@ -55,6 +55,7 @@ class CallBlocker : CallScreeningService() {
         val silence = incoming && NightQuiet.silence(cfg, number, java.time.LocalTime.now())
         respondToCall(details, CallResponse.Builder().setSilenceCall(silence).build())
         if (incoming && !silence) IncomingCall.onRinging(applicationContext, cfg, number)
+        if (incoming) LongCall.started(applicationContext, cfg, number)
     }
 
     /** Rubrica, numeri SOS e numeri dei riquadri passano; senza permesso Contatti passa tutto. */

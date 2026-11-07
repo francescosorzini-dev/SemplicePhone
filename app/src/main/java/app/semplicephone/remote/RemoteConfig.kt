@@ -211,6 +211,7 @@ class RemoteClient(private val context: Context) {
         val url = settings.resolvedUrl()
         if (!url.startsWith("https://")) return r(R.string.remote_r_bad_url)
         if (settings.publicKey.isBlank()) return r(R.string.remote_r_no_key)
+        runCatching { VoiceReplies.flush(context) }
 
         val conn = (URL(url).openConnection() as HttpURLConnection).apply {
             connectTimeout = 15_000
@@ -369,6 +370,9 @@ class RemoteClient(private val context: Context) {
             .put("charging", charging)
             .put("lastResult", settings.lastResult)
             .put("reminderEvents", events)
+            .put("stock", JSONObject().apply {
+                ConfigRepository.readCurrent(context).reminders.forEach { r -> app.semplicephone.safety.Safety.stockLeft(context, r)?.let { put(r.id, it) } }
+            })
             .put("edition", BuildConfig.EDITION)
             .apply { if (BuildConfig.NOTIFICATIONS) put("badgesAccess", app.semplicephone.phone.Badges.isEnabled(context)) }
             .put("access", accessReport())

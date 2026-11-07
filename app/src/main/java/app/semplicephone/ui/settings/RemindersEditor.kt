@@ -222,6 +222,14 @@ private fun ReminderForm(
                 Stepper(stringResource(R.string.reminder_repeat), r.repeatMinutes, 1..30, { r = r.copy(repeatMinutes = it) })
             }
             Stepper(stringResource(R.string.reminder_max_repeats), r.maxRepeats, 0..20, { r = r.copy(maxRepeats = it) })
+            // Scorta: pastiglie nella scatola oggi; il telefono conta le «Presa» e avvisa quando finiscono.
+            Stepper(stringResource(R.string.reminder_stock), r.stock.coerceAtLeast(0), 0..200,
+                { r = r.copy(stock = if (it == 0) -1 else it, stockSetAt = System.currentTimeMillis()) },
+                format = { if (it == 0) context.getString(R.string.reminder_stock_off) else "$it" })
+            if (r.stock > 0) Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
+                Stepper(stringResource(R.string.reminder_per_dose), r.perDose, 1..6, { r = r.copy(perDose = it) })
+                Stepper(stringResource(R.string.reminder_low_at), r.lowAt, 1..30, { r = r.copy(lowAt = it) })
+            }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(stringResource(R.string.reminder_active), fontSize = 17.sp, modifier = Modifier.weight(1f))
                 Switch(checked = r.enabled, onCheckedChange = { r = r.copy(enabled = it) })

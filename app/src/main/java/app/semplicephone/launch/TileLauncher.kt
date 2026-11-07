@@ -31,6 +31,8 @@ class TileLauncher(
     private val onSearch: () -> Unit = {},
     private val onRadio: (Tile) -> Unit = {},
     private val onVideo: (String) -> Unit = {},
+    /** Schermate interne: lente, «dove sono», «mi chiami?», musica, notizie. */
+    private val onTool: (Tile) -> Unit = {},
 ) {
 
     private val pm: PackageManager = context.packageManager
@@ -59,7 +61,8 @@ class TileLauncher(
             TileType.CALL -> context.getString(R.string.voice_call, name)
             TileType.WA_VIDEO, TileType.TG_VIDEO -> context.getString(R.string.voice_video, name)
             TileType.SMS -> context.getString(R.string.voice_sms, name)
-            TileType.APP, TileType.URL, TileType.SHORTCUT, TileType.SEARCH, TileType.RADIO -> context.getString(R.string.voice_open, name)
+            TileType.APP, TileType.URL, TileType.SHORTCUT, TileType.SEARCH, TileType.RADIO, TileType.MUSIC, TileType.NEWS,
+            TileType.MAGNIFIER, TileType.WHERE_AM_I -> context.getString(R.string.voice_open, name)
             else -> null
         }
     }
@@ -102,6 +105,8 @@ class TileLauncher(
                 TileType.SEARCH -> onSearch()
                 TileType.RADIO -> onRadio(tile)
                 TileType.MESSAGES -> perform(tile.copy(type = TileType.APP, target = "@sms"), sos)
+                TileType.TORCH -> app.semplicephone.tools.Torch.toggle(context)
+                TileType.MAGNIFIER, TileType.WHERE_AM_I, TileType.CALL_ME, TileType.MUSIC, TileType.NEWS -> onTool(tile)
                 TileType.CLOCK, TileType.WEATHER, TileType.PHOTOS, TileType.UNKNOWN -> Unit
             }
         } catch (e: ActivityNotFoundException) {
@@ -241,6 +246,7 @@ class TileLauncher(
         TileType.SHORTCUT -> tile.target.contains('/')
         TileType.WA_VIDEO -> pm.getLaunchIntentForPackage(Contacts.WHATSAPP) != null
         TileType.TG_VIDEO -> Contacts.TELEGRAM_PACKAGES.any { pm.getLaunchIntentForPackage(it) != null }
+        TileType.TORCH, TileType.MAGNIFIER -> app.semplicephone.tools.Torch.available(context)
         else -> true
     }
 

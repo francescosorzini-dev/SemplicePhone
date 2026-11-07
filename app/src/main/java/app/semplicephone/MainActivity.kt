@@ -77,11 +77,20 @@ sealed interface Screen {
     /** Radio del riquadro [tile]. */
     data class Radio(val tile: Tile) : Screen
     data class Video(val uri: String) : Screen
+    /** Lente, «dove sono», «mi chiami?», musica, notizie. */
+    data class Tool(val tile: Tile) : Screen
+    /** Scheda per i soccorritori (dalla schermata SOS). */
+    data object Emergency : Screen
     /** Modelli pronti; [firstTime] alla prima apertura delle impostazioni. */
     data class Templates(val firstTime: Boolean) : Screen
 }
 
 class MainActivity : ComponentActivity() {
+    companion object {
+        /** Avvia subito la schermata SOS (dopo una caduta senza risposta). */
+        const val EXTRA_SOS = "sos"
+    }
+
 
     private lateinit var repo: ConfigRepository
     private lateinit var launcher: TileLauncher
@@ -115,10 +124,11 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         repo = ConfigRepository.get(applicationContext)
+        if (intent?.getBooleanExtra(EXTRA_SOS, false) == true) screen = Screen.SosCountdown
         contacts = Contacts(applicationContext)
         protection = DeviceProtection(applicationContext)
         scheduler = ReminderScheduler(applicationContext)
-        launcher = TileLauncher(this, contacts, onSos = ::onSosRequested, onSearch = ::openSearch, onRadio = { screen = Screen.Radio(it) }, onVideo = { screen = Screen.Video(it) })
+        launcher = TileLauncher(this, contacts, onSos = ::onSosRequested, onSearch = ::openSearch, onRadio = { screen = Screen.Radio(it) }, onVideo = { screen = Screen.Video(it) }, onTool = { screen = Screen.Tool(it) })
         pins = PinStore(applicationContext)
         catalog = AppCatalog(applicationContext)
         apps = catalog.roles()
@@ -287,6 +297,33 @@ class MainActivity : ComponentActivity() {
                     Screen.Protection -> ProtectionScreen(protection, onBack = { screen = Screen.Layout })
                     is Screen.Radio -> app.semplicephone.radio.RadioScreen(s.tile, onClose = { screen = Screen.Home })
                     is Screen.Video -> app.semplicephone.ui.VideoPlayer(android.net.Uri.parse(s.uri), stringResource(R.string.video_close), onClose = { screen = Screen.Home })
+                    is Screen.Tool -> when (s.tile.type) {
+                        TileType.MAGNIFIER -> app.semplicephone.tools.MagnifierScreen(onClose = { screen = Screen.Home })
+                        TileType.WHERE_AM_I -> app.semplicephone.tools.WhereAmIScreen(
+                            sosNumbers = config.sos.numbers, nameOf = { contacts.displayName(it) },
+                            onCall = { n -> launcher.launch(Tile("where-call", 0, 0, type = TileType.CALL, target = n), config.sos) },
+                            onClose = { screen = Screen.Home },
+                        )
+                        TileType.CALL_ME -> app.semplicephone.tools.CallMeScreen(
+                            s.tile,
+                            onSmsComposer = { n, text ->
+                                externalActivity = true
+                                runCatching { startActivity(Intent(Intent.ACTION_SENDTO, android.net.Uri.parse("smsto:$n")).putExtra("sms_body", text)) }
+                            },
+                            onClose = { screen = Screen.Home },
+                        )
+                        TileType.NEWS -> app.semplicephone.tools.NewsScreen(s.tile, onClose = { screen = Screen.Home })
+                        TileType.MUSIC -> {
+                            val songs by androidx.compose.runtime.produceState<List<app.semplicephone.model.Station>?>(null, s.tile) {
+                                value = withContext(Dispatchers.IO) {
+                                    app.semplicephone.data.Album.songs(this@MainActivity, s.tile).map { app.semplicephone.model.Station(it.name.substringBeforeLast('.'), it.ref) }
+                                }
+                            }
+                            app.semplicephone.radio.RadioScreen(s.tile, onClose = { screen = Screen.Home }, songs = songs ?: emptyList())
+                        }
+                        else -> LaunchedEffect(Unit) { screen = Screen.Home }
+                    }
+                    Screen.Emergency -> app.semplicephone.sos.EmergencyScreen(config.emergency, onClose = { screen = Screen.Home })
                     Screen.Search -> AppSearchScreen(
                         apps = searchApps,
                         launcher = launcher,
@@ -299,11 +336,14 @@ class MainActivity : ComponentActivity() {
                         launcher = launcher,
                         contactNames = { contacts.displayName(it) },
                         onDone = { screen = Screen.Home },
+                        emergency = config.emergency,
+                        onEmergency = { screen = Screen.Emergency },
                     )
                     Screen.Sos -> draft?.let { d ->
                         SosEditor(
                             initial = d.sos,
-                            onSave = { draft = d.copy(sos = it); screen = Screen.Layout },
+                            emergency = d.emergency,
+                            onSave = { sos, em -> draft = d.copy(sos = sos, emergency = em); screen = Screen.Layout },
                             onCancel = { screen = Screen.Layout },
                         )
                     }
@@ -314,6 +354,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
+        app.semplicephone.safety.Safety.markUsed(this)
         app.semplicephone.remote.FamilyMessages.refresh(this)
         externalActivity = false
         permissionsTick++
@@ -330,6 +371,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        if (intent.getBooleanExtra(EXTRA_SOS, false)) { screen = Screen.SosCountdown; return }
         if (intent.hasCategory(Intent.CATEGORY_HOME)) {
             if (screen != Screen.Home) closeSettings() else homePressCount.intValue++
         }
@@ -363,7 +405,7 @@ class MainActivity : ComponentActivity() {
             is Screen.Pin -> if (draft != null) Screen.Layout else { closeSettings(); Screen.Home }
             Screen.Layout -> { closeSettings(); Screen.Home }
             is Screen.EditTile, Screen.Sos, Screen.Protection, Screen.Reminders, Screen.Remote, Screen.Phone, Screen.Backup, is Screen.Templates -> Screen.Layout
-            Screen.SosCountdown, Screen.Search, is Screen.Radio, is Screen.Video -> Screen.Home
+            Screen.SosCountdown, Screen.Search, is Screen.Radio, is Screen.Video, is Screen.Tool, Screen.Emergency -> Screen.Home
         }
     }
 

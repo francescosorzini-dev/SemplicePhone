@@ -120,7 +120,9 @@ fun TileView(
 @Composable
 private fun ActionTile(tile: Tile, sos: SosConfig, launcher: TileLauncher, modifier: Modifier, badge: Int) {
     val available = remember(tile) { launcher.isAvailable(tile) }
-    val bg = parseColor(tile.color).let { if (available) it else it.copy(alpha = 0.35f) }
+    // Torcia accesa: il riquadro diventa bianco luminoso, così si vede che è accesa.
+    val torchOn = tile.type == TileType.TORCH && app.semplicephone.tools.Torch.on.collectAsState().value
+    val bg = (if (torchOn) Color.White else parseColor(tile.color)).let { if (available) it else it.copy(alpha = 0.35f) }
     val fg = contentColorFor(parseColor(tile.color))
     val wide = tile.w > tile.h
     val badgeDesc = stringResource(R.string.tile_badge_desc, badge)
@@ -739,17 +741,19 @@ private fun MessagesTile(tile: Tile, sos: SosConfig, launcher: TileLauncher, mod
                 Text("$label (${messages.size})", color = fg, fontSize = 19.dp.fixedSp(), fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
             messages.take(fit).forEach { m ->
-                val spoken = stringResource(R.string.messages_spoken_one, m.sender.ifBlank { m.app }, m.app, m.text)
+                val warning = stringResource(R.string.scam_warning)
+                val spoken = if (m.suspicious) warning else stringResource(R.string.messages_spoken_one, m.sender.ifBlank { m.app }, m.app, m.text)
                 Row(
                     Modifier.fillMaxWidth().height(rowHeight)
                         .clip(RoundedCornerShape(14.dp))
-                        .background(Color.White)
-                        .border(2.dp, Palette.Ink, RoundedCornerShape(14.dp))
+                        .background(if (m.suspicious) Color(0xFFFFE0B2) else Color.White)
+                        .border(if (m.suspicious) 4.dp else 2.dp, if (m.suspicious) Palette.Sos else Palette.Ink, RoundedCornerShape(14.dp))
                         .combinedClickable(
                             role = Role.Button,
                             onClickLabel = spoken,
                             onLongClick = { launcher.speakText(spoken) },
-                            onClick = { launcher.openMessage(m) },
+                            // Possibile truffa: il tocco non apre il link, avvisa a voce.
+                            onClick = { if (m.suspicious) app.semplicephone.ui.Voice.speak(launcher.appContext, warning) else launcher.openMessage(m) },
                         )
                         .padding(horizontal = 12.dp, vertical = 6.dp),
                     verticalAlignment = Alignment.CenterVertically,
@@ -761,7 +765,8 @@ private fun MessagesTile(tile: Tile, sos: SosConfig, launcher: TileLauncher, mod
                                     .format(DateTimeFormatter.ofLocalizedTime(java.time.format.FormatStyle.SHORT)),
                             color = Palette.Ink, fontSize = 17.dp.fixedSp(), fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis,
                         )
-                        Text(m.text, color = Palette.Ink, fontSize = 17.dp.fixedSp(), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(if (m.suspicious) "⚠ " + stringResource(R.string.scam_label) else m.text, color = if (m.suspicious) Palette.Sos else Palette.Ink,
+                            fontSize = 17.dp.fixedSp(), fontWeight = if (m.suspicious) FontWeight.Bold else FontWeight.Normal, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                 }
             }

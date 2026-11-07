@@ -40,11 +40,24 @@ class SempliceApp : Application() {
         }
         ContextCompat.registerReceiver(this, battery, IntentFilter(Intent.ACTION_BATTERY_CHANGED), ContextCompat.RECEIVER_NOT_EXPORTED)
 
+        // Uso del telefono (per l'avviso «non usato») e app installate (controllo remoto, truffe).
+        val usage = object : BroadcastReceiver() {
+            override fun onReceive(c: Context, i: Intent) = app.semplicephone.safety.Safety.markUsed(c)
+        }
+        ContextCompat.registerReceiver(this, usage, IntentFilter().apply { addAction(Intent.ACTION_SCREEN_ON); addAction(Intent.ACTION_USER_PRESENT) }, ContextCompat.RECEIVER_NOT_EXPORTED)
+        val installed = object : BroadcastReceiver() {
+            override fun onReceive(c: Context, i: Intent) {
+                runCatching { app.semplicephone.safety.Safety.remoteApps(c, app.semplicephone.data.ConfigRepository.readCurrent(c)) }
+            }
+        }
+        ContextCompat.registerReceiver(this, installed, IntentFilter(Intent.ACTION_PACKAGE_ADDED).apply { addDataScheme("package") }, ContextCompat.RECEIVER_EXPORTED)
+
         // Pulsante «Casa» sopra le altre app: segue le Activity e si aggiorna a ogni cambio di config.
         app.semplicephone.launch.HomeButton.install(this)
         kotlinx.coroutines.MainScope().launch {
             app.semplicephone.data.ConfigRepository.get(this@SempliceApp).config.collect {
                 app.semplicephone.launch.HomeButton.update(this@SempliceApp)
+                app.semplicephone.phone.FallDetector.sync(this@SempliceApp)
             }
         }
 

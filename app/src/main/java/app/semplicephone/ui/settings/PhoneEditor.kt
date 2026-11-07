@@ -179,6 +179,36 @@ fun PhoneEditor(
                 p.freshStart,
             ) { p = p.copy(freshStart = it) }
 
+            SectionLabel(stringResource(R.string.phone_safety))
+            Toggle(stringResource(R.string.phone_remote_apps), stringResource(R.string.phone_remote_apps_detail), p.remoteAppAlert) { p = p.copy(remoteAppAlert = it) }
+            Toggle(stringResource(R.string.phone_scam), stringResource(R.string.phone_scam_detail), p.scamGuard) { p = p.copy(scamGuard = it) }
+            Toggle(stringResource(R.string.phone_block_premium), stringResource(R.string.phone_block_premium_detail), p.blockPremium) { p = p.copy(blockPremium = it) }
+            Toggle(stringResource(R.string.phone_block_international), stringResource(R.string.phone_block_international_detail), p.blockInternational) { p = p.copy(blockInternational = it) }
+            Stepper(stringResource(R.string.phone_long_call), p.longCallMinutes / 5, 0..12, { p = p.copy(longCallMinutes = it * 5) }, format = { if (it == 0) never else "${it * 5} min" })
+            Toggle(stringResource(R.string.phone_sim), stringResource(R.string.phone_sim_detail), p.simAlert) { p = p.copy(simAlert = it) }
+            Stepper(stringResource(R.string.phone_inactive), p.inactivityHours / 2, 0..6, { p = p.copy(inactivityHours = it * 2) }, format = { if (it == 0) never else "${it * 2} h" })
+            Toggle(stringResource(R.string.phone_fall), stringResource(R.string.phone_fall_detail), p.fallDetection) { p = p.copy(fallDetection = it) }
+            Toggle(stringResource(R.string.phone_heat), stringResource(R.string.phone_heat_detail), p.heatAlert) { p = p.copy(heatAlert = it) }
+            if (p.heatAlert) Stepper(stringResource(R.string.phone_heat_threshold), p.heatThreshold, 28..38, { p = p.copy(heatThreshold = it) }, format = { "$it°" })
+            if (BuildConfig.FULL) Text(
+                if (p.safeZoneRadius > 0) stringResource(R.string.phone_zone_on, p.safeZoneRadius) else stringResource(R.string.phone_zone_off),
+                fontSize = 15.sp, color = Color(0xFF4A4A4A),
+            )
+
+            SectionLabel(stringResource(R.string.phone_comfort))
+            Stepper(stringResource(R.string.phone_call_volume), p.callVolumePercent / 10, 0..10, { p = p.copy(callVolumePercent = it * 10) }, format = { if (it == 0) never else "${it * 10}%" })
+            val scales = listOf(0f, 1.15f, 1.3f, 1.5f, 1.8f)
+            OptionPicker(stringResource(R.string.phone_font_scale), scales, scales.minByOrNull { kotlin.math.abs(it - p.fontScale) } ?: 0f,
+                { if (it == 0f) context.getString(R.string.phone_unchanged) else "${(it * 100).toInt()}%" }) { p = p.copy(fontScale = it) }
+            val timeouts = listOf(0, 60, 120, 300, 600, 1800)
+            OptionPicker(stringResource(R.string.phone_screen_timeout), timeouts, timeouts.minByOrNull { kotlin.math.abs(it - p.screenTimeoutSeconds) } ?: 0,
+                { if (it == 0) context.getString(R.string.phone_unchanged) else if (it < 60) "$it s" else "${it / 60} min" }) { p = p.copy(screenTimeoutSeconds = it) }
+            Stepper(stringResource(R.string.phone_brightness), p.brightnessPercent / 10, 0..10, { p = p.copy(brightnessPercent = it * 10) },
+                format = { if (it == 0) context.getString(R.string.phone_unchanged) else "${it * 10}%" })
+            Toggle(stringResource(R.string.phone_morning), stringResource(R.string.phone_morning_detail), p.morningBrief) { p = p.copy(morningBrief = it) }
+            if (p.morningBrief) Stepper(stringResource(R.string.phone_morning_time), p.morningTime.take(2).toIntOrNull() ?: 9, 6..12,
+                { p = p.copy(morningTime = "%02d:00".format(it)) }, format = { "$it:00" })
+
             SectionLabel(stringResource(R.string.phone_battery))
             Stepper(
                 stringResource(R.string.phone_battery_below), p.batteryAlertPercent / 5, 0..6,

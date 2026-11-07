@@ -33,6 +33,8 @@ data class RadioState(val station: Station? = null, val playing: Boolean = false
 class RadioService : Service() {
     private var player: MediaPlayer? = null
     private var focus: AudioFocusRequest? = null
+    /** Musica dal telefono: elenco dei brani; a fine brano si passa al successivo. */
+    private var playlist: List<Station> = emptyList()
     private val handler = android.os.Handler(android.os.Looper.getMainLooper())
     private var timeout: Runnable? = null
 
@@ -43,6 +45,7 @@ class RadioService : Service() {
             ACTION_STOP -> stopAll()
             ACTION_PLAY -> {
                 val st = Station(intent.getStringExtra(EXTRA_NAME).orEmpty(), intent.getStringExtra(EXTRA_URL).orEmpty())
+                playlist = pendingPlaylist; pendingPlaylist = emptyList()
                 foreground(st)
                 play(st)
             }
@@ -79,8 +82,14 @@ class RadioService : Service() {
         player = runCatching {
             MediaPlayer().apply {
                 setAudioAttributes(attrs)
-                setDataSource(st.url)
+                // Uri: va bene sia per gli stream (http/https) sia per i file del telefono (content://).
+                setDataSource(this@RadioService, android.net.Uri.parse(st.url))
                 setOnPreparedListener { it.start(); _state.value = RadioState(st, playing = true) }
+                setOnCompletionListener {
+                    val i = playlist.indexOfFirst { p -> p.url == st.url }
+                    val next = playlist.getOrNull(i + 1) ?: playlist.firstOrNull()
+                    if (playlist.isNotEmpty() && next != null) { foreground(next); play(next) } else stopAll()
+                }
                 setOnErrorListener { _, what, extra ->
                     Log.w(TAG, "errore radio $what/$extra")
                     fail(st)
@@ -137,7 +146,10 @@ class RadioService : Service() {
         private val _state = MutableStateFlow(RadioState())
         val state: StateFlow<RadioState> = _state.asStateFlow()
 
-        fun play(context: Context, st: Station) {
+        @Volatile private var pendingPlaylist: List<Station> = emptyList()
+
+        fun play(context: Context, st: Station, list: List<Station> = emptyList()) {
+            pendingPlaylist = list
             val i = Intent(context, RadioService::class.java).setAction(ACTION_PLAY).putExtra(EXTRA_NAME, st.name).putExtra(EXTRA_URL, st.url)
             runCatching { androidx.core.content.ContextCompat.startForegroundService(context, i) }
                 .onFailure { Log.w(TAG, "radio non avviata", it) }

@@ -76,7 +76,7 @@ object Voice {
         if (then != null) {
             synchronized(after) { after[id] = then }
             // Rete di sicurezza: se la sintesi non segnala la fine, l'azione parte lo stesso.
-            main.postDelayed({ finish(id) }, 4000)
+            main.postDelayed({ finish(id) }, maxOf(4000L, text.length * 110L))
         }
         t.speak(text, TextToSpeech.QUEUE_FLUSH, null, id)
     }

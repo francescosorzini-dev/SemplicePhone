@@ -67,6 +67,12 @@ private val TypeLabels = linkedMapOf(
     TileType.CALL to R.string.type_call,
     TileType.WA_VIDEO to R.string.type_wa_video,
     TileType.TG_VIDEO to R.string.type_tg_video,
+    TileType.CALL_ME to R.string.type_call_me,
+    TileType.TORCH to R.string.type_torch,
+    TileType.MAGNIFIER to R.string.type_magnifier,
+    TileType.WHERE_AM_I to R.string.type_where,
+    TileType.MUSIC to R.string.type_music,
+    TileType.NEWS to R.string.type_news,
     TileType.SMS to R.string.type_sms,
     TileType.URL to R.string.type_url,
     TileType.SHORTCUT to R.string.type_shortcut,
@@ -156,7 +162,7 @@ fun TileEditor(
 
             OptionPicker(stringResource(R.string.tile_action), TypeLabels.keys.toList(), t.type, { typeLabel(context, it) }) { type ->
                 // Il valore del tipo precedente non vale per il nuovo (es. «@dialer» per una videochiamata).
-                val phoneTypes = setOf(TileType.CALL, TileType.WA_VIDEO, TileType.TG_VIDEO, TileType.SMS)
+                val phoneTypes = setOf(TileType.CALL, TileType.WA_VIDEO, TileType.TG_VIDEO, TileType.SMS, TileType.CALL_ME)
                 val keep = type == t.type || (type in phoneTypes && t.type in phoneTypes)
                 // Scritta e colore seguono il nuovo tipo, a meno che siano stati scelti a mano.
                 val autoLabel = isAutoLabel(context, t.label)
@@ -186,7 +192,7 @@ fun TileEditor(
                         { context.getString(openLabels.getValue(it)) },
                     ) { t = t.copy(open = it) }
                 }
-                TileType.CALL, TileType.WA_VIDEO, TileType.TG_VIDEO, TileType.SMS -> {
+                TileType.CALL, TileType.WA_VIDEO, TileType.TG_VIDEO, TileType.SMS, TileType.CALL_ME -> {
                     OutlinedButton(
                         onClick = {
                             onExternalStart()
@@ -202,6 +208,7 @@ fun TileEditor(
                         val waReady = remember(t.target) { t.target.filter(Char::isDigit).length < 6 || launcher.contacts.whatsAppVideoIntent(t.target) != null }
                         if (!waReady) Text(stringResource(R.string.tile_wa_not_found), fontSize = 15.sp, color = Palette.Sos)
                     }
+                    if (t.type == TileType.CALL_ME) Hint(stringResource(R.string.tile_call_me_hint))
                     if (t.type == TileType.TG_VIDEO) {
                         Hint(stringResource(R.string.tile_tg_hint))
                         val tgReady = remember(t.target) { t.target.filter(Char::isDigit).length < 6 || launcher.contacts.telegramVideoIntent(t.target) != null }
@@ -239,12 +246,29 @@ fun TileEditor(
                         }
                     }
                     MediaPickButtons(onPicked = { ref -> if (ref !in t.photos) t = t.copy(photos = t.photos + ref) }, onExternalStart = onExternalStart, multiple = true)
-                    AlbumFolders(t.folders, onExternalStart) { t = t.copy(folders = it) }
+                    AlbumFolders(t.folders, onExternalStart, R.string.album_folders, R.string.album_folders_hint) { t = t.copy(folders = it) }
                 }
                 TileType.MISSED_CALLS -> Hint(
                     stringResource(if (app.semplicephone.data.MissedCalls.supported()) R.string.tile_missed_hint else R.string.tile_missed_hint_play),
                 )
                 TileType.SEARCH -> Hint(stringResource(R.string.tile_search_hint))
+                TileType.TORCH -> Hint(stringResource(R.string.tile_torch_hint))
+                TileType.MAGNIFIER -> Hint(stringResource(R.string.tile_magnifier_hint))
+                TileType.WHERE_AM_I -> Hint(stringResource(R.string.tile_where_hint))
+                TileType.MUSIC -> {
+                    Hint(stringResource(R.string.tile_music_hint))
+                    AlbumFolders(t.folders, onExternalStart, R.string.music_folders, R.string.music_folders_hint) { t = t.copy(folders = it) }
+                }
+                TileType.NEWS -> {
+                    Hint(stringResource(R.string.tile_news_hint))
+                    val feeds = app.semplicephone.tools.News.PRESETS
+                    OptionPicker(
+                        stringResource(R.string.tile_news_source), feeds.map { it.second } + "",
+                        t.target.takeIf { it in feeds.map { f -> f.second } } ?: "",
+                        { url -> feeds.firstOrNull { it.second == url }?.first ?: context.getString(R.string.tile_news_other) },
+                    ) { t = t.copy(target = it) }
+                    Field(stringResource(R.string.tile_news_url), t.target, KeyboardType.Uri) { t = t.copy(target = it.trim()) }
+                }
                 TileType.RADIO -> {
                     Hint(stringResource(R.string.tile_radio_hint))
                     t.stations.forEachIndexed { i, st ->
@@ -382,7 +406,10 @@ fun defaultColor(type: TileType): String = when (type) {
     TileType.PHOTOS -> "#6A1B9A"
     TileType.MISSED_CALLS -> "#FFD54F"
     TileType.SEARCH, TileType.URL -> "#1A1A1A"
-    TileType.RADIO -> "#FFA726"
+    TileType.RADIO, TileType.MUSIC -> "#FFA726"
+    TileType.TORCH, TileType.MAGNIFIER -> "#FFD54F"
+    TileType.WHERE_AM_I, TileType.NEWS -> "#1A1A1A"
+    TileType.CALL_ME -> "#1B7A34"
     TileType.SOS -> "#C62828"
     else -> "#1F4FA8"
 }
@@ -423,6 +450,12 @@ fun defaultLabel(context: Context, type: TileType): String = when (type) {
     TileType.SEARCH -> context.getString(R.string.label_search)
     TileType.MESSAGES -> context.getString(R.string.label_messages_unread)
     TileType.RADIO -> context.getString(R.string.label_radio)
+    TileType.TORCH -> context.getString(R.string.label_torch)
+    TileType.MAGNIFIER -> context.getString(R.string.label_magnifier)
+    TileType.WHERE_AM_I -> context.getString(R.string.label_where)
+    TileType.CALL_ME -> context.getString(R.string.label_call_me)
+    TileType.MUSIC -> context.getString(R.string.label_music)
+    TileType.NEWS -> context.getString(R.string.label_news)
     TileType.UNKNOWN -> ""
     TileType.SOS -> "SOS"
 }
@@ -498,7 +531,7 @@ private fun WeatherPlaceField(target: String, label: String, onPick: (app.sempli
 
 /** Cartelle del telefono collegate all'album: si aggiungono col selettore di Android, ✕ le toglie. */
 @Composable
-private fun AlbumFolders(folders: List<String>, onExternalStart: () -> Unit, onChange: (List<String>) -> Unit) {
+private fun AlbumFolders(folders: List<String>, onExternalStart: () -> Unit, title: Int, hint: Int, onChange: (List<String>) -> Unit) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val pick = androidx.activity.compose.rememberLauncherForActivityResult(androidx.activity.result.contract.ActivityResultContracts.OpenDocumentTree()) { uri ->
         if (uri != null) {
@@ -509,8 +542,8 @@ private fun AlbumFolders(folders: List<String>, onExternalStart: () -> Unit, onC
     val readable = remember(folders) {
         context.contentResolver.persistedUriPermissions.filter { it.isReadPermission }.map { it.uri.toString() }.toSet()
     }
-    SectionLabel(stringResource(R.string.album_folders))
-    Hint(stringResource(R.string.album_folders_hint))
+    SectionLabel(stringResource(title))
+    Hint(stringResource(hint))
     folders.forEach { f ->
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text(

@@ -115,6 +115,7 @@ fun HomeScreen(
         message?.let { MessageBanner(it, onOpenMessage) }
         val threshold = config.phone.batteryAlertPercent.takeIf { it > 0 } ?: 15
         battery?.let { b -> if (!b.charging && b.level in 0..threshold) BatteryBanner(b.level) }
+        ConnectivityBanner()
 
         HorizontalPager(
             state = pagerState,
@@ -269,5 +270,40 @@ private fun SetHomeBanner(onClick: () -> Unit) {
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
         )
+    }
+}
+
+/**
+ * Modalità aereo accesa o internet spento per errore: si vede in Home, si sente una volta,
+ * e un pulsante grande apre la pagina giusta per sistemare.
+ */
+@Composable
+private fun ConnectivityBanner() {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val state by androidx.compose.runtime.produceState(0) {
+        while (true) {
+            val airplane = android.provider.Settings.Global.getInt(context.contentResolver, android.provider.Settings.Global.AIRPLANE_MODE_ON, 0) == 1
+            val cm = context.getSystemService(android.net.ConnectivityManager::class.java)
+            val online = cm.getNetworkCapabilities(cm.activeNetwork)?.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
+            value = when { airplane -> 1; !online -> 2; else -> 0 }
+            kotlinx.coroutines.delay(10_000)
+        }
+    }
+    if (state == 0) return
+    val text = androidx.compose.ui.res.stringResource(if (state == 1) R.string.conn_airplane else R.string.conn_offline)
+    // Si dice una volta per ogni volta che succede (e dopo 15 s, per non confondere un attimo senza rete).
+    androidx.compose.runtime.LaunchedEffect(state) { kotlinx.coroutines.delay(15_000); app.semplicephone.ui.Voice.speak(context, text) }
+    Row(
+        Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp).clip(RoundedCornerShape(16.dp)).background(Color(0xFFFFE0B2))
+            .border(3.dp, Palette.Sos, RoundedCornerShape(16.dp))
+            .clickable {
+                val action = if (state == 1) android.provider.Settings.ACTION_AIRPLANE_MODE_SETTINGS else android.provider.Settings.Panel.ACTION_INTERNET_CONNECTIVITY
+                runCatching { context.startActivity(android.content.Intent(action).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)) }
+            }
+            .padding(14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(text, color = Palette.Ink, fontSize = 20.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+        Text(androidx.compose.ui.res.stringResource(R.string.conn_fix), color = Palette.Sos, fontSize = 20.sp, fontWeight = FontWeight.Bold)
     }
 }

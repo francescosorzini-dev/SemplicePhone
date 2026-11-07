@@ -66,6 +66,11 @@ object Symbols {
         "battery" to listOf("M6 7h10a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2", "M21 10.5v3", "M11.5 8.5L9 12h4l-2.5 3.5"),
         "radio" to listOf("M5 9h14a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1", "M7 9L16 4", "M13 14.5a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0-5 0", "M7 13h3M7 16h3"),
         "search" to listOf("M4 10a6 6 0 1 0 12 0a6 6 0 1 0-12 0", "M14.5 14.5L20 20"),
+        "torch" to listOf("M8 3h8v4l-2 3v11h-4V10L8 7z", "M8 7h8", "M12 13v2"),
+        "magnifier" to listOf("M3 10a7 7 0 1 0 14 0a7 7 0 1 0-14 0", "M15 15l6 6", "M10 7v6M7 10h6"),
+        "pin" to listOf("M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z", "M9.5 10a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0-5 0"),
+        "news" to listOf("M4 5h13v14H6a2 2 0 0 1-2-2z", "M17 9h3v8a2 2 0 0 1-2 2", "M7 8h7M7 11h7M7 14h4"),
+        "callme" to listOf("M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2", "M15 3h6M18 3l-3 3", "M21 3v6"),
         "check" to listOf("M3 12a9 9 0 1 0 18 0a9 9 0 1 0-18 0", "M8 12.5l2.5 2.5 5.5-6"),
     )
 
@@ -87,6 +92,12 @@ object Symbols {
         TileType.SEARCH -> "search"
         TileType.MESSAGES -> "message"
         TileType.RADIO -> "radio"
+        TileType.TORCH -> "torch"
+        TileType.MAGNIFIER -> "magnifier"
+        TileType.WHERE_AM_I -> "pin"
+        TileType.CALL_ME -> "callme"
+        TileType.MUSIC -> "music"
+        TileType.NEWS -> "news"
         else -> "grid"
     }
 

@@ -44,7 +44,7 @@ import app.semplicephone.R
  * e un pulsante enorme per chiudere. [extra] può aggiungere un testo sopra i pulsanti.
  */
 @Composable
-fun VideoPlayer(uri: Uri, closeLabel: String, onClose: () -> Unit, title: String = "", extra: String = "") {
+fun VideoPlayer(uri: Uri, closeLabel: String, onClose: () -> Unit, title: String = "", extra: String = "", footer: (@Composable () -> Unit)? = null) {
     val context = LocalContext.current
     var view by remember { mutableStateOf<VideoView?>(null) }
     var ended by remember { mutableStateOf(false) }
@@ -82,6 +82,7 @@ fun VideoPlayer(uri: Uri, closeLabel: String, onClose: () -> Unit, title: String
             )
         }
         if (extra.isNotBlank()) Text(extra, fontSize = 26.sp, lineHeight = 32.sp, color = Color.White, textAlign = TextAlign.Center)
+        footer?.invoke()
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             if (!failed) OutlinedButton(
                 onClick = { ended = false; view?.seekTo(0); view?.start() },
