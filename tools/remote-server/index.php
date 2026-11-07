@@ -766,7 +766,7 @@ session_set_cookie_params(['httponly' => true, 'samesite' => 'Strict', 'secure' 
 session_start();
 $nonce = base64_encode(random_bytes(16));
 header('X-Frame-Options: DENY');
-header("Content-Security-Policy: default-src 'self'; style-src 'unsafe-inline'; script-src 'nonce-$nonce'; connect-src 'self' https://geocoding-api.open-meteo.com; img-src 'self' blob:");
+header("Content-Security-Policy: default-src 'self'; style-src 'unsafe-inline'; script-src 'nonce-$nonce'; connect-src 'self' https://geocoding-api.open-meteo.com; img-src 'self' blob:; media-src 'self' blob:");
 $adminFile = DATA . '/admin.json';
 $admin = read_json($adminFile);
 $csrf = $_SESSION['csrf'] ??= bin2hex(random_bytes(16));
@@ -1229,7 +1229,7 @@ details summary{cursor:pointer;font-weight:600}
         <div style="flex:0 0 auto"><button><?= th('message_send') ?></button></div>
       </div>
     </form>
-    <script>
+    <script nonce="<?= h($nonce) ?>">
     // Videomessaggio troppo pesante per l'hosting: lo si rimpicciolisce nel browser (640 px, ~1 Mbit/s,
     // WebM) riproducendolo una volta; dura quanto il video. Senza testo né video non si invia.
     (() => {
@@ -1239,13 +1239,18 @@ details summary{cursor:pointer;font-weight:600}
       async function shrink(file) {
         const v = document.createElement('video'); v.src = URL.createObjectURL(file); v.playsInline = true;
         await new Promise((ok, ko) => { v.onloadedmetadata = ok; v.onerror = ko; });
-        const sc = Math.min(1, 640 / Math.max(v.videoWidth, v.videoHeight));
+        const sc = Math.min(1, (max / (v.duration || 60) < 100000 ? 480 : 640) / Math.max(v.videoWidth, v.videoHeight));
         const c = document.createElement('canvas'); c.width = Math.round(v.videoWidth * sc / 2) * 2; c.height = Math.round(v.videoHeight * sc / 2) * 2;
         const g = c.getContext('2d'), stream = c.captureStream(25);
-        const src = (v.captureStream || v.mozCaptureStream).call(v);
-        src.getAudioTracks().forEach(t => stream.addTrack(t));
+        try {
+          const ac = new AudioContext(), dest = ac.createMediaStreamDestination();
+          ac.createMediaElementSource(v).connect(dest);
+          dest.stream.getAudioTracks().forEach(t => stream.addTrack(t));
+        } catch (e) { /* senza audio piuttosto che niente */ }
         const type = ['video/webm;codecs=vp8,opus', 'video/webm'].find(t => MediaRecorder.isTypeSupported(t));
-        const rec = new MediaRecorder(stream, {mimeType: type, videoBitsPerSecond: 900000, audioBitsPerSecond: 64000}), parts = [];
+        // Bitrate scelto per stare nel limite (con margine), tra 250 e 1200 kbit/s.
+        const vbr = Math.max(250000, Math.min(1200000, Math.floor(max * 8 * 0.8 / (v.duration || 60)) - 64000));
+        const rec = new MediaRecorder(stream, {mimeType: type, videoBitsPerSecond: vbr, audioBitsPerSecond: 64000}), parts = [];
         rec.ondataavailable = e => e.data.size && parts.push(e.data);
         const done = new Promise(ok => { rec.onstop = ok; });
         const draw = () => { if (!v.paused && !v.ended) { g.drawImage(v, 0, 0, c.width, c.height); st.textContent = TX.shrink + ' ' + Math.round(100 * v.currentTime / (v.duration || 1)) + '%'; requestAnimationFrame(draw); } };

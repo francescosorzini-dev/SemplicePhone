@@ -245,6 +245,15 @@ adb shell am start -W -n $P/.remote.MessageActivity >/dev/null; shot v15_1_video
 shot v15_2_video_end 6
 python3 tap.py "HO VISTO" >/dev/null || true; sleep 2
 adb shell "run-as $P ls files/video" > "$OUT/v15_video_after.txt" 2>&1; adb shell "run-as $P ls files" >> "$OUT/v15_video_after.txt" 2>&1
+# Video rimpicciolito dal browser (WebM di MediaRecorder, senza indice): deve partire anche lui
+H2=27b5d161cc09a154578c5549b67ae74f76729714104e06b8540ed1495cdcd7eb
+adb push test-recorded.webm /data/local/tmp/v2.webm >/dev/null
+echo '{"device":"*","id":43,"text":"Video dal portale","from":"Luca","at":0,"video":"media:'$H2'"}' > /tmp/m2.json
+adb push /tmp/m2.json /data/local/tmp/m2.json >/dev/null
+adb shell "run-as $P sh -c 'mkdir -p files/video && cp /data/local/tmp/v2.webm files/video/$H2.vid && cp /data/local/tmp/m2.json files/family_message.json'"
+adb shell am start -W -n $P/.remote.MessageActivity >/dev/null; shot v15_5_webm 4
+python3 tap.py "DI NUOVO" >/dev/null || true; shot v15_6_webm_again 3
+python3 tap.py "HO VISTO" >/dev/null || true; sleep 1
 # Prima apertura: nessun PIN e nessuna config salvata → modelli pronti
 adb shell am force-stop $P
 adb shell "run-as $P sh -c 'rm -f files/config.json shared_prefs/pin.xml'"
