@@ -234,3 +234,24 @@ adb shell dumpsys window windows | grep -E "Window #.*semplice|mFrame" | grep -A
 adb shell "run-as $P ls files/backups" > "$OUT/v14_backups.txt" 2>&1 || true
 adb logcat -d | grep -E "AndroidRuntime|FATAL" -A8 | head -60 > "$OUT/v14_errors.txt" || true
 home
+
+# ---- 0.15.0: videomessaggio a tutto schermo, modelli pronti alla prima apertura
+H=16080716f27f0cd32a1211351bb818e7d435801a0b0e96874fc38b72f677f94b
+adb push "$(dirname "$0")/test.mp4" /data/local/tmp/v.mp4 >/dev/null
+echo '{"device":"*","id":42,"text":"Ciao nonna, guarda!","from":"Anna","at":0,"video":"media:'$H'"}' > /tmp/m.json
+adb push /tmp/m.json /data/local/tmp/m.json >/dev/null
+adb shell "run-as $P sh -c 'mkdir -p files/video && cp /data/local/tmp/v.mp4 files/video/$H.vid && cp /data/local/tmp/m.json files/family_message.json'"
+adb shell am start -W -n $P/.remote.MessageActivity >/dev/null; shot v15_1_video 3
+shot v15_2_video_end 6
+python3 tap.py "HO VISTO" >/dev/null || true; sleep 2
+adb shell "run-as $P ls files/video" > "$OUT/v15_video_after.txt" 2>&1; adb shell "run-as $P ls files" >> "$OUT/v15_video_after.txt" 2>&1
+# Prima apertura: nessun PIN e nessuna config salvata → modelli pronti
+adb shell am force-stop $P
+adb shell "run-as $P sh -c 'rm -f files/config.json shared_prefs/pin.xml'"
+home; sleep 4
+python3 tap.py --times 5 --regex '^\d\d:\d\d$' >/dev/null; sleep 1
+for round in 1 2; do for d in 1 2 3 4; do python3 tap.py "$d" >/dev/null; done; python3 tap.py Conferma >/dev/null; sleep 1; done
+shot v15_3_templates 3
+python3 tap.py "Memoria fragile" >/dev/null || true; shot v15_4_after_template 3
+adb logcat -d | grep -E "AndroidRuntime|FATAL" -A8 | head -60 > "$OUT/v15_errors.txt" || true
+home
