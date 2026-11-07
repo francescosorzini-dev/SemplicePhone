@@ -548,6 +548,8 @@
     <string name="reminder_stock_off">don\'t count</string>
     <string name="reminder_per_dose">Per dose</string>
     <string name="reminder_low_at">Warn when left</string>
+    <string name="fall_reason">The phone felt a hard knock, like a fall. If you are OK, tap I\'M OK.</string>
+    <string name="news_open">📰 OPEN THE ARTICLE</string>
     <string name="color_blue">Blue</string>
     <string name="color_green">Green</string>
     <string name="color_purple">Purple</string>

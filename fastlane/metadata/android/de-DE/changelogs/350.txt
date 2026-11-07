@@ -1,0 +1,4 @@
+- Nachrichten: durchgehendes Vorlesen ohne abgeschnittene Titel; Taste „Artikel öffnen“
+- Einstellungen gehen beim Ändern mehrerer Optionen mit Berechtigungen nicht mehr verloren
+- „Einstellungen öffnen“ funktioniert für alle Zugriffe
+- Sturz: der Bildschirm erklärt, warum er fragt

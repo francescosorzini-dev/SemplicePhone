@@ -281,8 +281,11 @@ object News {
         "RTVE" to "https://api2.rtve.es/rss/temas_noticias.xml",
     )
 
-    /** Titoli del feed (RSS o Atom), al massimo 20. */
-    suspend fun headlines(url: String): List<String> = withContext(Dispatchers.IO) {
+    /** Una notizia del feed: titolo e indirizzo della pagina completa. */
+    data class Item(val title: String, val link: String)
+
+    /** Notizie del feed (RSS o Atom), al massimo 20. */
+    suspend fun headlines(url: String): List<Item> = withContext(Dispatchers.IO) {
         runCatching {
             val c = (URL(url).openConnection() as HttpURLConnection).apply {
                 connectTimeout = 10_000; readTimeout = 15_000; instanceFollowRedirects = true
@@ -291,15 +294,27 @@ object News {
             val parser = android.util.Xml.newPullParser()
             c.inputStream.use { input ->
                 parser.setInput(input, null)
-                val out = mutableListOf<String>()
+                val out = mutableListOf<Item>()
                 var inItem = false
+                var title = ""
+                var link = ""
                 while (parser.next() != org.xmlpull.v1.XmlPullParser.END_DOCUMENT && out.size < 20) {
                     if (parser.eventType == org.xmlpull.v1.XmlPullParser.START_TAG) {
                         when (parser.name) {
-                            "item", "entry" -> inItem = true
-                            "title" -> if (inItem) parser.nextText().trim().replace(Regex("\\s+"), " ").takeIf { it.isNotBlank() }?.let { out += it }
+                            "item", "entry" -> { inItem = true; title = ""; link = "" }
+                            "title" -> if (inItem) title = parser.nextText().trim().replace(Regex("\\s+"), " ")
+                            // RSS: <link>indirizzo</link>; Atom: <link href="indirizzo"/> (si preferisce rel="alternate").
+                            "link" -> if (inItem) {
+                                val href = parser.getAttributeValue(null, "href")
+                                val rel = parser.getAttributeValue(null, "rel")
+                                if (href != null) { if (link.isBlank() || rel == null || rel == "alternate") link = href.trim() }
+                                else parser.nextText().trim().takeIf { it.isNotBlank() }?.let { link = it }
+                            }
                         }
-                    } else if (parser.eventType == org.xmlpull.v1.XmlPullParser.END_TAG && parser.name in setOf("item", "entry")) inItem = false
+                    } else if (parser.eventType == org.xmlpull.v1.XmlPullParser.END_TAG && parser.name in setOf("item", "entry")) {
+                        inItem = false
+                        if (title.isNotBlank()) out += Item(title, link)
+                    }
                 }
                 out
             }
@@ -309,9 +324,9 @@ object News {
 
 /** Notizie: un titolo alla volta, grande, letto a voce; «Avanti» o lettura continua. */
 @Composable
-fun NewsScreen(tile: Tile, onClose: () -> Unit) {
+fun NewsScreen(tile: Tile, onOpen: (String) -> Unit, onClose: () -> Unit) {
     val context = LocalContext.current
-    var items by remember { mutableStateOf<List<String>?>(null) }
+    var items by remember { mutableStateOf<List<News.Item>?>(null) }
     var index by remember { mutableIntStateOf(0) }
     var reading by remember { mutableStateOf(false) }
     LaunchedEffect(tile.target) { items = News.headlines(tile.target.ifBlank { News.PRESETS.first().second }) }
@@ -319,7 +334,7 @@ fun NewsScreen(tile: Tile, onClose: () -> Unit) {
         val list = items ?: return
         if (i !in list.indices) { reading = false; return }
         index = i
-        Voice.speak(context, list[i]) { if (reading) read(i + 1) }
+        Voice.speak(context, list[i].title) { if (reading) read(i + 1) }
     }
     DisposableEffect(Unit) { onDispose { reading = false; Voice.speak(context, " ") } }
     ToolFrame(tile.label.ifBlank { stringResource(R.string.label_news) }, onClose) {
@@ -330,8 +345,13 @@ fun NewsScreen(tile: Tile, onClose: () -> Unit) {
             else -> {
                 Text("${index + 1} / ${list.size}", fontSize = 18.sp, color = Color(0xFF555555))
                 Box(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()), contentAlignment = Alignment.Center) {
-                    Text(list[index], fontSize = 32.sp, lineHeight = 40.sp, fontWeight = FontWeight.Bold, color = Palette.Ink, textAlign = TextAlign.Center)
+                    Text(list[index].title, fontSize = 32.sp, lineHeight = 40.sp, fontWeight = FontWeight.Bold, color = Palette.Ink, textAlign = TextAlign.Center)
                 }
+                // Pagina completa della notizia nel browser (con il pulsante Casa per tornare).
+                if (list[index].link.startsWith("http")) OutlinedButton(
+                    onClick = { reading = false; Voice.speak(context, " "); onOpen(list[index].link) },
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 72.dp), shape = RoundedCornerShape(20.dp),
+                ) { Text(stringResource(R.string.news_open), fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Palette.Ink) }
                 BigButton(stringResource(if (reading) R.string.news_stop else R.string.news_read_all), if (reading) Color(0xFFC62828) else Color(0xFF1B7A34)) {
                     reading = !reading
                     if (reading) read(index) else Voice.speak(context, " ")

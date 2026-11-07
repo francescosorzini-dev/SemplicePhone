@@ -87,13 +87,13 @@ fun RemindersEditor(
             if (!scheduler.canScheduleExact() && Build.VERSION.SDK_INT >= 31) {
                 Warning(stringResource(R.string.reminders_exact_warning)) {
                     onExternalStart()
-                    context.startActivity(Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, Uri.parse("package:${context.packageName}")))
+                    app.semplicephone.launch.Permissions.openSystemPage(context, Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, Uri.parse("package:${context.packageName}")))
                 }
             }
             if (!scheduler.canFullScreen() && Build.VERSION.SDK_INT >= 34) {
                 Warning(stringResource(R.string.reminders_fullscreen_warning)) {
                     onExternalStart()
-                    context.startActivity(Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT, Uri.parse("package:${context.packageName}")))
+                    app.semplicephone.launch.Permissions.openSystemPage(context, Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT, Uri.parse("package:${context.packageName}")))
                 }
             }
             if (list.isEmpty()) Text(stringResource(R.string.reminders_none), fontSize = 16.sp, color = Color(0xFF4A4A4A))

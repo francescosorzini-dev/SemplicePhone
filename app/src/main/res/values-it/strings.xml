@@ -547,6 +547,8 @@
     <string name="reminder_stock_off">non contare</string>
     <string name="reminder_per_dose">Per volta</string>
     <string name="reminder_low_at">Avvisa quando ne restano</string>
+    <string name="fall_reason">Il telefono ha sentito un colpo forte, come una caduta. Se stai bene, tocca STO BENE.</string>
+    <string name="news_open">📰 APRI LA NOTIZIA</string>
     <string name="color_blue">Blu</string>
     <string name="color_green">Verde</string>
     <string name="color_purple">Viola</string>

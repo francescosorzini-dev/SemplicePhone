@@ -1,0 +1,4 @@
+- Notizie: lettura continua completa, senza titoli tagliati; pulsante «Apri la notizia»
+- Impostazioni: non si perdono più cambiando più voci che chiedono permessi
+- «Apri impostazioni» funziona per tutti gli accessi (anche il controllo delle chiamate)
+- Caduta: la schermata spiega perché chiede «Stai bene?»

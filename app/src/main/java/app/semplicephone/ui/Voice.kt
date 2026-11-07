@@ -15,6 +15,8 @@ object Voice {
     private var ready = false
     private val main = Handler(Looper.getMainLooper())
     private val after = mutableMapOf<String, () -> Unit>()
+    /** Frasi che la sintesi ha davvero iniziato a dire. */
+    private val started = java.util.Collections.synchronizedSet(mutableSetOf<String>())
     private var counter = 0
 
     private fun ensure(context: Context) {
@@ -23,8 +25,10 @@ object Voice {
             ready = status == TextToSpeech.SUCCESS
             if (ready) {
                 tts?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
-                    override fun onStart(id: String) {}
+                    override fun onStart(id: String) { started += id }
                     override fun onDone(id: String) = finish(id)
+                    // Frase interrotta da una nuova (QUEUE_FLUSH): l'azione «dopo» non parte.
+                    override fun onStop(id: String, interrupted: Boolean) { synchronized(after) { after.remove(id) }; started -= id }
                     @Deprecated("API precedente") override fun onError(id: String) = finish(id)
                     override fun onError(id: String, errorCode: Int) = finish(id)
                 })
@@ -56,6 +60,7 @@ object Voice {
     }
 
     private fun finish(id: String) {
+        started -= id
         val cb = synchronized(after) { after.remove(id) } ?: return
         main.post(cb)
     }
@@ -75,8 +80,10 @@ object Voice {
         val id = "u${counter++}"
         if (then != null) {
             synchronized(after) { after[id] = then }
-            // Rete di sicurezza: se la sintesi non segnala la fine, l'azione parte lo stesso.
-            main.postDelayed({ finish(id) }, maxOf(4000L, text.length * 110L))
+            // Rete di sicurezza solo se la voce non parte affatto; se sta parlando si aspetta la fine
+            // vera (onDone), con un tetto largo per i motori che non la segnalano.
+            main.postDelayed({ if (id !in started) finish(id) }, 5000)
+            main.postDelayed({ finish(id) }, maxOf(20_000L, text.length * 300L))
         }
         t.speak(text, TextToSpeech.QUEUE_FLUSH, null, id)
     }

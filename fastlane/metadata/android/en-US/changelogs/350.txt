@@ -1,0 +1,4 @@
+- News: continuous reading complete, no cut headlines; "Open the article" button
+- Settings: no longer lost when changing several options that ask for permissions
+- "Open settings" works for all accesses (call check too)
+- Fall: the screen explains why it asks "Are you OK?"

@@ -101,7 +101,17 @@ class MainActivity : ComponentActivity() {
     private lateinit var scheduler: ReminderScheduler
 
     /** Picker contatti o dialog permessi aperti dall'editor: non richiudere le impostazioni in onStop. */
+    /**
+     * Pagina di sistema o altra app aperta da qui (permessi, ruoli, selettori, browser): le
+     * impostazioni restano aperte. Si azzera solo al primo tocco sull'app dopo il ritorno, così più
+     * richieste in fila (es. Contatti + filtro chiamate) non fanno perdere la bozza.
+     */
     private var externalActivity = false
+    /** Momento in cui si è lasciata l'app con le impostazioni aperte (0 = no). */
+    private var leftAt = 0L
+    private val screenOff = object : android.content.BroadcastReceiver() {
+        override fun onReceive(c: android.content.Context, i: Intent) { if (screen != Screen.Home && screen != Screen.SosCountdown) closeSettings() }
+    }
     private var permissionsTick by mutableIntStateOf(0)
 
     private val homePressCount = mutableIntStateOf(0)
@@ -113,6 +123,8 @@ class MainActivity : ComponentActivity() {
     private var saveError by mutableStateOf<String?>(null)
     private var apps by mutableStateOf<List<AppEntry>>(emptyList())
 
+    private val requestRole =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { permissionsTick++ }
     private val requestHomeRole =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { refreshHomeRole() }
 
@@ -124,6 +136,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         repo = ConfigRepository.get(applicationContext)
+        // Schermo spento con le impostazioni aperte (anche mentre si è in una pagina di sistema): si richiudono.
+        androidx.core.content.ContextCompat.registerReceiver(this, screenOff, android.content.IntentFilter(Intent.ACTION_SCREEN_OFF), androidx.core.content.ContextCompat.RECEIVER_NOT_EXPORTED)
         if (intent?.getBooleanExtra(EXTRA_SOS, false) == true) screen = Screen.SosCountdown
         contacts = Contacts(applicationContext)
         protection = DeviceProtection(applicationContext)
@@ -187,7 +201,10 @@ class MainActivity : ComponentActivity() {
                             missingPermissions = remember(d, permissionsTick) { Permissions.missing(this@MainActivity, d) },
                             onRequestPermissions = { askPermissions(d) },
                             missingSpecial = remember(d, permissionsTick) { Permissions.missingSpecial(this@MainActivity, d) },
-                            onOpenSpecial = { Permissions.openSpecial(this@MainActivity, it) },
+                            onOpenSpecial = { sp ->
+                                val role = Permissions.roleIntent(this@MainActivity, sp)
+                                if (role != null) runCatching { requestRole.launch(role) } else Permissions.openSpecial(this@MainActivity, sp)
+                            },
                             onExternalStart = { externalActivity = true },
                             restrictionHelp = remember(d, permissionsTick) {
                                 app.semplicephone.launch.Restrictions.likelyRestricted(this@MainActivity) && (
@@ -312,7 +329,15 @@ class MainActivity : ComponentActivity() {
                             },
                             onClose = { screen = Screen.Home },
                         )
-                        TileType.NEWS -> app.semplicephone.tools.NewsScreen(s.tile, onClose = { screen = Screen.Home })
+                        TileType.NEWS -> app.semplicephone.tools.NewsScreen(
+                            s.tile,
+                            onOpen = { url ->
+                                externalActivity = true
+                                app.semplicephone.launch.HomeButton.forNextApp(true)
+                                runCatching { startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url))) }
+                            },
+                            onClose = { screen = Screen.Home },
+                        )
                         TileType.MUSIC -> {
                             val songs by androidx.compose.runtime.produceState<List<app.semplicephone.model.Station>?>(null, s.tile) {
                                 value = withContext(Dispatchers.IO) {
@@ -356,7 +381,9 @@ class MainActivity : ComponentActivity() {
         super.onResume()
         app.semplicephone.safety.Safety.markUsed(this)
         app.semplicephone.remote.FamilyMessages.refresh(this)
-        externalActivity = false
+        // Tornati dopo più di 2 minuti in un'altra app (non aperta da qui): serve di nuovo il PIN.
+        if (leftAt > 0 && System.currentTimeMillis() - leftAt > 2 * 60_000L && screen != Screen.SosCountdown) closeSettings()
+        leftAt = 0
         permissionsTick++
         refreshHomeRole()
         lifecycleScope.launch(Dispatchers.IO) { runCatching { PhoneGuard.checkAll(applicationContext) } }
@@ -366,7 +393,19 @@ class MainActivity : ComponentActivity() {
     override fun onStop() {
         super.onStop()
         // L'SOS in corso non si interrompe se lo schermo si spegne o parte la chiamata.
-        if (screen != Screen.Home && screen != Screen.SosCountdown && !externalActivity) closeSettings()
+        if (screen == Screen.Home || screen == Screen.SosCountdown) return
+        val interactive = getSystemService(android.os.PowerManager::class.java).isInteractive
+        if (!interactive) closeSettings() else if (!externalActivity) leftAt = System.currentTimeMillis()
+    }
+
+    override fun onUserInteraction() {
+        super.onUserInteraction()
+        externalActivity = false
+    }
+
+    override fun onDestroy() {
+        runCatching { unregisterReceiver(screenOff) }
+        super.onDestroy()
     }
 
     override fun onNewIntent(intent: Intent) {

@@ -1,0 +1,4 @@
+- Noticias: lectura continua completa, sin titulares cortados; botón «Abrir la noticia»
+- Ajustes: ya no se pierden al cambiar varias opciones que piden permisos
+- «Abrir ajustes» funciona para todos los accesos
+- Caída: la pantalla explica por qué pregunta «¿Estás bien?»

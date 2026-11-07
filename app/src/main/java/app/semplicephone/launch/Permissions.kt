@@ -117,12 +117,29 @@ object Permissions {
         }
     }
 
-    fun openSpecial(context: Context, s: Special) {
-        if (s.key == "redirect") {
-            val rm = context.getSystemService(android.app.role.RoleManager::class.java)
-            runCatching { context.startActivity(rm.createRequestRoleIntent(android.app.role.RoleManager.ROLE_CALL_REDIRECTION).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
-            return
+    /**
+     * Apre una pagina di sistema; se Android non la offre (o la rifiuta) apre almeno le
+     * «Informazioni app» di SemplicePhone, così il pulsante non resta mai senza effetto.
+     */
+    fun openSystemPage(context: Context, intent: Intent) {
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        val ok = runCatching { context.startActivity(intent) }.isSuccess
+        if (!ok) runCatching {
+            context.startActivity(
+                Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, android.net.Uri.parse("package:${context.packageName}")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+            )
         }
+    }
+
+    /** Intent per chiedere il ruolo (va lanciato con startActivityForResult: con startActivity Android lo chiude subito). */
+    fun roleIntent(context: Context, s: Special): Intent? =
+        if (s.key != "redirect") null
+        else context.getSystemService(android.app.role.RoleManager::class.java)
+            .takeIf { it.isRoleAvailable(android.app.role.RoleManager.ROLE_CALL_REDIRECTION) }
+            ?.createRequestRoleIntent(android.app.role.RoleManager.ROLE_CALL_REDIRECTION)
+
+    fun openSpecial(context: Context, s: Special) {
+        if (s.key == "redirect") return // vedi roleIntent: lo lancia l'Activity con un launcher
         val intent = Intent(s.settingsAction).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         // La pagina della sovrapposizione va aperta direttamente sull'app, non sull'elenco.
         if (s.key == "overlay" || s.key == "write_settings") intent.data = android.net.Uri.parse("package:${context.packageName}")
@@ -133,9 +150,8 @@ object Permissions {
                 .putExtra(Settings.EXTRA_NOTIFICATION_LISTENER_COMPONENT_NAME,
                     android.content.ComponentName(context, "app.semplicephone.phone.BadgeListener").flattenToString())
         }
-        runCatching { context.startActivity(intent) }.onFailure {
-            runCatching { context.startActivity(Intent(s.settingsAction).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
-        }
+        val ok = runCatching { context.startActivity(intent) }.isSuccess
+        if (!ok) openSystemPage(context, Intent(s.settingsAction))
     }
 
     /** Android 13+ blocca l'accesso alle notifiche delle app installate dal browser finché non lo si sblocca. */

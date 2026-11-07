@@ -136,6 +136,8 @@ class FallDetector : Service(), SensorEventListener {
             val n = NotificationCompat.Builder(context, app.semplicephone.reminders.ReminderScheduler.CHANNEL)
                 .setSmallIcon(R.drawable.ic_launcher_foreground)
                 .setContentTitle(context.getString(R.string.fall_question))
+                .setContentText(context.getString(R.string.fall_reason))
+                .setStyle(NotificationCompat.BigTextStyle().bigText(context.getString(R.string.fall_reason)))
                 .setPriority(NotificationCompat.PRIORITY_MAX)
                 .setCategory(NotificationCompat.CATEGORY_ALARM)
                 .setFullScreenIntent(pi, true)
@@ -163,7 +165,7 @@ class FallActivity : ComponentActivity() {
             }
         }.getOrNull()
         runCatching { getSystemService(Vibrator::class.java).vibrate(VibrationEffect.createWaveform(longArrayOf(0, 800, 400), 0)) }
-        Voice.speak(this, getString(R.string.fall_question))
+        Voice.speak(this, getString(R.string.fall_question) + " " + getString(R.string.fall_reason))
         var left by androidx.compose.runtime.mutableIntStateOf(30)
         timer = object : CountDownTimer(30_000, 1000) {
             override fun onTick(ms: Long) { left = (ms / 1000).toInt() + 1 }
@@ -175,6 +177,8 @@ class FallActivity : ComponentActivity() {
                 horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(24.dp, Alignment.CenterVertically),
             ) {
                 Text(stringResource(R.string.fall_question), color = Color.White, fontSize = 42.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+                // Il perché della domanda: senza, sembra un avviso qualsiasi.
+                Text(stringResource(R.string.fall_reason), color = Color.White, fontSize = 26.sp, lineHeight = 32.sp, textAlign = TextAlign.Center)
                 Text(stringResource(R.string.fall_countdown, left), color = Color.White, fontSize = 24.sp, textAlign = TextAlign.Center)
                 Button(
                     onClick = { stopAlarm(); finishAndRemoveTask() },

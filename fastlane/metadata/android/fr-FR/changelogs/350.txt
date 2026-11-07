@@ -1,0 +1,4 @@
+- Actualités : lecture continue complète, titres non coupés ; bouton « Ouvrir l'article »
+- Réglages : plus perdus en changeant plusieurs options qui demandent des autorisations
+- « Ouvrir les paramètres » fonctionne pour tous les accès
+- Chute : l'écran explique pourquoi il demande « Ça va ? »

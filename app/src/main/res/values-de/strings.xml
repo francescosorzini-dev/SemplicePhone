@@ -547,6 +547,8 @@
     <string name="reminder_stock_off">nicht zählen</string>
     <string name="reminder_per_dose">Pro Einnahme</string>
     <string name="reminder_low_at">Hinweis bei Rest von</string>
+    <string name="fall_reason">Das Telefon hat einen harten Stoß bemerkt, wie bei einem Sturz. Wenn es dir gut geht, tippe auf MIR GEHT\'S GUT.</string>
+    <string name="news_open">📰 ARTIKEL ÖFFNEN</string>
     <string name="color_blue">Blau</string>
     <string name="color_green">Grün</string>
     <string name="color_purple">Violett</string>

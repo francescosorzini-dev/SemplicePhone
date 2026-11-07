@@ -50,6 +50,14 @@ fun PhoneEditor(
             askScreening.launch(roles.createRequestRoleIntent(android.app.role.RoleManager.ROLE_CALL_SCREENING))
         }
     }
+    val askRedirect = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult(),
+    ) { }
+    /** Blocco chiamate e chiamate lunghe: SemplicePhone come app di reindirizzamento chiamate. */
+    fun requestRedirect() {
+        val r = android.app.role.RoleManager.ROLE_CALL_REDIRECTION
+        if (roles.isRoleAvailable(r) && !roles.isRoleHeld(r)) { onExternalStart(); runCatching { askRedirect.launch(roles.createRequestRoleIntent(r)) } }
+    }
     fun contactsGranted() = androidx.core.content.ContextCompat.checkSelfPermission(
         context, android.Manifest.permission.READ_CONTACTS,
     ) == android.content.pm.PackageManager.PERMISSION_GRANTED
@@ -182,9 +190,9 @@ fun PhoneEditor(
             SectionLabel(stringResource(R.string.phone_safety))
             Toggle(stringResource(R.string.phone_remote_apps), stringResource(R.string.phone_remote_apps_detail), p.remoteAppAlert) { p = p.copy(remoteAppAlert = it) }
             Toggle(stringResource(R.string.phone_scam), stringResource(R.string.phone_scam_detail), p.scamGuard) { p = p.copy(scamGuard = it) }
-            Toggle(stringResource(R.string.phone_block_premium), stringResource(R.string.phone_block_premium_detail), p.blockPremium) { p = p.copy(blockPremium = it) }
-            Toggle(stringResource(R.string.phone_block_international), stringResource(R.string.phone_block_international_detail), p.blockInternational) { p = p.copy(blockInternational = it) }
-            Stepper(stringResource(R.string.phone_long_call), p.longCallMinutes / 5, 0..12, { p = p.copy(longCallMinutes = it * 5) }, format = { if (it == 0) never else "${it * 5} min" })
+            Toggle(stringResource(R.string.phone_block_premium), stringResource(R.string.phone_block_premium_detail), p.blockPremium) { p = p.copy(blockPremium = it); if (it) requestRedirect() }
+            Toggle(stringResource(R.string.phone_block_international), stringResource(R.string.phone_block_international_detail), p.blockInternational) { p = p.copy(blockInternational = it); if (it) requestRedirect() }
+            Stepper(stringResource(R.string.phone_long_call), p.longCallMinutes / 5, 0..12, { p = p.copy(longCallMinutes = it * 5); if (it > 0) requestRedirect() }, format = { if (it == 0) never else "${it * 5} min" })
             Toggle(stringResource(R.string.phone_sim), stringResource(R.string.phone_sim_detail), p.simAlert) { p = p.copy(simAlert = it) }
             Stepper(stringResource(R.string.phone_inactive), p.inactivityHours / 2, 0..6, { p = p.copy(inactivityHours = it * 2) }, format = { if (it == 0) never else "${it * 2} h" })
             Toggle(stringResource(R.string.phone_fall), stringResource(R.string.phone_fall_detail), p.fallDetection) { p = p.copy(fallDetection = it) }
