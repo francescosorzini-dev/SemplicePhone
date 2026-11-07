@@ -1,0 +1,3 @@
+- When changing tile type, label and colour follow (unless set by hand)
+- Colours from older versions updated to the new palette
+- Portal: tabbed page, symbol for every type, preview with icons and photos, phone options in groups

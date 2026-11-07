@@ -1,0 +1,3 @@
+- Beim Wechsel des Kacheltyps passen sich Text und Farbe an (wenn nicht von Hand gewählt)
+- Farben älterer Versionen auf die neue Palette umgestellt
+- Portal: Seite mit Reitern, Symbol für jeden Typ, Vorschau mit Symbolen und Fotos, Telefonoptionen in Gruppen

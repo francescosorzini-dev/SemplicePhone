@@ -1,0 +1,3 @@
+- Al cambiar el tipo de mosaico, el texto y el color se adaptan (si no se eligieron a mano)
+- Colores de versiones anteriores actualizados a la nueva paleta
+- Portal: página con pestañas, símbolo para cada tipo, vista previa con iconos y fotos, opciones del teléfono por grupos
