@@ -157,7 +157,14 @@ fun TileEditor(
                 // Il valore del tipo precedente non vale per il nuovo (es. «@dialer» per una videochiamata).
                 val phoneTypes = setOf(TileType.CALL, TileType.WA_VIDEO, TileType.SMS)
                 val keep = type == t.type || (type in phoneTypes && t.type in phoneTypes)
-                t = t.copy(type = type, target = if (keep) t.target else "", label = if (t.label.isBlank()) defaultLabel(context, type) else t.label)
+                // Scritta e colore seguono il nuovo tipo, a meno che siano stati scelti a mano.
+                val autoLabel = isAutoLabel(context, t.label)
+                val autoColor = t.color.isBlank() || t.color.equals(defaultColor(t.type), ignoreCase = true) || t.color.uppercase() in OLD_DEFAULT_COLORS
+                t = t.copy(
+                    type = type, target = if (keep) t.target else "",
+                    label = if (autoLabel) defaultLabel(context, type) else t.label,
+                    color = if (autoColor || type == TileType.CLOCK || type == TileType.SOS) defaultColor(type) else t.color,
+                )
             }
 
             when (t.type) {
@@ -360,6 +367,40 @@ fun TileEditor(
             dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text(stringResource(R.string.action_cancel)) } },
         )
     }
+}
+
+/** Colore tipico di ogni tipo di riquadro (stessa tavolozza del portale). */
+fun defaultColor(type: TileType): String = when (type) {
+    TileType.WA_VIDEO, TileType.WEATHER -> "#4FC3F7"
+    TileType.CLOCK -> "#FFFFFF"
+    TileType.PHOTOS -> "#6A1B9A"
+    TileType.MISSED_CALLS -> "#FFD54F"
+    TileType.SEARCH, TileType.URL -> "#1A1A1A"
+    TileType.RADIO -> "#FFA726"
+    TileType.SOS -> "#C62828"
+    else -> "#1F4FA8"
+}
+
+/** Colori predefiniti delle versioni precedenti (prima della 0.14) → i nuovi più vicini. */
+val OLD_COLOR_MAP = mapOf(
+    "#0B6E4F" to "#1B7A34", "#00695C" to "#4FC3F7", "#B71C1C" to "#C62828", "#A84300" to "#FFA726",
+    "#FFF3C4" to "#FFD54F", "#FFE7A8" to "#FFD54F", "#37474F" to "#1A1A1A", "#0277BD" to "#4FC3F7",
+)
+val OLD_DEFAULT_COLORS = OLD_COLOR_MAP.keys
+
+/** Config con i colori vecchi già aggiornati (si applica alla bozza dell'editor: va sul telefono al Salva). */
+fun migrateColors(cfg: app.semplicephone.model.LauncherConfig): app.semplicephone.model.LauncherConfig = cfg.copy(
+    pages = cfg.pages.map { p -> p.copy(tiles = p.tiles.map { t -> OLD_COLOR_MAP[t.color.uppercase()]?.let { t.copy(color = it) } ?: t }) },
+    phone = cfg.phone.copy(homeButtonColor = OLD_COLOR_MAP[cfg.phone.homeButtonColor.uppercase()] ?: cfg.phone.homeButtonColor),
+)
+
+/** La scritta è ancora una di quelle automatiche (di qualunque tipo o app) o è vuota? */
+fun isAutoLabel(context: Context, label: String): Boolean {
+    if (label.isBlank()) return true
+    val auto = TileType.entries.map { defaultLabel(context, it) } + listOf(
+        R.string.label_phone, R.string.label_messages, R.string.label_camera, R.string.label_photos, R.string.label_internet,
+    ).map(context::getString)
+    return label in auto
 }
 
 fun defaultLabel(context: Context, type: TileType): String = when (type) {

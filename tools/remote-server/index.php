@@ -994,6 +994,14 @@ ol.steps{padding-left:22px}ol.steps li{margin:6px 0}
 .rem{border:1px solid var(--line);border-radius:12px;padding:12px;margin:10px 0}
 .pagebar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
 .pagebar button[aria-pressed=true]{background:var(--accent);color:#fff;border-color:var(--accent)}
+.invite{border-color:#FFA726 !important;box-shadow:0 0 0 3px #FFE0B2}
+.pagetabs{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0 6px}
+.pagetabs button{background:#fff;color:var(--ink);border:2px solid var(--line);border-radius:999px;padding:9px 16px;font-weight:700}
+.pagetabs button[aria-pressed=true]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.tile .ti{display:block;font-size:20px;line-height:1.1;margin-bottom:2px}
+.tile img.ti{width:30px;height:30px;border-radius:50%;object-fit:cover;margin:0 auto 2px;border:2px solid #fff}
+.phgroup{border:1px solid var(--line);border-radius:12px;padding:4px 14px 8px;margin:14px 0;background:#fff}
+.phgroup h4{margin:10px 0 0;font-size:16px}
 .sticky{position:sticky;bottom:0;background:var(--bg);padding:12px 0;border-top:1px solid var(--line);display:flex;gap:12px;align-items:center;flex-wrap:wrap}
 table{border-collapse:collapse;width:100%}td,th{text-align:left;padding:8px;border-bottom:1px solid #ece7dd}
 details summary{cursor:pointer;font-weight:600}
@@ -1153,14 +1161,22 @@ details summary{cursor:pointer;font-weight:600}
     if (!$loaded && ($lastH['source'] ?? '') === 'phone'): ?><p class="hint">📱 <?= th('phone_changed_info', date('d/m/Y H:i', (int)($lastH['at'] ?? 0)), implode('; ', (array)($lastH['changes'] ?? []))) ?></p><?php endif; ?>
   <?php if (isset($meta['badgesAccess']) && !$meta['badgesAccess']): ?><div class="msg warn"><?= th('no_notif_access') ?></div><?php endif; ?>
   <?php foreach (access_warnings($meta) as $w): ?><div class="msg warn"><?= h($w) ?></div><?php endforeach; ?>
+  <div class="pagetabs">
+    <button type="button" data-ptab="p-config">🛠 <?= th('ptab_config') ?></button>
+    <button type="button" data-ptab="p-talk">💬 <?= th('ptab_talk') ?></button>
+    <button type="button" data-ptab="p-status">📊 <?= th('ptab_status') ?></button>
+    <button type="button" data-ptab="p-settings">⚙ <?= th('ptab_settings') ?></button>
+  </div>
+  <section class="pagepanel" id="p-config">
   <form method="post" id="pubform" data-dirty="<?= $loaded ? '1' : '0' ?>" data-edition="<?= h($meta['edition'] ?? '') ?>" data-app="<?= h($meta['appVersion'] ?? '') ?>" data-csrf="<?= h($csrf) ?>">
     <input type="hidden" name="csrf" value="<?= h($csrf) ?>"><input type="hidden" name="act" value="publish"><input type="hidden" name="id" value="<?= h($edit) ?>">
     <div class="row">
-      <div><label for="name"><?= th('name') ?> <span class="hint"><?= th('name_hint') ?></span></label><input id="name" type="text" name="name" value="<?= h($meta['name'] ?? '') ?>"></div>
+      <div><label for="name"><?= th('name') ?> <span class="hint"><?= th('name_hint') ?></span></label><input id="name" type="text" name="name" value="<?= h($meta['name'] ?? '') ?>" <?= ($meta['name'] ?? '') === '' ? 'class="invite"' : '' ?>><?php if (($meta['name'] ?? '') === ''): ?><div class="hint">👆 <?= th('name_invite') ?></div><?php endif; ?></div>
       <div><label for="pin"><?= th('new_pin') ?> <span class="hint"><?= th('new_pin_hint') ?></span></label><input id="pin" type="text" name="pin" inputmode="numeric" pattern="\d{4,8}" autocomplete="off" placeholder="<?= th('pin_placeholder') ?>"></div>
     </div>
 
-    <details class="card" id="wizard" <?= is_file(dev_path($edit, 'config.json')) ? '' : 'open' ?>><summary><?= th('wiz_title') ?></summary><div id="wizbody"></div></details>
+    <details class="card" id="wizard" <?= history($edit) ? '' : 'open' ?>><summary><?= th('wiz_title') ?></summary><div id="wizbody"></div></details>
+    <div class="msg warn" id="warns" hidden></div>
     <div class="tabs" role="tablist">
       <button type="button" role="tab" aria-selected="true" data-tab="t-screen"><?= th('tab_screen') ?></button>
       <button type="button" role="tab" aria-selected="false" data-tab="t-sos">SOS</button>
@@ -1186,7 +1202,6 @@ details summary{cursor:pointer;font-weight:600}
     </section>
 
     <div class="issues" id="issues" role="alert"></div>
-    <div class="msg warn" id="warns" hidden></div>
     <div class="sticky">
       <button id="pubbtn"><?= th('publish') ?></button>
       <span class="hint" id="dirty"></span>
@@ -1198,7 +1213,9 @@ details summary{cursor:pointer;font-weight:600}
     foreach ($urgent as $ev) if (($ev['type'] ?? '') === 'location') { $lastLoc = $ev; break; }
     $pending = time() - (int)($meta['locateRequest'] ?? 0) < 3600;
   ?>
-  <h2 id="where"><?= th('locate_title') ?></h2>
+  </section>
+  <section class="pagepanel" id="p-talk" hidden>
+  <h2 id="where">📍 <?= th('locate_title') ?></h2>
   <div class="card">
     <?php if ($lastLoc): $la = $lastLoc['lat'] ?? null; $lo = $lastLoc['lon'] ?? null; ?>
       <p><b><?= th('locate_last', date('d/m H:i', (int)(($lastLoc['at'] ?? 0) / 1000))) ?></b>
@@ -1284,10 +1301,12 @@ details summary{cursor:pointer;font-weight:600}
     <p class="hint"><?= th('family_hint') ?></p>
   </div>
 
-  <h2><?= th('weekly_card') ?></h2>
+  </section>
+  <section class="pagepanel" id="p-status" hidden>
+  <h2>📊 <?= th('weekly_card') ?></h2>
   <div class="card"><ul style="margin:0;padding-left:20px"><?php foreach (weekly_lines($edit) as $l): ?><li><?= h($l) ?></li><?php endforeach; ?></ul></div>
 
-  <h2><?= th('alerts_from_phone') ?></h2>
+  <h2>🔔 <?= th('alerts_from_phone') ?></h2>
   <div class="card">
   <?php if (!$urgent): ?><p class="hint"><?= th('no_alerts_received') ?></p><?php else: ?>
     <table><tr><th><?= th('col_when') ?></th><th><?= th('col_what') ?></th></tr>
@@ -1296,7 +1315,19 @@ details summary{cursor:pointer;font-weight:600}
   <?php endif; ?>
   </div>
 
-  <h2><?= th('prev_versions') ?></h2>
+  <h2>💊 <?= th('rem_what_happened') ?></h2>
+  <div class="card">
+  <?php if (!$events): ?><p class="hint"><?= th('no_news') ?></p><?php else: ?>
+    <table><tr><th><?= th('col_when') ?></th><th><?= th('col_reminder') ?></th><th><?= th('col_result') ?></th></tr>
+    <?php foreach ($events as $ev): $o = $ev['outcome'] ?? ''; ?><tr><td><?= h(date('d/m H:i', (int)(($ev['at'] ?? 0) / 1000))) ?></td><td data-rem="<?= h($ev['id'] ?? '') ?>"><?= h($ev['id'] ?? '') ?></td>
+      <td><span class="pill <?= $o === 'preso' ? 'ok' : ($o === 'rinviato' ? 'warn' : 'bad') ?>"><?= h(['preso' => t('out_taken'), 'rinviato' => t('out_snoozed'), 'non_confermato' => t('out_missed')][$o] ?? $o) ?></span></td></tr><?php endforeach; ?>
+    </table>
+  <?php endif; ?>
+  </div>
+
+  </section>
+  <section class="pagepanel" id="p-settings" hidden>
+  <h2>🕘 <?= th('prev_versions') ?></h2>
   <div class="card">
   <?php if (!$versions): ?><p class="hint"><?= th('no_publications') ?></p><?php else: ?>
     <table><tr><th><?= th('col_published') ?></th><th></th></tr>
@@ -1315,7 +1346,7 @@ details summary{cursor:pointer;font-weight:600}
   <?php endif; ?>
   </div>
 
-  <h2><?= th('installed_apps') ?></h2>
+  <h2>📱 <?= th('installed_apps') ?></h2>
   <div class="card">
   <?php if (!$devApps): ?>
     <p class="hint"><?= th('apps_not_received') ?></p>
@@ -1325,16 +1356,6 @@ details summary{cursor:pointer;font-weight:600}
       <?php foreach ($devApps as $a): ?><tr><td><?= h($a['label']) ?></td><td class="hint"><?= h($a['pkg']) ?></td></tr><?php endforeach; ?>
       </table>
     </details>
-  <?php endif; ?>
-  </div>
-
-  <h2><?= th('rem_what_happened') ?></h2>
-  <div class="card">
-  <?php if (!$events): ?><p class="hint"><?= th('no_news') ?></p><?php else: ?>
-    <table><tr><th><?= th('col_when') ?></th><th><?= th('col_reminder') ?></th><th><?= th('col_result') ?></th></tr>
-    <?php foreach ($events as $ev): $o = $ev['outcome'] ?? ''; ?><tr><td><?= h(date('d/m H:i', (int)(($ev['at'] ?? 0) / 1000))) ?></td><td data-rem="<?= h($ev['id'] ?? '') ?>"><?= h($ev['id'] ?? '') ?></td>
-      <td><span class="pill <?= $o === 'preso' ? 'ok' : ($o === 'rinviato' ? 'warn' : 'bad') ?>"><?= h(['preso' => t('out_taken'), 'rinviato' => t('out_snoozed'), 'non_confermato' => t('out_missed')][$o] ?? $o) ?></span></td></tr><?php endforeach; ?>
-    </table>
   <?php endif; ?>
   </div>
 
@@ -1348,18 +1369,30 @@ details summary{cursor:pointer;font-weight:600}
       <p><button><?= th('cal_save') ?></button></p></form>
     <?php if (!empty($meta['calendarUrl'])): ?><p class="hint"><?= !empty($meta['calendarError']) ? '<span class="pill bad">' . th('cal_error') . '</span>' : th('cal_status', (int)($meta['calendarCount'] ?? 0), ago(isset($meta['calendarAt']) ? (int)$meta['calendarAt'] : null)) ?></p><?php endif; ?>
   </details>
-  <details class="card"><summary><?= th('reinstalled') ?></summary>
+  <details class="card"><summary>🔄 <?= th('reinstalled') ?></summary>
     <p><?= th('reinstalled_text') ?></p>
     <form method="post"><input type="hidden" name="csrf" value="<?= h($csrf) ?>"><input type="hidden" name="act" value="forget"><input type="hidden" name="id" value="<?= h($edit) ?>">
       <button class="danger"><?= th('accept_next') ?></button></form>
   </details>
-  <details class="card"><summary><?= th('other_actions') ?></summary>
+  <details class="card"><summary>⚙ <?= th('other_actions') ?></summary>
     <form method="post" style="margin:10px 0"><input type="hidden" name="csrf" value="<?= h($csrf) ?>"><input type="hidden" name="act" value="ignore"><input type="hidden" name="id" value="<?= h($edit) ?>">
       <button class="sec"><?= th(empty($meta['ignoreOffline']) ? 'ignore_offline' : 'unignore_offline') ?></button></form>
     <form method="post" id="delform"><input type="hidden" name="csrf" value="<?= h($csrf) ?>"><input type="hidden" name="act" value="delete"><input type="hidden" name="id" value="<?= h($edit) ?>">
       <button class="danger"><?= th('remove_phone') ?></button></form>
   </details>
+  </section>
   <script nonce="<?= h($nonce) ?>">
+    // Schede della pagina: si apre quella che contiene l'ancora dell'indirizzo (#family, #calendar…) o l'ultima usata.
+    (() => {
+      const btns = document.querySelectorAll('[data-ptab]'), panels = document.querySelectorAll('.pagepanel');
+      const open = id => { panels.forEach(p => p.hidden = p.id !== id); btns.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.ptab === id))); try { sessionStorage.setItem('ptab', id); } catch (e) {} };
+      btns.forEach(b => b.addEventListener('click', () => open(b.dataset.ptab)));
+      const target = location.hash && document.querySelector(location.hash);
+      const inPanel = target && target.closest('.pagepanel');
+      let saved = null; try { saved = sessionStorage.getItem('ptab'); } catch (e) {}
+      open(inPanel ? inPanel.id : (saved && document.getElementById(saved) ? saved : 'p-config'));
+      if (target) target.scrollIntoView();
+    })();
     window.DEVICE_APPS = <?= json_encode($devApps, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) ?>;
     document.getElementById('delform').addEventListener('submit', e => { if (!confirm(T('remove_phone_confirm'))) e.preventDefault(); });
   </script>
@@ -1384,7 +1417,19 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
   const ta = document.getElementById('config');
   if (!ta) return;
 
-  const TYPES = Object.fromEntries(['app', 'call', 'wa_video', 'sms', 'url', 'shortcut', 'clock', 'weather', 'photos', 'missed_calls', 'messages', 'search', 'radio', 'sos'].map(k => [k, T('type_' + k)]));
+  // Un simbolo per ogni tipo: nell'elenco «Cosa fa» e nell'anteprima del telefono.
+  const TYPE_EMOJI = {app: '📱', call: '📞', wa_video: '🎥', sms: '✉️', url: '🌐', shortcut: '↗️', clock: '🕑', weather: '☀️', photos: '🖼', missed_calls: '📵',
+    messages: '💬', search: '🔍', radio: '📻', sos: '⚠️'};
+  const TYPES = Object.fromEntries(Object.keys(TYPE_EMOJI).map(k => [k, TYPE_EMOJI[k] + ' ' + T('type_' + k)]));
+  // Colore tipico di ogni tipo (stessa tavolozza del telefono) e colori predefiniti delle versioni vecchie.
+  const TYPE_COLOR = {wa_video: '#4FC3F7', weather: '#4FC3F7', clock: '#FFFFFF', photos: '#6A1B9A', missed_calls: '#FFD54F', search: '#1A1A1A', url: '#1A1A1A',
+    radio: '#FFA726', sos: '#C62828'};
+  const typeColor = k => TYPE_COLOR[k] || '#1F4FA8';
+  const OLD_COLORS = {'#0B6E4F': '#1B7A34', '#00695C': '#4FC3F7', '#B71C1C': '#C62828', '#A84300': '#FFA726', '#FFF3C4': '#FFD54F', '#FFE7A8': '#FFD54F',
+    '#37474F': '#1A1A1A', '#0277BD': '#4FC3F7'};
+  const SYM_EMOJI = {phone: '📞', message: '💬', video: '🎥', photo: '🖼', camera: '📷', weather: '☀️', web: '🌐', person: '👤', alert: '⚠️', pill: '💊', home: '🏠',
+    heart: '❤️', music: '🎵', radio: '📻', grid: '▦', shower: '🚿', cart: '🛒', doctor: '🩺', cards: '🃏', calendar: '📅', walk: '🚶', food: '🍽', bed: '🛏', water: '💧'};
+  const ROLE_EMOJI = {'@dialer': '📞', '@sms': '💬', '@camera': '📷', '@gallery': '🖼', '@browser': '🌐', 'com.whatsapp': '🟢'};
   const FORM = document.getElementById('pubform');
   // Caricamento di un'immagine nel portale: restituisce «media:<sha256>».
   async function upload(file) {
@@ -1421,6 +1466,11 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
   const APP_LABEL = {'@dialer': T('def_phone'), '@sms': T('def_messages'), '@camera': T('def_camera'), '@gallery': T('def_gallery'), '@browser': T('def_internet'),
     'com.whatsapp': 'WhatsApp', 'org.telegram.messenger': 'Telegram', 'com.google.android.youtube': 'YouTube',
     'com.google.android.apps.maps': T('lbl_maps'), 'com.google.android.gm': T('lbl_mail'), 'com.android.chrome': T('def_internet')};
+  /** Scritta automatica del tipo ('' = da scrivere, es. il nome del familiare). */
+  const typeLabel = (k, target) => ({photos: T('def_album'), missed_calls: T('def_missed'), search: T('def_search'), messages: T('def_messages_unread'),
+    radio: T('def_radio'), sos: 'SOS', clock: '', app: APP_LABEL[target] || ''})[k] ?? '';
+  const AUTO_LABELS = new Set([T('def_album'), T('def_photos'), T('def_missed'), T('def_search'), T('def_messages_unread'), T('def_radio'), 'SOS',
+    ...Object.values(APP_LABEL), ...Object.values(TYPES)]);
   const ICONS = Object.fromEntries(['auto', 'app', 'symbol', 'photo', 'none'].map(k => [k, T('icon_' + k)]));
   const SYMBOLS = Object.fromEntries(['phone', 'message', 'video', 'photo', 'camera', 'weather', 'web', 'person', 'alert', 'pill', 'home',
     'heart', 'music', 'radio', 'grid', 'shower', 'cart', 'doctor', 'cards', 'calendar', 'walk', 'food', 'bed', 'water'].map(k => [k, T('sym_' + k)]));
@@ -1445,7 +1495,12 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
   cfg.sos = cfg.sos || {numbers: [], holdSeconds: 3, countdownSeconds: 5, message: T('def_sos_message')};
   cfg.reminders = cfg.reminders || [];
   cfg.phone = Object.assign({ringerLock: false, ringVolumePercent: 100, batteryAlertPercent: 15, badges: true, smsUpdateCommand: false, freshStart: true}, cfg.phone || {});
-  if (dirty) document.getElementById('dirty').textContent = T('unpublished');
+  // Colori predefiniti delle versioni vecchie → quelli nuovi più vicini (una volta, poi si pubblica).
+  let recolored = 0;
+  cfg.pages.forEach(pg => (pg.tiles || []).forEach(t => { const n = OLD_COLORS[(t.color || '').toUpperCase()]; if (n) { t.color = n; recolored++; } }));
+  if (cfg.phone.homeButtonColor && OLD_COLORS[cfg.phone.homeButtonColor.toUpperCase()]) { cfg.phone.homeButtonColor = OLD_COLORS[cfg.phone.homeButtonColor.toUpperCase()]; recolored++; }
+  if (recolored) { ta.value = JSON.stringify(cfg, null, 2); dirty = true; }
+  if (dirty) document.getElementById('dirty').textContent = recolored ? T('recolored', recolored) : T('unpublished');
 
   // -------- utilità
   function el(tag, attrs, ...kids) {
@@ -1515,7 +1570,16 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
     box.replaceChildren(...(p.length ? [el('b', {}, T('p_title')), el('ul', {}, p.map(x => el('li', {}, x)))] : []));
     document.getElementById('pubbtn').disabled = p.length > 0;
   }
-  function name(t) { return t.type === 'clock' ? T('clock') : (t.label || TYPES[t.type] || t.type); }
+  /** Icona dell'anteprima come sul telefono: foto caricata, simbolo scelto, o simbolo del tipo/app. */
+  function tileIcon(t) {
+    const ic = t.icon || {};
+    if (ic.kind === 'none') return '';
+    const m = /^media:([0-9a-f]{64})$/.exec(ic.ref || '');
+    if (m && ic.kind !== 'symbol') return el('img', {class: 'ti', src: '?thumb=' + m[1], alt: ''});
+    if (ic.kind === 'symbol' && SYM_EMOJI[ic.ref]) return el('span', {class: 'ti'}, SYM_EMOJI[ic.ref]);
+    return el('span', {class: 'ti'}, (t.type === 'app' && ROLE_EMOJI[t.target]) || TYPE_EMOJI[t.type] || '');
+  }
+  function name(t) { return t.type === 'clock' ? T('clock') : (t.label || T('type_' + t.type) || t.type); }
 
   // -------- schede
   function show(id) {
@@ -1562,7 +1626,7 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
         class: 'tile' + (t.id === selId ? ' sel' : '') + (isL ? ' light' : ''), role: 'button', tabindex: '0',
         style: 'grid-column:' + (t.col + 1) + ' / span ' + w + ';grid-row:' + (t.row + 1) + ' / span ' + h + ';background:' + (t.color || '#1F4FA8') + ';color:' + (isL ? '#1A1A1A' : '#fff'),
         onclick: () => { selId = t.id; render(); }, onkeydown: e => { if (e.key === 'Enter') { selId = t.id; render(); } }
-      }, t.type === 'clock' ? '🕑 ' + T('clock') : t.type === 'weather' ? '☀ ' + (t.label || T('type_weather')) : t.type === 'photos' ? '🖼 ' + (t.label || T('def_album')) : t.type === 'missed_calls' ? '📞 ' + (t.label || T('def_missed')) : t.type === 'search' ? '🔍 ' + (t.label || T('def_search')) : t.type === 'messages' ? '💬 ' + (t.label || T('def_messages_unread')) : t.type === 'radio' ? '📻 ' + (t.label || T('def_radio')) : t.type === 'sos' ? '⚠ ' + (t.label || 'SOS') : name(t)));
+      }, el('span', {}, tileIcon(t), el('span', {}, t.type === 'clock' ? T('clock') : t.type === 'weather' ? (t.label || T('type_weather')) : name(t)))));
     });
     for (let r = 0; r < p.rows; r++) for (let c = 0; c < p.cols; c++) if (!occ[r][c]) {
       kids.push(el('button', {type: 'button', class: 'cell', title: T('add_tile_here'), 'aria-label': T('add_tile_at', r + 1, c + 1),
@@ -1589,14 +1653,18 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
         const phoneTypes = ['call', 'wa_video', 'sms'];
         const keep = (phoneTypes.includes(t.type) && phoneTypes.includes(v)) || t.type === v;
         if (!keep) t.target = '';
+        // Scritta e colore seguono il nuovo tipo, a meno che siano stati scelti a mano.
+        const autoLabel = !t.label || AUTO_LABELS.has(t.label), oldC = (t.color || '').toUpperCase();
+        const autoColor = !t.color || oldC === typeColor(t.type) || OLD_COLORS[oldC];
         t.type = v;
-        if (v === 'clock') { t.color = '#FFFFFF'; delete t.label; }
-        if (v === 'photos' && !t.label) t.label = T('def_album');
-        if (v === 'search') { t.label = T('def_search'); t.target = ''; t.icon = {kind: 'auto', ref: ''}; }
-        if (v === 'messages') { t.label = T('def_messages_unread'); t.target = ''; t.icon = {kind: 'auto', ref: ''}; }
-        if (v === 'radio') { t.label = t.label || T('def_radio'); t.target = ''; t.stations = t.stations || [{name: '', url: ''}]; }
-        if (v === 'missed_calls') { t.label = T('def_missed'); t.target = ''; t.icon = {kind: 'auto', ref: ''}; }
-        if (v === 'sos') { t.color = '#B71C1C'; t.label = 'SOS'; t.w = Math.min(2, p.cols); }
+        if (autoLabel) t.label = typeLabel(v, t.target);
+        if (autoColor || v === 'clock' || v === 'sos') t.color = typeColor(v);
+        if (v === 'clock') delete t.label;
+        if (v === 'search') { t.target = ''; t.icon = {kind: 'auto', ref: ''}; }
+        if (v === 'messages') { t.target = ''; t.icon = {kind: 'auto', ref: ''}; }
+        if (v === 'radio') { t.target = ''; t.stations = t.stations || [{name: '', url: ''}]; }
+        if (v === 'missed_calls') { t.target = ''; t.icon = {kind: 'auto', ref: ''}; }
+        if (v === 'sos') { t.label = 'SOS'; t.w = Math.min(2, p.cols); }
         if (['call', 'wa_video', 'sms'].includes(v) && t.icon.kind === 'symbol') t.icon = {kind: 'auto', ref: ''};
         changed(); render();
       }))];
@@ -1794,7 +1862,9 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
     const check = (k, label, hint) => el('div', {style: 'margin:12px 0'},
       el('label', {style: 'font-weight:600'}, el('input', {type: 'checkbox', checked: !!p[k], onchange: e => set(k, e.target.checked)}), ' ' + label),
       el('div', {class: 'hint'}, hint));
+    const group = (k, ...kids) => el('div', {class: 'phgroup'}, el('h4', {}, T(k)), ...kids);
     box.replaceChildren(
+      group('grp_calls',
       check('blockUnknown', T('block_unknown'), T('block_unknown_hint')),
       check('speakerCalls', T('speaker_calls'), T('speaker_calls_hint')),
       check('autoAnswer', T('auto_answer'), T('auto_answer_hint')),
@@ -1804,15 +1874,15 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
       p.nightQuiet ? el('div', {class: 'row', style: 'margin:0 0 12px 24px'},
         field(T('night_from'), select(Object.fromEntries([18, 19, 20, 21, 22, 23].map(h => [`${h}:00`, `${h}:00`])), p.nightFrom || '22:00', v => set('nightFrom', v))),
         field(T('night_to'), select(Object.fromEntries([5, 6, 7, 8, 9, 10].map(h => [`${String(h).padStart(2, '0')}:00`, `${h}:00`])), p.nightTo || '07:00', v => set('nightTo', v)))) : '',
+      ),
+      group('grp_aids',
       check('speakTiles', T('speak_tiles'), T('speak_tiles_hint')),
       check('voiceConfirm', T('voice_confirm'), T('voice_confirm_hint')),
       check('bedsideClock', T('bedside'), T('bedside_hint')),
-      check('chargeReminder', T('charge_reminder'), T('charge_reminder_hint')),
-      p.chargeReminder ? el('div', {class: 'row', style: 'margin:0 0 12px 24px'},
-        field(T('charge_time'), select(Object.fromEntries([17, 18, 19, 20, 21, 22, 23].map(h => [`${h}:00`, `${h}:00`])), p.chargeTime || '20:00', v => set('chargeTime', v))),
-        field(T('charge_below'), select(Object.fromEntries([20, 30, 40, 50, 60].map(n => [n, n + '%'])), String(p.chargeBelow || 40), v => set('chargeBelow', +v)))) : '',
       check('holdToOpen', T('hold_to_open'), T('hold_to_open_hint')),
       field(T('theme'), select({normal: T('theme_normal'), contrast: T('theme_contrast'), night: T('theme_night')}, p.theme || 'normal', v => set('theme', v))),
+      ),
+      group('grp_home',
       check('homeButton', T('home_button'), T('home_button_hint')),
       p.homeButton ? el('div', {style: 'margin:0 0 12px 24px'},
         field(T('home_side'), select({right: T('home_side_right'), left: T('home_side_left')}, p.homeButtonSide || 'right', v => set('homeButtonSide', v))),
@@ -1821,15 +1891,25 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
         el('div', {class: 'swatches'}, PALETTE.map(([hex, nm]) => el('button', {type: 'button', class: 'sw', title: nm, 'aria-label': nm,
           'aria-pressed': String((p.homeButtonColor || '#1F4FA8').toUpperCase() === hex), style: 'background:' + hex, onclick: () => set('homeButtonColor', hex)})))) : '',
       check('freshStart', T('fresh_start'), T('fresh_start_hint')),
+      check('badges', T('badges'), T('badges_hint') + (document.getElementById('pubform').dataset.edition === 'standard' ? ' ' + T('restricted_hint') : '')),
+      ),
+      group('grp_battery',
+      check('chargeReminder', T('charge_reminder'), T('charge_reminder_hint')),
+      p.chargeReminder ? el('div', {class: 'row', style: 'margin:0 0 12px 24px'},
+        field(T('charge_time'), select(Object.fromEntries([17, 18, 19, 20, 21, 22, 23].map(h => [`${h}:00`, `${h}:00`])), p.chargeTime || '20:00', v => set('chargeTime', v))),
+        field(T('charge_below'), select(Object.fromEntries([20, 30, 40, 50, 60].map(n => [n, n + '%'])), String(p.chargeBelow || 40), v => set('chargeBelow', +v)))) : '',
       check('ringerLock', T('ringer_lock'), T('ringer_lock_hint')),
       p.ringerLock ? field(T('min_volume'), select({30: '30%', 50: '50%', 70: '70%', 80: '80%', 90: '90%', 100: '100%'}, String(p.ringVolumePercent), v => set('ringVolumePercent', +v))) : '',
       field(T('battery_alert'), select(Object.assign({0: T('never_cap')}, ...[10, 15, 20, 25, 30].map(n => ({[n]: T('below_pct', n)}))), String(p.batteryAlertPercent), v => set('batteryAlertPercent', +v)),
         T('battery_alert_hint')),
+      ),
+      group('grp_remote',
       ...(['standard', 'play'].includes(document.getElementById('pubform').dataset.edition)
         ? [el('p', {class: 'msg warn'}, document.getElementById('pubform').dataset.edition === 'play' ? T('edition_warn', T('edition_play')) : T('edition_warn_standard'))]
         : []),
-      check('badges', T('badges'), T('badges_hint') + (document.getElementById('pubform').dataset.edition === 'standard' ? ' ' + T('restricted_hint') : '')),
-      check('smsUpdateCommand', T('sms_command'), T('sms_command_hint')));
+      check('smsUpdateCommand', T('sms_command'), T('sms_command_hint')),
+      ),
+    );
   }
 
 
