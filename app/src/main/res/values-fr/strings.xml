@@ -320,7 +320,7 @@
     <string name="messages_spoken_count">Messages à lire : %1$d</string>
     <string name="messages_spoken_one">%1$s, sur %2$s : %3$s</string>
     <string name="tile_messages_hint">Affiche les messages reçus et pas encore lus (SMS, WhatsApp, Telegram…) : un appui ouvre la conversation, un appui long la lit à voix haute. L\'accès aux notifications est nécessaire.</string>
-    <string name="tile_messages_hint_basic">Dans cette édition, la tuile ouvre l\'appli Messages. La liste des messages à lire est dans l\'édition complète.</string>
+    <string name="tile_messages_hint_basic">Dans la version Google Play, la tuile ouvre l\'appli Messages. La liste des messages à lire est dans les éditions Standard et Complète.</string>
     <string name="tile_own_photo">Photo du proche (facultative)</string>
     <string name="prot_no_lock">Pas d\'écran de verrouillage</string>
     <string name="prot_no_lock_detail">En allumant l\'écran, on arrive directement à l\'accueil. Fonctionne seulement sans code, schéma ou mot de passe.</string>
@@ -370,6 +370,7 @@
     <string name="tile_radio_url">Adresse du flux</string>
     <string name="tile_radio_remove">Retirer cette station</string>
     <string name="tile_radio_add">+ Ajouter une station</string>
+    <string name="special_badges_restricted">Si l\'interrupteur est grisé : Paramètres › Applis › SemplicePhone › menu ⋮ en haut › « Autoriser les paramètres restreints », puis revenez ici.</string>
     <string name="color_blue">Bleu</string>
     <string name="color_green">Vert</string>
     <string name="color_purple">Violet</string>
@@ -432,7 +433,7 @@
     <string name="phone_sms_command_detail">Un membre de la famille parmi les numéros SOS peut envoyer le SMS « %1$s » pour appliquer tout de suite une configuration publiée sur le portail.</string>
     <string name="phone_full_only">Uniquement dans l\'édition complète</string>
     <string name="phone_full_only_play">Les pastilles de messages non lus, la commande SMS « %1$s » et les SMS automatiques ne sont pas dans la version Google Play. Elles sont dans l\'édition complète (F-Droid ou site du projet).</string>
-    <string name="phone_full_only_standard">Les pastilles de messages non lus, la commande SMS « %1$s » et la mise à jour automatique demandent des autorisations qu\'Android bloque pour les applis téléchargées depuis le navigateur. Elles sont dans l\'édition complète, à installer avec ADB (voir le guide sur le site du projet).</string>
+    <string name="phone_full_only_standard">La commande SMS « %1$s » et la mise à jour automatique demandent des autorisations qu\'Android bloque pour les applis téléchargées depuis le navigateur. Elles sont dans l\'édition complète, à installer avec ADB (voir le guide sur le site du projet).</string>
     <string name="sms_keyword">#ACTUALISER</string>
     <string name="sos_editor_sms">Le premier numéro est appelé. Tous reçoivent un SMS avec la position.</string>
     <string name="sos_editor_compose">Le premier numéro est appelé. Ensuite l\'écran affiche « ENVOYER LA POSITION », qui ouvre Messages prêt pour tous les numéros.</string>

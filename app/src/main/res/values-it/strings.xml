@@ -320,7 +320,7 @@
     <string name="messages_spoken_count">Messaggi da leggere: %1$d</string>
     <string name="messages_spoken_one">%1$s, su %2$s: %3$s</string>
     <string name="tile_messages_hint">Mostra i messaggi arrivati e non ancora letti (SMS, WhatsApp, Telegram…): un tocco apre quella conversazione, una pressione lunga lo legge ad alta voce. Serve l\'accesso alle notifiche.</string>
-    <string name="tile_messages_hint_basic">In questa edizione il riquadro apre l\'app Messaggi. L\'elenco dei messaggi da leggere c\'è nell\'edizione Completa.</string>
+    <string name="tile_messages_hint_basic">Nella versione di Google Play il riquadro apre l\'app Messaggi. L\'elenco dei messaggi da leggere c\'è nelle edizioni Standard e Completa.</string>
     <string name="tile_own_photo">Foto del familiare (facoltativa)</string>
     <string name="prot_no_lock">Nessuna schermata di blocco</string>
     <string name="prot_no_lock_detail">Accendendo lo schermo si arriva subito alla Home. Funziona solo se sul telefono non c\'è PIN, sequenza o password.</string>
@@ -370,6 +370,7 @@
     <string name="tile_radio_url">Indirizzo dello stream</string>
     <string name="tile_radio_remove">Togli questa stazione</string>
     <string name="tile_radio_add">+ Aggiungi stazione</string>
+    <string name="special_badges_restricted">Se l\'interruttore è grigio: Impostazioni › App › SemplicePhone › menu ⋮ in alto › «Consenti impostazioni con restrizioni», poi torna qui.</string>
     <string name="color_blue">Blu</string>
     <string name="color_green">Verde</string>
     <string name="color_purple">Viola</string>
@@ -432,7 +433,7 @@
     <string name="phone_sms_command_detail">Un familiare tra i numeri SOS può mandare l\'SMS «%1$s» per far applicare subito una configurazione pubblicata dal portale.</string>
     <string name="phone_full_only">Solo nell\'edizione completa</string>
     <string name="phone_full_only_play">Pallini con messaggi non letti, comando SMS «%1$s» e SMS automatici non sono nella versione di Google Play. Ci sono nell\'edizione completa (F-Droid o sito del progetto).</string>
-    <string name="phone_full_only_standard">Pallini con messaggi non letti, comando SMS «%1$s» e aggiornamento automatico richiedono permessi che Android blocca sulle app scaricate dal browser. Sono nell\'edizione completa, da installare con ADB (vedi la guida nel sito del progetto).</string>
+    <string name="phone_full_only_standard">Il comando SMS «%1$s» e l\'aggiornamento automatico richiedono permessi che Android blocca sulle app scaricate dal browser. Sono nell\'edizione completa, da installare con ADB (vedi la guida nel sito del progetto).</string>
     <string name="sms_keyword">#AGGIORNA</string>
     <string name="sos_editor_sms">Il primo numero viene chiamato. Tutti riceveranno un SMS con la posizione.</string>
     <string name="sos_editor_compose">Il primo numero viene chiamato. Poi lo schermo mostra «MANDA LA POSIZIONE», che apre Messaggi già pronto per tutti i numeri.</string>

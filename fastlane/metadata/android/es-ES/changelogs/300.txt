@@ -1,0 +1,1 @@
+- «Mensajes sin leer» y contadores también en la edición Estándar (en Android 13+ hay que permitir los «ajustes restringidos», la app explica cómo)

@@ -476,7 +476,7 @@
  "def_messages_unread": "Neue Nachrichten",
  "def_radio": "Radio",
  "messages_hint": "Zeigt ungelesene Nachrichten (SMS, WhatsApp, Telegram…): ein Tipp öffnet die Unterhaltung, langes Drücken liest sie vor. Am Telefon muss der Benachrichtigungszugriff erteilt sein. Die Texte bleiben auf dem Telefon.",
- "messages_hint_basic": "Mit der Standard- oder Google-Play-Ausgabe öffnet die Kachel die Nachrichten-App; die Liste ungelesener Nachrichten gibt es nur in der Vollversion.",
+ "messages_hint_basic": "Mit der Google-Play-Version öffnet die Kachel die Nachrichten-App; die Liste ungelesener Nachrichten gibt es in der Standard- und der Vollversion.",
  "radio_hint": "Ein oder mehrere Sender: Name und Stream-Adresse (auf der Website des Senders; endet oft mit .mp3, .aac oder .m3u8). Am Telefon: große Tasten Hören/Stopp, nächster Sender, Lautstärke.",
  "radio_name": "Name des Senders",
  "radio_url": "Stream-Adresse",
@@ -512,5 +512,7 @@
  "cal_at": "um {0}",
  "chg_calendar": "Kalendertermine: {0} Erinnerungen",
  "from_calendar": "aus dem Kalender",
- "type_messages": "💬 Ungelesene Nachrichten"
+ "type_messages": "💬 Ungelesene Nachrichten",
+ "edition_warn_standard": "Dieses Telefon hat die Standardversion: der SMS-Befehl „#AKTUALISIEREN“ und stille Updates funktionieren nur mit der Vollversion.",
+ "restricted_hint": "Mit der Standardversion ab Android 13, wenn der Schalter für den Benachrichtigungszugriff grau ist: Einstellungen › Apps › SemplicePhone › Menü ⋮ › „Eingeschränkte Einstellungen zulassen“."
 }

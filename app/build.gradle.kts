@@ -15,8 +15,8 @@ android {
         targetSdk = 36 // obbligatorio su Google Play dal 31/8/2026
         // Versione scritta qui (non calcolata in CI): F-Droid la legge da questo file e ricompila
         // lo stesso APK. A ogni release: versionName = tag senza «v», versionCode +10.
-        versionCode = 290
-        versionName = "0.14.0"
+        versionCode = 300
+        versionName = "0.14.1"
 
         // Valori predefiniti per la config remota (vuoti = da inserire nel telefono),
         // sovrascrivibili da gradle.properties o -P per build dedicate.
@@ -39,6 +39,7 @@ android {
             dimension = "edizione"
             buildConfigField("String", "EDITION", "\"standard\"")
             buildConfigField("boolean", "FULL", "false")
+            buildConfigField("boolean", "NOTIFICATIONS", "true")
             buildConfigField("boolean", "SEND_SMS", "true")
             buildConfigField("boolean", "CALL_LOG", "true")
             val u = (project.findProperty("semplice.updateUrl") as String?) ?: "$releases/update.json"
@@ -48,6 +49,7 @@ android {
             dimension = "edizione"
             buildConfigField("String", "EDITION", "\"completo\"")
             buildConfigField("boolean", "FULL", "true")
+            buildConfigField("boolean", "NOTIFICATIONS", "true")
             buildConfigField("boolean", "SEND_SMS", "true")
             buildConfigField("boolean", "CALL_LOG", "true")
             val u = (project.findProperty("semplice.updateUrlFull") as String?) ?: "$releases/update-completo.json"
@@ -57,6 +59,7 @@ android {
             dimension = "edizione"
             buildConfigField("String", "EDITION", "\"play\"")
             buildConfigField("boolean", "FULL", "false")
+            buildConfigField("boolean", "NOTIFICATIONS", "false")
             buildConfigField("boolean", "SEND_SMS", "false")
             buildConfigField("boolean", "CALL_LOG", "false")
             buildConfigField("String", "UPDATE_URL", "\"\"")

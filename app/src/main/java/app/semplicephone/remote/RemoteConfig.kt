@@ -368,7 +368,7 @@ class RemoteClient(private val context: Context) {
             .put("lastResult", settings.lastResult)
             .put("reminderEvents", events)
             .put("edition", BuildConfig.EDITION)
-            .apply { if (BuildConfig.FULL) put("badgesAccess", app.semplicephone.phone.Badges.isEnabled(context)) }
+            .apply { if (BuildConfig.NOTIFICATIONS) put("badgesAccess", app.semplicephone.phone.Badges.isEnabled(context)) }
             .put("access", accessReport())
             .apply {
                 if (sendConfig) {

@@ -67,8 +67,9 @@ object Permissions {
 
     fun requiredSpecial(context: Context, cfg: LauncherConfig): List<Special> = buildList {
         val messagesTile = cfg.pages.any { p -> p.tiles.any { it.type == TileType.MESSAGES } }
-        if ((cfg.phone.badges || messagesTile) && BuildConfig.FULL) add(
-            Special("badges", context.getString(R.string.special_badges), context.getString(R.string.special_badges_why),
+        if ((cfg.phone.badges || messagesTile) && BuildConfig.NOTIFICATIONS) add(
+            Special("badges", context.getString(R.string.special_badges),
+                context.getString(R.string.special_badges_why) + (if (restricted()) " " + context.getString(R.string.special_badges_restricted) else ""),
                 Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS),
         )
         if (cfg.phone.homeButton) add(
@@ -94,10 +95,20 @@ object Permissions {
         val intent = Intent(s.settingsAction).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         // La pagina della sovrapposizione va aperta direttamente sull'app, non sull'elenco.
         if (s.key == "overlay") intent.data = android.net.Uri.parse("package:${context.packageName}")
+        // Accesso alle notifiche: direttamente sulla pagina di SemplicePhone; se Android lo tiene
+        // bloccato (app scaricata dal browser) toccando l'interruttore spiega come sbloccarlo.
+        if (s.key == "badges") {
+            intent.setAction(Settings.ACTION_NOTIFICATION_LISTENER_DETAIL_SETTINGS)
+                .putExtra(Settings.EXTRA_NOTIFICATION_LISTENER_COMPONENT_NAME,
+                    android.content.ComponentName(context, "app.semplicephone.phone.BadgeListener").flattenToString())
+        }
         runCatching { context.startActivity(intent) }.onFailure {
             runCatching { context.startActivity(Intent(s.settingsAction).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
         }
     }
+
+    /** Android 13+ blocca l'accesso alle notifiche delle app installate dal browser finché non lo si sblocca. */
+    private fun restricted(): Boolean = android.os.Build.VERSION.SDK_INT >= 33 && BuildConfig.EDITION == "standard"
 
     fun granted(context: Context, permission: String): Boolean =
         ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED

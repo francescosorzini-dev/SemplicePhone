@@ -1,0 +1,1 @@
+- "Unread messages" and unread badges also in the Standard edition (on Android 13+ "restricted settings" must be allowed, the app explains how)
