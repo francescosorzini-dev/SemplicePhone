@@ -44,6 +44,15 @@ e una pagina web da cui la famiglia sistema tutto da lontano. Gratis, senza pubb
 - **Messaggi da leggere.** Un riquadro elenca SMS e WhatsApp non letti: un tocco
   apre la conversazione, una pressione lunga la legge ad alta voce.
 - **Videochiamate WhatsApp e Telegram** con un tocco sulla foto del familiare.
+- **Strumenti**: torcia, lente d'ingrandimento (fotocamera con zoom e «ferma immagine»), «Dove sono?»
+  detto a voce, «Mi chiami?» a un familiare, musica dalle cartelle del telefono, notizie lette a voce.
+- **Contro le truffe**: avviso se viene installata un'app di controllo remoto (AnyDesk, TeamViewer…),
+  messaggi con link da sconosciuti segnalati e non apribili, blocco delle chiamate a pagamento ed estere,
+  avviso alla famiglia sulle chiamate lunghe con sconosciuti.
+- **Sicurezza**: rilevamento cadute con «Stai bene?», avvisi per SIM tolta e telefono non usato,
+  caldo estremo, zona sicura (edizione completa), scheda per i soccorsi nella schermata SOS.
+- **Comodità**: risposte vocali ai messaggi della famiglia, scorta delle pastiglie, buongiorno parlato,
+  volume delle chiamate alto, testo grande in tutte le app.
 - **Album.** Le foto caricate e quelle delle cartelle del telefono (Fotocamera, WhatsApp) scorrono da sole;
   un tocco su un video lo apre a tutto schermo, volume alto, un solo pulsante per chiudere.
 - **Radio.** Un riquadro con le stazioni preferite: ASCOLTA/FERMA enormi, stazione dopo, volume.
@@ -284,6 +293,7 @@ validazione.
 | M14 – messaggi da leggere, radio, notte tranquilla, «metti in carica», calendario, foto dal portale, temi, copie di sicurezza | ✅ |
 | M15 – modelli pronti, album con cartelle e video, videomessaggi | ✅ |
 | M16 – rifinitura di portale ed editor (schede, simboli, cambio tipo, colori) | ✅ |
+| M17 – Telegram, strumenti, anti-truffa, cadute, sicurezza, risposte vocali | ✅ |
 
 ### Limiti noti
 
