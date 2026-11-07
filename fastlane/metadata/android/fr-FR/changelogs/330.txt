@@ -1,0 +1,3 @@
+- En changeant le type de tuile, le texte et la couleur suivent (sauf s'ils ont été choisis)
+- Couleurs des anciennes versions mises à jour
+- Portail : page à onglets, symbole pour chaque type, aperçu avec icônes et photos, options du téléphone en groupes

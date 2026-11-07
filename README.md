@@ -282,6 +282,7 @@ validazione.
 | M13 – messaggi dalla famiglia, «Fai squillare», risposta automatica, configurazione guidata | ✅ |
 | M14 – messaggi da leggere, radio, notte tranquilla, «metti in carica», calendario, foto dal portale, temi, copie di sicurezza | ✅ |
 | M15 – modelli pronti, album con cartelle e video, videomessaggi | ✅ |
+| M16 – rifinitura di portale ed editor (schede, simboli, cambio tipo, colori) | ✅ |
 
 ### Limiti noti
 

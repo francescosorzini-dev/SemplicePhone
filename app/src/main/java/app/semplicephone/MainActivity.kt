@@ -343,7 +343,7 @@ class MainActivity : ComponentActivity() {
 
     private fun navigate(target: Screen) {
         if ((target == Screen.Layout || target is Screen.Templates) && draft == null) {
-            draft = app.semplicephone.data.LocalizedDefaults.apply(this, repo.config.value)
+            draft = app.semplicephone.ui.settings.migrateColors(app.semplicephone.data.LocalizedDefaults.apply(this, repo.config.value))
             editPage = 0
             saveError = null
             lifecycleScope.launch { apps = withContext(Dispatchers.IO) { catalog.load() } }

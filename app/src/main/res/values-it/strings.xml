@@ -86,7 +86,7 @@
     <string name="reminder_max_repeats">Ripetizioni massime</string>
     <string name="reminder_active">Attivo</string>
     <string name="reminder_delete">Elimina promemoria</string>
-    <string name="perm_call_tiles">chiamare direttamente dai tile</string>
+    <string name="perm_call_tiles">chiamare direttamente dai riquadri</string>
     <string name="perm_contacts">foto dei contatti e videochiamate WhatsApp</string>
     <string name="perm_sos_call">chiamata SOS</string>
     <string name="perm_sos_sms">SMS di emergenza</string>
@@ -101,11 +101,11 @@
     <string name="layout_title">Disposizione</string>
     <string name="layout_no_sos_confirm">Nessuna pagina contiene il pulsante SOS. Salvare comunque?</string>
     <string name="layout_add_page">+ Pagina</string>
-    <string name="layout_delete_page_confirm">Eliminare la pagina %1$d con i suoi %2$d tile?</string>
+    <string name="layout_delete_page_confirm">Eliminare la pagina %1$d con i suoi %2$d riquadri?</string>
     <string name="layout_delete_page">Elimina pagina</string>
     <string name="layout_columns">Colonne</string>
     <string name="layout_rows">Righe</string>
-    <string name="layout_hint">Tocca un tile per modificarlo, una casella vuota per aggiungerne uno. Tieni premuto un tile e trascinalo per spostarlo (sopra un tile uguale li scambia).</string>
+    <string name="layout_hint">Tocca un riquadro per modificarlo, una casella vuota per aggiungerne uno. Tieni premuto un riquadro e trascinalo per spostarlo (sopra un riquadro uguale li scambia).</string>
     <string name="layout_exported">Configurazione esportata.</string>
     <string name="layout_export_failed">Esportazione non riuscita: %1$s</string>
     <string name="layout_import_invalid">File non valido: nessuna modifica.</string>
@@ -130,7 +130,7 @@
     <string name="layout_reset_confirm">Sostituire la disposizione con quella predefinita? Le modifiche non salvate vanno perse.</string>
     <string name="layout_reset">Ripristina disposizione predefinita</string>
     <string name="layout_about">Informazioni e licenza</string>
-    <string name="layout_empty_cell">Casella vuota colonna %1$d riga %2$d, aggiungi tile</string>
+    <string name="layout_empty_cell">Casella vuota colonna %1$d riga %2$d, aggiungi riquadro</string>
     <string name="about_license">Software libero: puoi ridistribuirlo e modificarlo secondo la GNU General Public License versione 3 o successiva. Distribuito gratuitamente e SENZA ALCUNA GARANZIA.</string>
     <string name="about_sos">Il pulsante SOS contatta i numeri impostati: non sostituisce il 112.</string>
     <string name="about_source">Codice sorgente: %1$s</string>
@@ -143,8 +143,8 @@
     <string name="restricted_adb">Se il menu ⋮ non c\'è (alcuni telefoni OnePlus, Oppo, Realme), da un computer con ADB:</string>
     <string name="copied">Copiato</string>
     <string name="copy_command">Copia comando</string>
-    <string name="tile_new">Nuovo tile</string>
-    <string name="tile_edit">Modifica tile</string>
+    <string name="tile_new">Nuovo riquadro</string>
+    <string name="tile_edit">Modifica riquadro</string>
     <string name="tile_action">Azione</string>
     <string name="type_app">Apri app</string>
     <string name="type_call">Chiama numero</string>
@@ -168,7 +168,7 @@
     <string name="tile_shortcut_hint">Le scorciatoie sono azioni dirette delle app (es. una chat WhatsApp, una destinazione in Maps).</string>
     <string name="tile_clock_hint">Mostra ora e data. 5 tocchi rapidi aprono le impostazioni.</string>
     <string name="tile_sos_hint">Numeri e durata della pressione si impostano nella sezione SOS.</string>
-    <string name="tile_label">Testo sul tile</string>
+    <string name="tile_label">Testo sul riquadro</string>
     <string name="tile_icon">Icona</string>
     <string name="tile_photo_hint">Usa la foto del contatto in rubrica; senza foto mostra le iniziali.</string>
     <string name="tile_color">Colore</string>
@@ -177,12 +177,12 @@
     <string name="tile_height">Altezza</string>
     <string name="tile_column">Colonna</string>
     <string name="tile_row">Riga</string>
-    <string name="tile_delete">Elimina tile</string>
+    <string name="tile_delete">Elimina riquadro</string>
     <string name="tile_delete_last_sos">Togliere l\'ultimo SOS?</string>
-    <string name="tile_delete_confirm">Eliminare il tile?</string>
+    <string name="tile_delete_confirm">Eliminare il riquadro?</string>
     <string name="tile_delete_last_sos_text">Dopo l\'eliminazione non ci sarà più nessun pulsante SOS nella schermata Home.</string>
     <string name="tile_delete_text">«%1$s» verrà tolto dalla Home.</string>
-    <string name="conflict_out_of_grid">Il tile esce dalla griglia (%1$d colonne × %2$d righe)</string>
+    <string name="conflict_out_of_grid">Il riquadro esce dalla griglia (%1$d colonne × %2$d righe)</string>
     <string name="conflict_overlap">Si sovrappone a «%1$s»</string>
     <string name="tile_photo_fill">Foto grande</string>
     <string name="tile_photo_fill_hint">La foto del contatto riempie tutto il riquadro, con il nome sotto.</string>

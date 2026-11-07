@@ -1,0 +1,4 @@
+- Cambiando tipo di riquadro, scritta e colore si adeguano (se non scelti a mano)
+- Colori delle versioni precedenti aggiornati alla nuova tavolozza
+- «Riquadro» al posto di «tile» nei testi italiani
+- Portale: pagina a schede, simbolo per ogni tipo, anteprima con icone e foto, opzioni del telefono a gruppi
