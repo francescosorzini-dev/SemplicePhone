@@ -1462,7 +1462,7 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
   if (!ta) return;
 
   // Un simbolo per ogni tipo: nell'elenco «Cosa fa» e nell'anteprima del telefono.
-  const TYPE_EMOJI = {app: '📱', call: '📞', wa_video: '🎥', tg_video: '📹', call_me: '🙋', torch: '🔦', magnifier: '🔍', where: '📍', music: '🎵', news: '📰', sms: '✉️', url: '🌐', shortcut: '↗️', clock: '🕑', weather: '☀️', photos: '🖼', missed_calls: '📵',
+  const TYPE_EMOJI = {app: '📱', call: '📞', wa_video: '🎥', tg_video: '📹', call_me: '🙋', torch: '🔦', magnifier: '🔎', where: '📍', music: '🎵', news: '📰', sms: '✉️', url: '🌐', shortcut: '↗️', clock: '🕑', weather: '☀️', photos: '🖼', missed_calls: '📵',
     messages: '💬', search: '🔍', radio: '📻', sos: '⚠️'};
   const TYPES = Object.fromEntries(Object.keys(TYPE_EMOJI).map(k => [k, TYPE_EMOJI[k] + ' ' + T('type_' + k)]));
   // Colore tipico di ogni tipo (stessa tavolozza del telefono) e colori predefiniti delle versioni vecchie.
