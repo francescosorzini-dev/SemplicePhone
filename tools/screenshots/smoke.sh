@@ -237,7 +237,7 @@ home
 
 # ---- 0.15.0: videomessaggio a tutto schermo, modelli pronti alla prima apertura
 H=16080716f27f0cd32a1211351bb818e7d435801a0b0e96874fc38b72f677f94b
-adb push "$(dirname "$0")/test.mp4" /data/local/tmp/v.mp4 >/dev/null
+adb push test.mp4 /data/local/tmp/v.mp4 >/dev/null
 echo '{"device":"*","id":42,"text":"Ciao nonna, guarda!","from":"Anna","at":0,"video":"media:'$H'"}' > /tmp/m.json
 adb push /tmp/m.json /data/local/tmp/m.json >/dev/null
 adb shell "run-as $P sh -c 'mkdir -p files/video && cp /data/local/tmp/v.mp4 files/video/$H.vid && cp /data/local/tmp/m.json files/family_message.json'"
