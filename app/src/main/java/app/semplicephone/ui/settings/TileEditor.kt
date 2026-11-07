@@ -221,6 +221,7 @@ fun TileEditor(
                         }
                     }
                     MediaPickButtons(onPicked = { ref -> if (ref !in t.photos) t = t.copy(photos = t.photos + ref) }, onExternalStart = onExternalStart, multiple = true)
+                    AlbumFolders(t.folders, onExternalStart) { t = t.copy(folders = it) }
                 }
                 TileType.MISSED_CALLS -> Hint(
                     stringResource(if (app.semplicephone.data.MissedCalls.supported()) R.string.tile_missed_hint else R.string.tile_missed_hint_play),
@@ -365,7 +366,7 @@ fun defaultLabel(context: Context, type: TileType): String = when (type) {
     TileType.SHORTCUT -> context.getString(R.string.label_shortcut)
     TileType.CLOCK -> ""
     TileType.WEATHER -> ""
-    TileType.PHOTOS -> context.getString(R.string.label_photos)
+    TileType.PHOTOS -> context.getString(R.string.label_album)
     TileType.MISSED_CALLS -> context.getString(R.string.label_missed_calls)
     TileType.SEARCH -> context.getString(R.string.label_search)
     TileType.MESSAGES -> context.getString(R.string.label_messages_unread)
@@ -441,4 +442,36 @@ private fun WeatherPlaceField(target: String, label: String, onPick: (app.sempli
             }
         }
     }
+}
+
+/** Cartelle del telefono collegate all'album: si aggiungono col selettore di Android, ✕ le toglie. */
+@Composable
+private fun AlbumFolders(folders: List<String>, onExternalStart: () -> Unit, onChange: (List<String>) -> Unit) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val pick = androidx.activity.compose.rememberLauncherForActivityResult(androidx.activity.result.contract.ActivityResultContracts.OpenDocumentTree()) { uri ->
+        if (uri != null) {
+            app.semplicephone.data.Album.keep(context, uri)
+            if (uri.toString() !in folders) onChange(folders + uri.toString())
+        }
+    }
+    val readable = remember(folders) {
+        context.contentResolver.persistedUriPermissions.filter { it.isReadPermission }.map { it.uri.toString() }.toSet()
+    }
+    SectionLabel(stringResource(R.string.album_folders))
+    Hint(stringResource(R.string.album_folders_hint))
+    folders.forEach { f ->
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                "📁 " + (if (f in readable) app.semplicephone.data.Album.folderName(context, f) else stringResource(R.string.album_folder_other_phone)),
+                fontSize = 18.sp, color = Palette.Ink, modifier = Modifier.weight(1f),
+            )
+            TextButton(onClick = { app.semplicephone.data.Album.release(context, f); onChange(folders - f) }) {
+                Text("✕", color = Palette.Sos, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            }
+        }
+    }
+    OutlinedButton(
+        onClick = { onExternalStart(); runCatching { pick.launch(null) } },
+        modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
+    ) { Text(stringResource(R.string.album_add_folder)) }
 }

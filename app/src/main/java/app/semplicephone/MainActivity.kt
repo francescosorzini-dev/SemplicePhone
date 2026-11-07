@@ -76,6 +76,7 @@ sealed interface Screen {
     data object Search : Screen
     /** Radio del riquadro [tile]. */
     data class Radio(val tile: Tile) : Screen
+    data class Video(val uri: String) : Screen
 }
 
 class MainActivity : ComponentActivity() {
@@ -115,7 +116,7 @@ class MainActivity : ComponentActivity() {
         contacts = Contacts(applicationContext)
         protection = DeviceProtection(applicationContext)
         scheduler = ReminderScheduler(applicationContext)
-        launcher = TileLauncher(this, contacts, onSos = ::onSosRequested, onSearch = ::openSearch, onRadio = { screen = Screen.Radio(it) })
+        launcher = TileLauncher(this, contacts, onSos = ::onSosRequested, onSearch = ::openSearch, onRadio = { screen = Screen.Radio(it) }, onVideo = { screen = Screen.Video(it) })
         pins = PinStore(applicationContext)
         catalog = AppCatalog(applicationContext)
         apps = catalog.roles()
@@ -267,6 +268,7 @@ class MainActivity : ComponentActivity() {
                     }
                     Screen.Protection -> ProtectionScreen(protection, onBack = { screen = Screen.Layout })
                     is Screen.Radio -> app.semplicephone.radio.RadioScreen(s.tile, onClose = { screen = Screen.Home })
+                    is Screen.Video -> app.semplicephone.ui.VideoPlayer(android.net.Uri.parse(s.uri), stringResource(R.string.video_close), onClose = { screen = Screen.Home })
                     Screen.Search -> AppSearchScreen(
                         apps = searchApps,
                         launcher = launcher,
@@ -341,7 +343,7 @@ class MainActivity : ComponentActivity() {
             is Screen.Pin -> if (draft != null) Screen.Layout else { closeSettings(); Screen.Home }
             Screen.Layout -> { closeSettings(); Screen.Home }
             is Screen.EditTile, Screen.Sos, Screen.Protection, Screen.Reminders, Screen.Remote, Screen.Phone, Screen.Backup -> Screen.Layout
-            Screen.SosCountdown, Screen.Search, is Screen.Radio -> Screen.Home
+            Screen.SosCountdown, Screen.Search, is Screen.Radio, is Screen.Video -> Screen.Home
         }
     }
 
