@@ -79,7 +79,7 @@ import java.util.Locale
 private val ToolBg = Color(0xFFF6F4EF)
 
 @Composable
-private fun ToolFrame(title: String, onClose: () -> Unit, content: @Composable () -> Unit) {
+private fun ToolFrame(title: String, onClose: () -> Unit, content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit) {
     Column(
         Modifier.fillMaxSize().background(ToolBg).windowInsetsPadding(WindowInsets.safeDrawing).padding(20.dp),
         horizontalAlignment = Alignment.CenterHorizontally,

@@ -321,7 +321,7 @@ class MainActivity : ComponentActivity() {
                             }
                             app.semplicephone.radio.RadioScreen(s.tile, onClose = { screen = Screen.Home }, songs = songs ?: emptyList())
                         }
-                        else -> LaunchedEffect(Unit) { screen = Screen.Home }
+                        else -> androidx.compose.runtime.LaunchedEffect(Unit) { screen = Screen.Home }
                     }
                     Screen.Emergency -> app.semplicephone.sos.EmergencyScreen(config.emergency, onClose = { screen = Screen.Home })
                     Screen.Search -> AppSearchScreen(
