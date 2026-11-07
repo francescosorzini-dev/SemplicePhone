@@ -55,6 +55,7 @@ object Album {
         val own = tile.photos.filter { Media.exists(context, it) }.map { AlbumItem(it, video = false, at = 0) }
         val fromFolders = readable(context, tile).flatMap { list(context, Uri.parse(it)) }
             .distinctBy { it.ref }.sortedByDescending { it.at }
+        if (fromFolders.isNotEmpty()) Log.i(TAG, "dalle cartelle: ${fromFolders.size} (${fromFolders.count { it.video }} video): ${fromFolders.take(10).joinToString { it.name }}")
         return (own + fromFolders).take(MAX_ITEMS)
     }
 

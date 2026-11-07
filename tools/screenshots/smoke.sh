@@ -262,5 +262,34 @@ python3 tap.py --times 5 --regex '^\d\d:\d\d$' >/dev/null; sleep 1
 for round in 1 2; do for d in 1 2 3 4; do python3 tap.py "$d" >/dev/null; done; python3 tap.py Conferma >/dev/null; sleep 1; done
 shot v15_3_templates 3
 python3 tap.py "Memoria fragile" >/dev/null || true; shot v15_4_after_template 3
+# Album: cartella scelta col selettore di Android, foto e video anche nelle sottocartelle
+python3 - <<'PY'
+import struct, zlib
+def png(path, rgb):
+    w = h = 64; raw = b''.join(b'\x00' + bytes(rgb) * w for _ in range(h))
+    ch = lambda t, d: struct.pack('>I', len(d)) + t + d + struct.pack('>I', zlib.crc32(t + d) & 0xffffffff)
+    open(path, 'wb').write(b'\x89PNG\r\n\x1a\n' + ch(b'IHDR', struct.pack('>IIBBBBB', w, h, 8, 2, 0, 0, 0)) + ch(b'IDAT', zlib.compress(raw)) + ch(b'IEND', b''))
+png('/tmp/a.png', (200, 30, 30)); png('/tmp/b.png', (30, 30, 200)); png('/tmp/c.png', (30, 200, 30))
+PY
+adb shell mkdir -p /sdcard/Ricordi/Natale/2025 /sdcard/Ricordi/Sent /sdcard/Ricordi/.nascosta
+adb push /tmp/a.png /sdcard/Ricordi/top.png >/dev/null
+adb push /tmp/b.png /sdcard/Ricordi/Natale/2025/deep.png >/dev/null
+adb push test.mp4 /sdcard/Ricordi/Natale/clip.mp4 >/dev/null
+adb push /tmp/c.png /sdcard/Ricordi/Sent/sent.png >/dev/null
+adb push /tmp/c.png /sdcard/Ricordi/.nascosta/hidden.png >/dev/null
+python3 tap.py "Album" >/dev/null || true; sleep 2
+python3 tap.py --scroll "+ Aggiungi una cartella" >/dev/null || true; shot v15_7_picker 3
+python3 tap.py --regex "^(Mostra radici|Show roots)$" >/dev/null || true; sleep 1
+python3 tap.py --regex "^(sdk_gphone|Android SDK|Pixel|SDK)" >/dev/null || true; sleep 2
+python3 tap.py "Ricordi" >/dev/null || true; sleep 2; shot v15_8_picker_folder 1
+python3 tap.py --regex "(?i)^(usa questa cartella|use this folder)$" >/dev/null || true; sleep 2
+python3 tap.py --regex "(?i)^(consenti|allow)$" >/dev/null || true; sleep 2
+shot v15_9_album_editor 2
+adb shell dumpsys activity provider com.android.externalstorage 2>/dev/null | head -0
+python3 tap.py --regex "^(Fatto|OK|Salva)$" >/dev/null || true; sleep 1
+python3 tap.py "Salva" >/dev/null || true; sleep 2
+home; sleep 6; shot v15_10_home_album 1
+adb shell "run-as $P cat files/config.json" | grep -A3 '"folders"' > "$OUT/v15_album_folders.txt" || true
+adb logcat -d -s Album:* | tail -20 >> "$OUT/v15_album_folders.txt" || true
 adb logcat -d | grep -E "AndroidRuntime|FATAL" -A8 | head -60 > "$OUT/v15_errors.txt" || true
 home

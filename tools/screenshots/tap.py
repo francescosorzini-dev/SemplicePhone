@@ -8,10 +8,12 @@ args = sys.argv[1:]
 long_ms = None
 regex = False
 times = 1
+scroll = False
 while args and args[0].startswith('--'):
     if args[0] == '--long': long_ms = args[1]; args = args[2:]
     elif args[0] == '--regex': regex = True; args = args[1:]
     elif args[0] == '--times': times = int(args[1]); args = args[2:]
+    elif args[0] == '--scroll': scroll = True; args = args[1:]
 want, idx = args[0], int(args[1]) if len(args) > 1 else 0
 
 def dump():
@@ -38,5 +40,7 @@ for attempt in range(10):
             subprocess.run(['adb', 'shell', '; '.join([f'input tap {x} {y}'] * times)])
         print(f'{want!r} -> {x},{y}')
         sys.exit(0)
+    if scroll:  # non visibile: scorre verso il basso e riprova
+        subprocess.run(['adb', 'shell', 'input', 'swipe', '540', '1700', '540', '700', '400'])
     time.sleep(1)
 sys.exit(f'non trovato: {want!r}')
