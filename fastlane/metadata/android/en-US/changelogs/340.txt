@@ -1,0 +1,1 @@
+- New "Telegram video call" tile (like the WhatsApp one)

@@ -1,0 +1,1 @@
+- Nouvelle tuile « Appel vidéo Telegram » (comme celle de WhatsApp)

@@ -42,6 +42,7 @@ and a web page where the family sets everything up from afar. Free, no ads, free
 - **Messages from the family** full screen and read aloud, until someone taps "GOT IT".
 - **Unread messages.** A tile lists unread SMS and WhatsApp messages: a tap opens the
   conversation, a long press reads it aloud.
+- **WhatsApp and Telegram video calls** with one tap on the family member's photo.
 - **Album.** Uploaded photos plus the phone's folders (Camera, WhatsApp) change by themselves; a tap on a
   video opens it full screen, loud, with a single button to close.
 - **Radio.** A tile with favourite stations: huge PLAY/STOP buttons, next station, volume.
