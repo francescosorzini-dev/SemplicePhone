@@ -33,3 +33,20 @@ class Release0150Test {
         assertTrue(pages.all { it.rows == 4 })
     }
 }
+
+class Release0160Test {
+    @org.junit.Test fun oldColorsMigrated() {
+        val cfg = app.semplicephone.model.LauncherConfig(
+            pages = listOf(app.semplicephone.model.Page(cols = 2, rows = 5, tiles = listOf(
+                app.semplicephone.model.Tile("a", 0, 0, type = app.semplicephone.model.TileType.CALL, color = "#0b6e4f"),
+                app.semplicephone.model.Tile("b", 1, 0, type = app.semplicephone.model.TileType.CALL, color = "#123456"),
+            ))),
+            phone = app.semplicephone.model.PhoneConfig(homeButtonColor = "#B71C1C"),
+        )
+        val m = app.semplicephone.ui.settings.migrateColors(cfg)
+        org.junit.Assert.assertEquals("#1B7A34", m.pages[0].tiles[0].color)
+        org.junit.Assert.assertEquals("#123456", m.pages[0].tiles[1].color)
+        org.junit.Assert.assertEquals("#C62828", m.phone.homeButtonColor)
+        org.junit.Assert.assertEquals(app.semplicephone.ui.settings.defaultColor(app.semplicephone.model.TileType.RADIO), "#FFA726")
+    }
+}
