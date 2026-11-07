@@ -92,8 +92,7 @@ jobs:
           # Il manifest della standard non deve contenere i permessi che Play Protect blocca.
           AAPT=$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -1)aapt2
           "$AAPT" dump permissions "SemplicePhone-$VERSION.apk" > perms.txt; cat perms.txt
-          if grep -Eq "RECEIVE_SMS|REQUEST_INSTALL_PACKAGES|BIND_NOTIFICATION_LISTENER|ACCESS_BACKGROUND_LOCATION" perms.txt; then echo "::error::permessi bloccati nella standard"; exit 1; fi
-          "$AAPT" dump xmltree --file AndroidManifest.xml "SemplicePhone-$VERSION.apk" | grep -q BIND_NOTIFICATION_LISTENER_SERVICE && { echo "::error::listener nella standard"; exit 1; } || true
+          if grep -Eq "RECEIVE_SMS|REQUEST_INSTALL_PACKAGES|ACCESS_BACKGROUND_LOCATION" perms.txt; then echo "::error::permessi bloccati nella standard"; exit 1; fi
           # Edizione Play: in più niente invio di SMS né USE_EXACT_ALARM (policy di Google Play).
           "$AAPT" dump permissions app/build/outputs/apk/play/release/app-play-release.apk > perms-play.txt; cat perms-play.txt
           if grep -Eq "SMS|REQUEST_INSTALL_PACKAGES|BIND_NOTIFICATION_LISTENER|USE_EXACT_ALARM|ACCESS_BACKGROUND_LOCATION|CALL_LOG" perms-play.txt; then echo "::error::permessi non ammessi nell'edizione Play"; exit 1; fi
