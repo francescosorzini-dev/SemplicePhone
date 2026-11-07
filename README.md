@@ -43,6 +43,16 @@ e una pagina web da cui la famiglia sistema tutto da lontano. Gratis, senza pubb
 - **Messaggi dalla famiglia** a tutto schermo e letti ad alta voce, finché non si tocca «HO LETTO».
 - **Messaggi da leggere.** Un riquadro elenca SMS e WhatsApp non letti: un tocco
   apre la conversazione, una pressione lunga la legge ad alta voce.
+- **Videochiamate WhatsApp e Telegram** con un tocco sulla foto del familiare.
+- **Strumenti**: torcia, lente d'ingrandimento (fotocamera con zoom e «ferma immagine»), «Dove sono?»
+  detto a voce, «Mi chiami?» a un familiare, musica dalle cartelle del telefono, notizie lette a voce.
+- **Contro le truffe**: avviso se viene installata un'app di controllo remoto (AnyDesk, TeamViewer…),
+  messaggi con link da sconosciuti segnalati e non apribili, blocco delle chiamate a pagamento ed estere,
+  avviso alla famiglia sulle chiamate lunghe con sconosciuti.
+- **Sicurezza**: rilevamento cadute con «Stai bene?», avvisi per SIM tolta e telefono non usato,
+  caldo estremo, zona sicura (edizione completa), scheda per i soccorsi nella schermata SOS.
+- **Comodità**: risposte vocali ai messaggi della famiglia, scorta delle pastiglie, buongiorno parlato,
+  volume delle chiamate alto, testo grande in tutte le app.
 - **Album.** Le foto caricate e quelle delle cartelle del telefono (Fotocamera, WhatsApp) scorrono da sole;
   un tocco su un video lo apre a tutto schermo, volume alto, un solo pulsante per chiudere.
 - **Radio.** Un riquadro con le stazioni preferite: ASCOLTA/FERMA enormi, stazione dopo, volume.
@@ -211,7 +221,7 @@ firmata Ed25519 (sostituisce quella locale quando arriva una versione più nuova
 | | |
 |---|---|
 | **Home** | griglia per pagine (1–4 colonne × 1–8 righe), tile w×h, swipe tra pagine, tasto Home → pagina 1 |
-| **Tile** | `app` (package o ruoli `@dialer @sms @camera @gallery @browser`), `call`, `wa_video`, `sms`, `url`, `shortcut`, `clock`, `sos`, `weather`, `photos`, `missed_calls`, `search` |
+| **Tile** | `app` (package o ruoli `@dialer @sms @camera @gallery @browser`), `call`, `wa_video`, `tg_video`, `sms`, `url`, `shortcut`, `clock`, `sos`, `weather`, `photos`, `missed_calls`, `search`, `messages`, `radio` |
 | **Contatti** | scelta dalla rubrica, foto in cerchio (o iniziali) oppure a tutto riquadro, chiamata diretta con `CALL_PHONE` |
 | **App dall'inizio** | toccando un riquadro l'app riparte dalla sua schermata iniziale (elenco chat, messaggi…), non dall'ultima pagina vista; si sceglie per tutto il telefono e per singolo riquadro |
 | **SOS** | pressione prolungata → conto alla rovescia annullabile → SMS con posizione a tutti i numeri → chiamata al primo |
@@ -250,7 +260,7 @@ Valori di default sovrascrivibili con `-P` o in `gradle.properties`: `semplice.r
 
 ```json
 { "id": "t1", "col": 0, "row": 1, "w": 2, "h": 1,
-  "type": "app | call | wa_video | sms | url | shortcut | clock | sos | weather | photos | missed_calls | search | messages | radio",
+  "type": "app | call | wa_video | tg_video | sms | url | shortcut | clock | sos | weather | photos | missed_calls | search | messages | radio",
   "target": "package | @ruolo | numero | https://… | pacchetto/shortcutId",
   "label": "Telefono",
   "icon": { "kind": "auto | app | symbol | photo | none", "ref": "phone | contact:<lookupKey>" },
@@ -283,6 +293,7 @@ validazione.
 | M14 – messaggi da leggere, radio, notte tranquilla, «metti in carica», calendario, foto dal portale, temi, copie di sicurezza | ✅ |
 | M15 – modelli pronti, album con cartelle e video, videomessaggi | ✅ |
 | M16 – rifinitura di portale ed editor (schede, simboli, cambio tipo, colori) | ✅ |
+| M17 – Telegram, strumenti, anti-truffa, cadute, sicurezza, risposte vocali | ✅ |
 
 ### Limiti noti
 

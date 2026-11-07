@@ -45,18 +45,24 @@ import app.semplicephone.ui.Symbols
  * successiva, volume. La radio continua anche uscendo da qui o spegnendo lo schermo.
  */
 @Composable
-fun RadioScreen(tile: Tile, onClose: () -> Unit) {
+fun RadioScreen(tile: Tile, onClose: () -> Unit, songs: List<app.semplicephone.model.Station>? = null) {
     val context = LocalContext.current
-    val stations = tile.stations.filter { it.url.isNotBlank() }
+    // Musica: i brani delle cartelle si suonano uno dopo l'altro; Radio: le stazioni scelte.
+    val stations = songs ?: tile.stations.filter { it.url.isNotBlank() }
+    val playlist = songs.orEmpty()
     val state by RadioService.state.collectAsState()
     var index by remember { mutableIntStateOf(stations.indexOfFirst { it.url == state.station?.url }.coerceAtLeast(0)) }
+    // Il brano successivo parte da solo: la schermata segue quello in riproduzione.
+    androidx.compose.runtime.LaunchedEffect(state.station?.url) {
+        stations.indexOfFirst { it.url == state.station?.url }.takeIf { it >= 0 }?.let { index = it }
+    }
     val current = stations.getOrNull(index)
     val am = remember { context.getSystemService(AudioManager::class.java) }
     val active = state.station?.url == current?.url && (state.playing || state.loading)
 
     fun select(i: Int) {
         index = (i + stations.size) % stations.size
-        if (active || state.playing) RadioService.play(context, stations[index])
+        if (active || state.playing) RadioService.play(context, stations[index], playlist)
     }
 
     Column(
@@ -69,9 +75,9 @@ fun RadioScreen(tile: Tile, onClose: () -> Unit) {
                 Text(stringResource(R.string.search_back), fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Palette.Ink)
             }
         }
-        Icon(Symbols.get("radio"), null, Modifier.size(110.dp), tint = Palette.Ink)
+        Icon(Symbols.get(if (songs != null) "music" else "radio"), null, Modifier.size(110.dp), tint = Palette.Ink)
         if (current == null) {
-            Text(stringResource(R.string.radio_no_stations), fontSize = 24.sp, color = Palette.Ink, textAlign = TextAlign.Center)
+            Text(stringResource(if (songs != null) R.string.music_no_songs else R.string.radio_no_stations), fontSize = 24.sp, color = Palette.Ink, textAlign = TextAlign.Center)
             return@Column
         }
         Text(current.name.ifBlank { stringResource(R.string.label_radio) }, fontSize = 34.sp, fontWeight = FontWeight.Bold, color = Palette.Ink, textAlign = TextAlign.Center)
@@ -85,7 +91,7 @@ fun RadioScreen(tile: Tile, onClose: () -> Unit) {
             fontSize = 20.sp, color = if (state.error) Palette.Sos else Palette.Ink, textAlign = TextAlign.Center,
         )
         Button(
-            onClick = { if (active) RadioService.stop(context) else RadioService.play(context, current) },
+            onClick = { if (active) RadioService.stop(context) else RadioService.play(context, current, playlist) },
             colors = ButtonDefaults.buttonColors(containerColor = if (active) Color(0xFFC62828) else Color(0xFF1B7A34)),
             shape = RoundedCornerShape(28.dp),
             modifier = Modifier.fillMaxWidth().heightIn(min = 140.dp),

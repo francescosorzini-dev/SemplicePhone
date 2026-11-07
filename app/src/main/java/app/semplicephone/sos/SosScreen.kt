@@ -56,7 +56,10 @@ import kotlinx.coroutines.withContext
  * La posizione si cerca durante il conto alla rovescia, così non ritarda la chiamata.
  */
 @Composable
-fun SosScreen(cfg: SosConfig, launcher: TileLauncher, contactNames: (String) -> String, onDone: () -> Unit) {
+fun SosScreen(
+    cfg: SosConfig, launcher: TileLauncher, contactNames: (String) -> String, onDone: () -> Unit,
+    emergency: app.semplicephone.model.EmergencyInfo = app.semplicephone.model.EmergencyInfo(), onEmergency: () -> Unit = {},
+) {
     val context = LocalContext.current
     val done by rememberUpdatedState(onDone)
     var remaining by remember { mutableIntStateOf(cfg.countdownSeconds.coerceIn(3, 15)) }
@@ -109,6 +112,12 @@ fun SosScreen(cfg: SosConfig, launcher: TileLauncher, contactNames: (String) -> 
     ) {
         Spacer(Modifier.height(24.dp))
         Text(stringResource(R.string.sos_title), color = Color.White, fontSize = 34.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+        // Dopo l'invio, chi arriva ad aiutare trova qui farmaci, allergie e contatti.
+        if (status != null && !emergency.isEmpty) androidx.compose.material3.Button(
+            onClick = onEmergency,
+            colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Palette.Sos),
+            modifier = Modifier.fillMaxWidth().heightIn(min = 80.dp),
+        ) { Text(stringResource(R.string.emergency_open), fontSize = 24.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center) }
         if (status == null) {
             Text(stringResource(R.string.sos_starts_in), color = Color.White, fontSize = 24.sp)
             Box(

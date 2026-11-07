@@ -55,7 +55,7 @@ enum class Template(
     );
 
     companion object {
-        private val PEOPLE = setOf(TileType.CALL, TileType.WA_VIDEO, TileType.SMS)
+        private val PEOPLE = setOf(TileType.CALL, TileType.WA_VIDEO, TileType.TG_VIDEO, TileType.SMS)
         private val APP_LABELS = mapOf(
             "@dialer" to R.string.label_phone, "@sms" to R.string.label_messages, "@camera" to R.string.label_camera,
             "@gallery" to R.string.label_photos, "@browser" to R.string.label_internet,

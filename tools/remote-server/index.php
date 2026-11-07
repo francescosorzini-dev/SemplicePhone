@@ -28,16 +28,19 @@ const MAX_REPORT = 262144;
 const HISTORY_KEEP = 30;
 const SOURCE_URL = 'https://github.com/francescosorzini-dev/SemplicePhone';
 const VERSION = '0.5.1'; // aggiornata in automatico nelle release
-const TILE_TYPES = ['app', 'call', 'wa_video', 'sms', 'url', 'shortcut', 'clock', 'sos', 'weather', 'photos', 'missed_calls', 'search', 'messages', 'radio'];
+const TILE_TYPES = ['app', 'call', 'wa_video', 'tg_video', 'sms', 'call_me', 'torch', 'magnifier', 'where', 'music', 'news', 'url', 'shortcut', 'clock', 'sos', 'weather', 'photos', 'missed_calls', 'search', 'messages', 'radio'];
 const MEDIA_MAX = 8 * 1024 * 1024;
 // Versione dell'app che conosce meteo, foto e promemoria in una data: le precedenti li ignorano o scartano.
 const APP_FEATURES_090 = '0.9.0';
 // Versione che conosce il riquadro chiamate perse e il pulsante «Casa».
 const APP_FEATURES_0100 = '0.10.0';
-const EVENT_TYPES = ['sos', 'reminder_missed', 'battery', 'offline', 'online', 'test', 'call_blocked', 'location', 'ring_done', 'message_read'];
+const EVENT_TYPES = ['sos', 'reminder_missed', 'battery', 'offline', 'online', 'test', 'call_blocked', 'location', 'ring_done', 'message_read', 'remote_app', 'scam_message', 'call_out_blocked', 'long_call', 'sim_changed', 'inactive', 'active_again', 'fall', 'zone_left', 'zone_back', 'heat', 'pills_low', 'call_me', 'voice_reply'];
+/** Avvisi della 0.17 (sicurezza, truffe, cadute…) che si possono attivare o spegnere uno per uno. */
+const NOTIFY_0170 = ['remote_app', 'scam_message', 'call_out_blocked', 'long_call', 'sim_changed', 'inactive', 'active_again', 'fall', 'zone_left', 'zone_back', 'heat', 'pills_low', 'call_me', 'voice_reply'];
 // Versione che riceve messaggi, «Fai squillare» e la risposta automatica.
 const APP_FEATURES_0130 = '0.13.0';
 const MESSAGE_MAX = 300;
+const VOICE_MAX = 5 << 20;
 /** Videomessaggi: al massimo 80 MB, o meno se l'hosting accetta caricamenti più piccoli. */
 function ini_bytes(string $v): int { $n = (int)$v; $u = strtolower(substr(trim($v), -1)); return $u === 'g' ? $n << 30 : ($u === 'm' ? $n << 20 : ($u === 'k' ? $n << 10 : $n)); }
 function video_max(): int {
@@ -45,6 +48,8 @@ function video_max(): int {
     foreach (['upload_max_filesize', 'post_max_size'] as $k) if (($b = ini_bytes((string)ini_get($k))) > 0) $lim[] = $b - ($k === 'post_max_size' ? 65536 : 0);
     return max(0, min($lim));
 }
+const NEWS_FEEDS = [['ANSA', 'https://www.ansa.it/sito/notizie/topnews/topnews_rss.xml'], ['Rai News', 'https://www.rainews.it/rss/tutti'], ['Il Post', 'https://www.ilpost.it/feed/'],
+    ['BBC News', 'https://feeds.bbci.co.uk/news/rss.xml'], ['Tagesschau', 'https://www.tagesschau.de/index~rss2.xml'], ['France Info', 'https://www.francetvinfo.fr/titres.rss'], ['RTVE', 'https://api2.rtve.es/rss/temas_noticias.xml']];
 const VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/3gpp', 'video/quicktime', 'video/x-matroska'];
 // Testi delle lingue: nelle release sono incorporati qui (file unico); in sviluppo si leggono da lang/*.json.
 const LANG_DATA = null;
@@ -108,7 +113,9 @@ function device_name(string $id): string {
 function settings(): array {
     return array_replace_recursive([
         'telegramToken' => '', 'telegramChat' => '', 'emailTo' => '', 'emailFrom' => '', 'panelUrl' => '',
-        'notify' => ['sos' => true, 'reminder_missed' => true, 'battery' => true, 'offline' => true, 'call_blocked' => false, 'location' => true, 'ring_done' => true, 'message_read' => true],
+        'notify' => ['sos' => true, 'reminder_missed' => true, 'battery' => true, 'offline' => true, 'call_blocked' => false, 'location' => true, 'ring_done' => true, 'message_read' => true,
+            'remote_app' => true, 'scam_message' => true, 'call_out_blocked' => false, 'long_call' => true, 'sim_changed' => true, 'inactive' => true, 'active_again' => true,
+            'fall' => true, 'zone_left' => true, 'zone_back' => true, 'heat' => true, 'pills_low' => true, 'call_me' => true, 'voice_reply' => true],
         'offlineHours' => 24,
         // Riepilogo settimanale il lunedì mattina (stessi canali degli avvisi).
         'weeklySummary' => true,
@@ -537,6 +544,24 @@ if (isset($_GET['device'])) {
         serve_media($hash);
     }
 
+    // Risposta vocale del nonno a un messaggio (m4a, al massimo 5 MB): la si ascolta nel portale.
+    if (isset($_GET['voice']) && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        write_atomic(dev_path($id, 'meta.json'), json_encode($meta));
+        $body = file_get_contents('php://input', false, null, 0, VOICE_MAX + 1);
+        if ($body === false || strlen($body) < 200 || strlen($body) > VOICE_MAX || substr($body, 4, 4) !== 'ftyp') { http_response_code(400); exit('{"error":"voice"}'); }
+        $dir = DATA . "/voice/$id"; if (!is_dir($dir)) mkdir($dir, 0700, true);
+        $name = time() . '_' . preg_replace('/\D/', '', (string)$_GET['voice']) . '.m4a';
+        write_atomic("$dir/$name", $body);
+        // Si tengono le ultime 30 risposte.
+        $all = glob("$dir/*.m4a") ?: []; sort($all);
+        foreach (array_slice($all, 0, max(0, count($all) - 30)) as $old) @unlink($old);
+        $ev = ['type' => 'voice_reply', 'text' => t('voice_reply_text'), 'at' => (int)(microtime(true) * 1000), 'receivedAt' => time(), 'file' => $name];
+        append_jsonl(DATA . "/events/$id.jsonl", $ev);
+        if (!empty(settings()['notify']['voice_reply'])) send_alert(ev_title('voice_reply'), t('voice_reply_text'), $id);
+        http_response_code(204);
+        exit;
+    }
+
     // Messaggio della famiglia, firmato come la configurazione.
     if (isset($_GET['message'])) {
         write_atomic(dev_path($id, 'meta.json'), json_encode($meta));
@@ -558,6 +583,8 @@ if (isset($_GET['device'])) {
             write_atomic(dev_path($id, 'apps.json'), json_encode($apps, JSON_UNESCAPED_UNICODE));
             unset($r['apps']);
         }
+        // Pastiglie rimaste per promemoria (contate dal telefono a ogni «Presa»).
+        if (isset($r['stock']) && is_array($r['stock'])) $meta['stock'] = array_map('intval', array_slice($r['stock'], 0, 60, true));
         $r['receivedAt'] = time();
         append_jsonl(DATA . "/reports/$id.jsonl", $r);
         foreach (['battery', 'charging', 'appVersion', 'lastResult', 'badgesAccess', 'edition'] as $k) $meta[$k] = $r[$k] ?? null;
@@ -788,6 +815,13 @@ function base_url(): string {
 
 // Immagini per l'editor (anteprime) e caricamento: solo con il pannello aperto.
 if (!empty($_SESSION['ok']) && isset($_GET['thumb'])) serve_media((string)$_GET['thumb']);
+// Risposte vocali dei telefoni, solo per chi è entrato nel portale.
+if (!empty($_SESSION['ok']) && isset($_GET['voicefile'], $_GET['id']) && valid_id((string)$_GET['id']) && preg_match('/^\d+_\d*\.m4a$/', (string)$_GET['voicefile'])) {
+    $vf = DATA . '/voice/' . $_GET['id'] . '/' . $_GET['voicefile'];
+    if (!is_file($vf)) { http_response_code(404); exit; }
+    header('Content-Type: audio/mp4'); header('Content-Length: ' . filesize($vf)); header('Cache-Control: private, max-age=86400');
+    readfile($vf); exit;
+}
 if (!empty($_SESSION['ok']) && isset($_GET['upload']) && $_SERVER['REQUEST_METHOD'] === 'POST') {
     check_csrf($csrf);
     header('Content-Type: application/json; charset=utf-8');
@@ -1043,7 +1077,7 @@ details summary{cursor:pointer;font-weight:600}
   <p class="lead"><?= th('alerts_lead') ?></p>
   <form method="post" class="card"><input type="hidden" name="csrf" value="<?= h($csrf) ?>"><input type="hidden" name="act" value="settings">
     <h3><?= th('when_alert') ?></h3>
-    <?php foreach (['sos', 'reminder_missed', 'battery', 'offline', 'call_blocked', 'location', 'ring_done', 'message_read'] as $k): $label = t('n_' . $k); ?>
+    <?php foreach (array_merge(['sos', 'reminder_missed', 'battery', 'offline', 'call_blocked', 'location', 'ring_done', 'message_read'], NOTIFY_0170) as $k): $label = t('n_' . $k); ?>
       <label style="font-weight:400"><input type="checkbox" name="notify_<?= $k ?>" <?= !empty($s['notify'][$k]) ? 'checked' : '' ?>> <?= h($label) ?></label>
     <?php endforeach; ?>
     <label style="font-weight:400"><input type="checkbox" name="weeklySummary" <?= !empty($s['weeklySummary']) ? 'checked' : '' ?>> <?= th('weekly_enable') ?></label>
@@ -1168,7 +1202,8 @@ details summary{cursor:pointer;font-weight:600}
     <button type="button" data-ptab="p-settings">⚙ <?= th('ptab_settings') ?></button>
   </div>
   <section class="pagepanel" id="p-config">
-  <form method="post" id="pubform" data-dirty="<?= $loaded ? '1' : '0' ?>" data-edition="<?= h($meta['edition'] ?? '') ?>" data-app="<?= h($meta['appVersion'] ?? '') ?>" data-csrf="<?= h($csrf) ?>">
+  <?php $lastLocPre = null; foreach ($urgent as $ev) if (isset($ev['lat'], $ev['lon']) && $ev['lat'] !== null) { $lastLocPre = ['lat' => (float)$ev['lat'], 'lon' => (float)$ev['lon']]; break; } ?>
+  <form method="post" id="pubform" data-dirty="<?= $loaded ? '1' : '0' ?>" data-edition="<?= h($meta['edition'] ?? '') ?>" data-app="<?= h($meta['appVersion'] ?? '') ?>" data-csrf="<?= h($csrf) ?>" data-stock="<?= h(json_encode((object)($meta['stock'] ?? []))) ?>" data-lastloc="<?= h(json_encode($lastLocPre ?? null)) ?>">
     <input type="hidden" name="csrf" value="<?= h($csrf) ?>"><input type="hidden" name="act" value="publish"><input type="hidden" name="id" value="<?= h($edit) ?>">
     <div class="row">
       <div><label for="name"><?= th('name') ?> <span class="hint"><?= th('name_hint') ?></span></label><input id="name" type="text" name="name" value="<?= h($meta['name'] ?? '') ?>" <?= ($meta['name'] ?? '') === '' ? 'class="invite"' : '' ?>><?php if (($meta['name'] ?? '') === ''): ?><div class="hint">👆 <?= th('name_invite') ?></div><?php endif; ?></div>
@@ -1299,6 +1334,15 @@ details summary{cursor:pointer;font-weight:600}
       <button class="sec"><?= th('ring_button') ?></button></form>
     <?php if ($ringing): ?><p class="msg warn"><?= th('ring_pending') ?></p><?php endif; ?>
     <p class="hint"><?= th('family_hint') ?></p>
+    <?php $voices = array_reverse(glob(DATA . "/voice/$edit/*.m4a") ?: []); if ($voices): ?>
+      <h3 style="margin-top:18px">🎤 <?= th('voice_replies') ?></h3>
+      <?php foreach (array_slice($voices, 0, 10) as $vf): $vn = basename($vf); ?>
+        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:8px 0">
+          <span class="hint" style="min-width:110px"><?= h(date('d/m H:i', (int)$vn)) ?></span>
+          <audio controls preload="none" src="?voicefile=<?= h($vn) ?>&amp;id=<?= h($edit) ?>"></audio>
+        </div>
+      <?php endforeach; ?>
+    <?php endif; ?>
   </div>
 
   </section>
@@ -1418,11 +1462,11 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
   if (!ta) return;
 
   // Un simbolo per ogni tipo: nell'elenco «Cosa fa» e nell'anteprima del telefono.
-  const TYPE_EMOJI = {app: '📱', call: '📞', wa_video: '🎥', sms: '✉️', url: '🌐', shortcut: '↗️', clock: '🕑', weather: '☀️', photos: '🖼', missed_calls: '📵',
+  const TYPE_EMOJI = {app: '📱', call: '📞', wa_video: '🎥', tg_video: '📹', call_me: '🙋', torch: '🔦', magnifier: '🔎', where: '📍', music: '🎵', news: '📰', sms: '✉️', url: '🌐', shortcut: '↗️', clock: '🕑', weather: '☀️', photos: '🖼', missed_calls: '📵',
     messages: '💬', search: '🔍', radio: '📻', sos: '⚠️'};
   const TYPES = Object.fromEntries(Object.keys(TYPE_EMOJI).map(k => [k, TYPE_EMOJI[k] + ' ' + T('type_' + k)]));
   // Colore tipico di ogni tipo (stessa tavolozza del telefono) e colori predefiniti delle versioni vecchie.
-  const TYPE_COLOR = {wa_video: '#4FC3F7', weather: '#4FC3F7', clock: '#FFFFFF', photos: '#6A1B9A', missed_calls: '#FFD54F', search: '#1A1A1A', url: '#1A1A1A',
+  const TYPE_COLOR = {wa_video: '#4FC3F7', tg_video: '#4FC3F7', call_me: '#1B7A34', torch: '#FFD54F', magnifier: '#FFD54F', where: '#1A1A1A', news: '#1A1A1A', music: '#FFA726', weather: '#4FC3F7', clock: '#FFFFFF', photos: '#6A1B9A', missed_calls: '#FFD54F', search: '#1A1A1A', url: '#1A1A1A',
     radio: '#FFA726', sos: '#C62828'};
   const typeColor = k => TYPE_COLOR[k] || '#1F4FA8';
   const OLD_COLORS = {'#0B6E4F': '#1B7A34', '#00695C': '#4FC3F7', '#B71C1C': '#C62828', '#A84300': '#FFA726', '#FFF3C4': '#FFD54F', '#FFE7A8': '#FFD54F',
@@ -1468,8 +1512,10 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
     'com.google.android.apps.maps': T('lbl_maps'), 'com.google.android.gm': T('lbl_mail'), 'com.android.chrome': T('def_internet')};
   /** Scritta automatica del tipo ('' = da scrivere, es. il nome del familiare). */
   const typeLabel = (k, target) => ({photos: T('def_album'), missed_calls: T('def_missed'), search: T('def_search'), messages: T('def_messages_unread'),
-    radio: T('def_radio'), sos: 'SOS', clock: '', app: APP_LABEL[target] || ''})[k] ?? '';
+    radio: T('def_radio'), sos: 'SOS', clock: '', app: APP_LABEL[target] || '', call_me: T('def_call_me'), torch: T('def_torch'), magnifier: T('def_magnifier'),
+    where: T('def_where'), music: T('def_music'), news: T('def_news')})[k] ?? '';
   const AUTO_LABELS = new Set([T('def_album'), T('def_photos'), T('def_missed'), T('def_search'), T('def_messages_unread'), T('def_radio'), 'SOS',
+    T('def_call_me'), T('def_torch'), T('def_magnifier'), T('def_where'), T('def_music'), T('def_news'),
     ...Object.values(APP_LABEL), ...Object.values(TYPES)]);
   const ICONS = Object.fromEntries(['auto', 'app', 'symbol', 'photo', 'none'].map(k => [k, T('icon_' + k)]));
   const SYMBOLS = Object.fromEntries(['phone', 'message', 'video', 'photo', 'camera', 'weather', 'web', 'person', 'alert', 'pill', 'home',
@@ -1494,7 +1540,7 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
   cfg.pages = cfg.pages || [{cols: 2, rows: 5, tiles: []}];
   cfg.sos = cfg.sos || {numbers: [], holdSeconds: 3, countdownSeconds: 5, message: T('def_sos_message')};
   cfg.reminders = cfg.reminders || [];
-  cfg.phone = Object.assign({ringerLock: false, ringVolumePercent: 100, batteryAlertPercent: 15, badges: true, smsUpdateCommand: false, freshStart: true}, cfg.phone || {});
+  cfg.phone = Object.assign({ringerLock: false, ringVolumePercent: 100, batteryAlertPercent: 15, badges: true, smsUpdateCommand: false, freshStart: true, remoteAppAlert: true, scamGuard: true}, cfg.phone || {});
   // Colori predefiniti delle versioni vecchie → quelli nuovi più vicini (una volta, poi si pubblica).
   let recolored = 0;
   cfg.pages.forEach(pg => (pg.tiles || []).forEach(t => { const n = OLD_COLORS[(t.color || '').toUpperCase()]; if (n) { t.color = n; recolored++; } }));
@@ -1540,7 +1586,7 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
         const w = t.w || 1, h = t.h || 1;
         if (t.col < 0 || t.row < 0 || t.col + w > p.cols || t.row + h > p.rows) out.push(T('p_out', pi + 1, name(t)));
         p.tiles.forEach(o => { if (o !== t && o.id > t.id && overlap(t, o)) out.push(T('p_overlap', pi + 1, name(t), name(o))); });
-        if (['call', 'wa_video', 'sms'].includes(t.type) && !(t.target || '').trim()) out.push(T('p_no_number', name(t)));
+        if (['call', 'wa_video', 'tg_video', 'sms', 'call_me'].includes(t.type) && !(t.target || '').trim()) out.push(T('p_no_number', name(t)));
         if (t.type === 'url' && !/^https?:\/\//.test(t.target || '')) out.push(T('p_bad_url', name(t)));
       });
     });
@@ -1563,9 +1609,13 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
       old0120 = cfg.pages.some(p => p.tiles.some(t => t.type === 'search')) && !newer(app, '0.12.0'),
       old0130 = (cfg.phone.autoAnswer || cfg.phone.announceCaller) && !newer(app, '0.13.0'),
       old0140 = (cfg.pages.some(p => p.tiles.some(t => ['messages', 'radio'].includes(t.type) || (t.icon && /^media:/.test(t.icon.ref || ''))))
-        || cfg.phone.nightQuiet || cfg.phone.chargeReminder || cfg.phone.holdToOpen || (cfg.phone.theme && cfg.phone.theme !== 'normal')) && !newer(app, '0.14.0');
-    warn.hidden = !(app && (old090 || old0100 || old0101 || old0120 || old0130 || old0140));
-    warn.textContent = old090 ? T('old_app_warn', app || '?') : old0100 ? T('old_app_warn_0100', app || '?') : old0101 ? T('old_app_warn_0101', app || '?') : old0120 ? T('old_app_warn_0120', app || '?') : old0130 ? T('old_app_warn_0130', app || '?') : T('old_app_warn_0140', app || '?');
+        || cfg.phone.nightQuiet || cfg.phone.chargeReminder || cfg.phone.holdToOpen || (cfg.phone.theme && cfg.phone.theme !== 'normal')) && !newer(app, '0.14.0'),
+      old0170 = (cfg.pages.some(p => p.tiles.some(t => ['tg_video', 'call_me', 'torch', 'magnifier', 'where', 'music', 'news'].includes(t.type)))
+        || ['blockPremium', 'blockInternational', 'simAlert', 'fallDetection', 'heatAlert', 'morningBrief'].some(k => cfg.phone[k])
+        || cfg.phone.longCallMinutes || cfg.phone.inactivityHours || cfg.phone.safeZoneRadius || cfg.phone.callVolumePercent || cfg.phone.fontScale
+        || (cfg.emergency && Object.values(cfg.emergency).some(v => v))) && !newer(app, '0.17.0');
+    warn.hidden = !(app && (old090 || old0100 || old0101 || old0120 || old0130 || old0140 || old0170));
+    warn.textContent = old090 ? T('old_app_warn', app || '?') : old0100 ? T('old_app_warn_0100', app || '?') : old0101 ? T('old_app_warn_0101', app || '?') : old0120 ? T('old_app_warn_0120', app || '?') : old0130 ? T('old_app_warn_0130', app || '?') : old0140 ? T('old_app_warn_0140', app || '?') : T('old_app_warn_0170', app || '?');
     const p = problems(), box = document.getElementById('issues');
     box.replaceChildren(...(p.length ? [el('b', {}, T('p_title')), el('ul', {}, p.map(x => el('li', {}, x)))] : []));
     document.getElementById('pubbtn').disabled = p.length > 0;
@@ -1650,7 +1700,7 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
     const parts = [el('h3', {}, T('selected_tile')),
       field(T('what_it_does'), select(TYPES, t.type, v => {
         // Il valore del tipo precedente non vale per il nuovo (es. «@dialer» per una videochiamata).
-        const phoneTypes = ['call', 'wa_video', 'sms'];
+        const phoneTypes = ['call', 'wa_video', 'tg_video', 'sms', 'call_me'];
         const keep = (phoneTypes.includes(t.type) && phoneTypes.includes(v)) || t.type === v;
         if (!keep) t.target = '';
         // Scritta e colore seguono il nuovo tipo, a meno che siano stati scelti a mano.
@@ -1665,7 +1715,7 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
         if (v === 'radio') { t.target = ''; t.stations = t.stations || [{name: '', url: ''}]; }
         if (v === 'missed_calls') { t.target = ''; t.icon = {kind: 'auto', ref: ''}; }
         if (v === 'sos') { t.label = 'SOS'; t.w = Math.min(2, p.cols); }
-        if (['call', 'wa_video', 'sms'].includes(v) && t.icon.kind === 'symbol') t.icon = {kind: 'auto', ref: ''};
+        if (['call', 'wa_video', 'tg_video', 'sms', 'call_me'].includes(v) && t.icon.kind === 'symbol') t.icon = {kind: 'auto', ref: ''};
         changed(); render();
       }))];
 
@@ -1682,9 +1732,11 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
       parts.push(field(T('tile_open'), select({default: T('open_default'), fresh: T('open_fresh'), resume: T('open_resume')}, t.open || 'default',
         v => { if (v === 'default') delete t.open; else t.open = v; changed(); render(); })));
     }
-    if (['call', 'wa_video', 'sms'].includes(t.type)) {
+    if (['call', 'wa_video', 'tg_video', 'sms', 'call_me'].includes(t.type)) {
       parts.push(field(T('phone_number'), el('input', {type: 'tel', value: t.target || '', placeholder: T('phone_placeholder'), onchange: e => upd('target', e.target.value.replace(/[^\d+]/g, ''))})));
       if (t.type === 'wa_video') parts.push(el('p', {class: 'hint'}, T('wa_hint')));
+      if (t.type === 'tg_video') parts.push(el('p', {class: 'hint'}, T('tg_hint')));
+      if (t.type === 'call_me') parts.push(el('p', {class: 'hint'}, T('call_me_hint')));
       if (t.type === 'sms') parts.push(field(T('msg_text'), el('input', {type: 'text', value: t.body || '', onchange: e => upd('body', e.target.value)})));
     }
     if (t.type === 'weather') {
@@ -1707,6 +1759,15 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
         field(T('upload_photos'), fileInput(true, refs => { t.photos = [...new Set(t.photos.concat(refs))]; changed(); render(); })));
     }
     if (t.type === 'search') parts.push(el('p', {class: 'hint'}, T('search_hint')));
+    if (['torch', 'magnifier', 'where'].includes(t.type)) parts.push(el('p', {class: 'hint'}, T(t.type + '_hint')));
+    if (t.type === 'music') parts.push(el('p', {class: (t.folders || []).length ? 'msg' : 'hint'}, (t.folders || []).length ? T('music_folders_n', t.folders.length) : T('music_hint')));
+    if (t.type === 'news') {
+      const NEWS = <?= json_encode(NEWS_FEEDS, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
+      parts.push(el('p', {class: 'hint'}, T('news_hint')),
+        field(T('news_source'), select(Object.assign(Object.fromEntries(NEWS.map(([n, u]) => [u, n])), {'': T('news_other')}), NEWS.some(f => f[1] === t.target) ? t.target : '',
+          v => { t.target = v; changed(); render(); })),
+        field(T('news_url'), el('input', {type: 'url', value: t.target || '', placeholder: 'https://…/feed.xml', onchange: e => { t.target = e.target.value.trim(); changed(); }})));
+    }
     if (t.type === 'messages') parts.push(el('p', {class: 'hint'}, T(FORM.dataset.edition === 'play' ? 'messages_hint_basic' : 'messages_hint') + (FORM.dataset.edition === 'standard' ? ' ' + T('restricted_hint') : '')));
     if (t.type === 'radio') {
       t.stations = t.stations || [];
@@ -1725,25 +1786,25 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
     if (t.type === 'shortcut') parts.push(field(T('shortcut'), el('input', {type: 'text', value: t.target || '', placeholder: T('shortcut_placeholder'), onchange: e => upd('target', e.target.value.trim())}), T('experts')));
     if (t.type !== 'clock') parts.push(field(T('tile_text'), el('input', {type: 'text', value: t.label || '', maxlength: '30', onchange: e => upd('label', e.target.value)})));
 
-    if (!['clock', 'sos', 'weather', 'photos', 'missed_calls', 'messages', 'search'].includes(t.type)) {
+    if (!['clock', 'sos', 'weather', 'photos', 'missed_calls', 'messages', 'search', 'torch', 'magnifier', 'where', 'music', 'news'].includes(t.type)) {
       parts.push(field(T('icon'), select(ICONS, t.icon.kind || 'auto', v => { t.icon = {kind: v, ref: v === 'symbol' ? (t.icon.ref && SYMBOLS[t.icon.ref] ? t.icon.ref : 'phone') : (v === 'photo' || v === 'auto' ? /^(contact|media):/.test(t.icon.ref || '') ? t.icon.ref : '' : '')}; changed(); render(); })));
       if (t.icon.kind === 'symbol') parts.push(field(T('symbol'), select(SYMBOLS, t.icon.ref || 'phone', v => { t.icon.ref = v; changed(); render(); })));
       // Foto del familiare caricata da qui: non serve averla nella rubrica del telefono.
-      if (['call', 'wa_video', 'sms'].includes(t.type)) {
+      if (['call', 'wa_video', 'tg_video', 'sms', 'call_me'].includes(t.type)) {
         const media = (t.icon.ref || '').startsWith('media:') ? t.icon.ref : '';
         parts.push(el('label', {}, T('family_photo')),
           media ? thumb(media, () => { t.icon = {kind: 'auto', ref: '', fill: t.icon.fill}; if (!t.icon.fill) delete t.icon.fill; changed(); render(); }) : '',
           fileInput(false, refs => { t.icon = Object.assign({}, t.icon, {kind: 'photo', ref: refs[0]}); changed(); render(); }),
           el('div', {class: 'hint'}, T('family_photo_hint')));
       }
-      if (t.icon.kind === 'photo' || (t.icon.kind === 'auto' && ['call', 'wa_video', 'sms'].includes(t.type)))
+      if (t.icon.kind === 'photo' || (t.icon.kind === 'auto' && ['call', 'wa_video', 'tg_video', 'sms', 'call_me'].includes(t.type)))
         parts.push(el('p', {class: 'hint'}, T('photo_hint')),
           el('label', {style: 'font-weight:400'}, el('input', {type: 'checkbox', checked: !!t.icon.fill,
             onchange: e => { t.icon.fill = e.target.checked; if (!t.icon.fill) delete t.icon.fill; changed(); render(); }}), ' ' + T('photo_fill')),
           el('div', {class: 'hint'}, T('photo_fill_hint')));
     }
 
-    if (cfg.phone.homeButton && ['app', 'shortcut', 'url', 'sms', 'wa_video'].includes(t.type))
+    if (cfg.phone.homeButton && ['app', 'shortcut', 'url', 'sms', 'wa_video', 'tg_video'].includes(t.type))
       parts.push(el('label', {style: 'font-weight:400'}, el('input', {type: 'checkbox', checked: t.homeButton !== false,
         onchange: e => { if (e.target.checked) delete t.homeButton; else t.homeButton = false; changed(); render(); }}), ' ' + T('tile_home_button')),
         el('div', {class: 'hint'}, T('tile_home_button_hint')));
@@ -1799,10 +1860,21 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
       el('div', {class: 'row'},
         field(T('hold_seconds'), select({1: '1', 2: '2', 3: '3', 4: '4', 5: '5'}, String(s.holdSeconds || 3), v => { s.holdSeconds = +v; changed(); })),
         field(T('cancel_seconds'), select({3: '3', 5: '5', 8: '8', 10: '10'}, String(s.countdownSeconds || 5), v => { s.countdownSeconds = +v; changed(); }))),
-      field(T('sms_text'), el('input', {type: 'text', value: s.message || '', onchange: e => { s.message = e.target.value; changed(); }}), T('sms_text_hint')));
+      field(T('sms_text'), el('input', {type: 'text', value: s.message || '', onchange: e => { s.message = e.target.value; changed(); }}), T('sms_text_hint')),
+      // Scheda per i soccorritori: compare sul telefono nella schermata SOS dopo l'invio.
+      el('h3', {style: 'margin-top:22px'}, 'ℹ ' + T('em_title')), el('p', {class: 'hint'}, T('em_hint')),
+      ...(() => {
+        const e = cfg.emergency = cfg.emergency || {};
+        const f = (k, multi) => field(T('em_' + k), multi
+          ? el('textarea', {rows: '2', maxlength: '400', onchange: ev => { e[k] = ev.target.value.trim(); changed(); }}, e[k] || '')
+          : el('input', {type: 'text', maxlength: '120', value: e[k] || '', onchange: ev => { e[k] = ev.target.value.trim(); changed(); }}));
+        return [el('div', {class: 'row'}, f('name'), f('birth')), f('conditions', true), f('medications', true), f('allergies', true),
+          el('div', {class: 'row'}, f('bloodType'), f('doctor')), f('notes', true)];
+      })());
   }
 
   // -------- promemoria
+  const STOCK = JSON.parse(document.getElementById('pubform').dataset.stock || '{}');
   function renderRem() {
     const box = document.getElementById('t-rem');
     const items = cfg.reminders.slice().sort((a, b) => (a.time || '').localeCompare(b.time || '')).map(r => {
@@ -1837,6 +1909,13 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
           field(T('snooze_after'), select({5: '5 min', 10: '10 min', 15: '15 min', 30: '30 min'}, String(r.snoozeMinutes || 10), v => set('snoozeMinutes', +v))),
           field(T('repeat_every'), select({2: '2 min', 5: '5 min', 10: '10 min'}, String(r.repeatMinutes || 5), v => set('repeatMinutes', +v))),
           field(T('at_most'), select({0: T('no_repeat'), 3: T('n_times', 3), 6: T('n_times', 6), 10: T('n_times', 10)}, String(r.maxRepeats ?? 6), v => set('maxRepeats', +v)))),
+        // Scorta di pastiglie: il telefono conta le «Presa» e avvisa quando stanno finendo.
+        el('div', {class: 'row'},
+          field(T('stock_now'), el('input', {type: 'number', min: '0', max: '999', value: r.stock >= 0 ? String(STOCK[r.id] ?? r.stock) : '', placeholder: T('stock_off'),
+            onchange: e => { const v = e.target.value.trim(); if (v === '') { r.stock = -1; } else { r.stock = Math.max(0, +v); r.stockSetAt = Date.now(); } changed(); renderRem(); }}),
+            r.stock >= 0 ? (STOCK[r.id] !== undefined ? T('stock_left', STOCK[r.id]) : T('stock_hint')) : T('stock_hint')),
+          r.stock >= 0 ? field(T('stock_per'), select({1: '1', 2: '2', 3: '3', 4: '4'}, String(r.perDose || 1), v => set('perDose', +v))) : '',
+          r.stock >= 0 ? field(T('stock_low'), select({3: '3', 5: '5', 7: '7', 10: '10', 14: '14'}, String(r.lowAt || 5), v => set('lowAt', +v))) : ''),
         el('div', {class: 'row', style: 'align-items:center;margin-top:8px'},
           el('label', {style: 'margin:0;font-weight:400'}, el('input', {type: 'checkbox', checked: r.enabled !== false, onchange: e => set('enabled', e.target.checked)}), ' ' + T('active')),
           el('div', {style: 'flex:0 0 auto'}, el('button', {type: 'button', class: 'small danger', onclick: () => {
@@ -1902,6 +1981,38 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
       p.ringerLock ? field(T('min_volume'), select({30: '30%', 50: '50%', 70: '70%', 80: '80%', 90: '90%', 100: '100%'}, String(p.ringVolumePercent), v => set('ringVolumePercent', +v))) : '',
       field(T('battery_alert'), select(Object.assign({0: T('never_cap')}, ...[10, 15, 20, 25, 30].map(n => ({[n]: T('below_pct', n)}))), String(p.batteryAlertPercent), v => set('batteryAlertPercent', +v)),
         T('battery_alert_hint')),
+      ),
+      group('grp_safety',
+        check('remoteAppAlert', T('remote_apps'), T('remote_apps_hint')),
+        check('scamGuard', T('scam_guard'), T('scam_guard_hint')),
+        check('blockPremium', T('block_premium'), T('block_premium_hint')),
+        check('blockInternational', T('block_international'), T('block_international_hint')),
+        field(T('long_call'), select({0: T('never_cap'), 5: '5 min', 10: '10 min', 15: '15 min', 20: '20 min', 30: '30 min'}, String(p.longCallMinutes || 0), v => set('longCallMinutes', +v)), T('long_call_hint')),
+        check('simAlert', T('sim_alert'), T('sim_alert_hint')),
+        field(T('inactive'), select({0: T('never_cap'), 4: '4 h', 6: '6 h', 8: '8 h', 12: '12 h'}, String(p.inactivityHours || 0), v => set('inactivityHours', +v)), T('inactive_hint')),
+        check('fallDetection', T('fall'), T('fall_hint')),
+        check('heatAlert', T('heat'), T('heat_hint')),
+        p.heatAlert ? field(T('heat_from'), select(Object.fromEntries([28, 30, 32, 34, 36].map(n => [n, n + '°'])), String(p.heatThreshold || 32), v => set('heatThreshold', +v))) : '',
+        el('h4', {style: 'margin-top:14px'}, T('zone')),
+        document.getElementById('pubform').dataset.edition === 'completo'
+          ? el('div', {},
+              el('p', {class: 'hint'}, T('zone_hint')),
+              el('div', {class: 'row'},
+                field(T('zone_radius'), select({0: T('never_cap'), 200: '200 m', 500: '500 m', 1000: '1 km', 2000: '2 km', 5000: '5 km'}, String(p.safeZoneRadius || 0), v => set('safeZoneRadius', +v))),
+                field(T('zone_lat'), el('input', {type: 'number', step: '0.00001', value: p.safeZoneLat || '', onchange: e => set('safeZoneLat', +e.target.value || 0)})),
+                field(T('zone_lon'), el('input', {type: 'number', step: '0.00001', value: p.safeZoneLon || '', onchange: e => set('safeZoneLon', +e.target.value || 0)}))),
+              (() => { const ll = JSON.parse(document.getElementById('pubform').dataset.lastloc || 'null');
+                return ll ? el('button', {type: 'button', class: 'small sec', onclick: () => { p.safeZoneLat = +ll.lat.toFixed(5); p.safeZoneLon = +ll.lon.toFixed(5); changed(); renderPhone(); }}, T('zone_use_last')) : el('p', {class: 'hint'}, T('zone_no_last')); })())
+          : el('p', {class: 'hint'}, T('zone_full_only'))
+      ),
+      group('grp_comfort',
+        field(T('call_volume'), select({0: T('unchanged'), 70: '70%', 80: '80%', 90: '90%', 100: '100%'}, String(p.callVolumePercent || 0), v => set('callVolumePercent', +v))),
+        field(T('font_scale'), select({0: T('unchanged'), 1.15: '115%', 1.3: '130%', 1.5: '150%', 1.8: '180%'}, String(p.fontScale || 0), v => set('fontScale', +v)), T('font_scale_hint')),
+        el('div', {class: 'row'},
+          field(T('screen_timeout'), select({0: T('unchanged'), 60: '1 min', 120: '2 min', 300: '5 min', 600: '10 min', 1800: '30 min'}, String(p.screenTimeoutSeconds || 0), v => set('screenTimeoutSeconds', +v))),
+          field(T('brightness'), select({0: T('unchanged'), 50: '50%', 70: '70%', 90: '90%', 100: '100%'}, String(p.brightnessPercent || 0), v => set('brightnessPercent', +v)))),
+        check('morningBrief', T('morning'), T('morning_hint')),
+        p.morningBrief ? field(T('morning_time'), select(Object.fromEntries([6, 7, 8, 9, 10, 11].map(h => [`${String(h).padStart(2, '0')}:00`, `${h}:00`])), p.morningTime || '09:00', v => set('morningTime', v))) : ''
       ),
       group('grp_remote',
       ...(['standard', 'play'].includes(document.getElementById('pubform').dataset.edition)
@@ -2010,7 +2121,7 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
       });
       // Ordine di importanza: familiari, chiamate perse, meteo, app, ricerca. Un riquadro largo
       // che capiterebbe a metà riga aspetta l'inizio della riga successiva, così non restano buchi.
-      const prio = t => ({call: 0, wa_video: 0, missed_calls: 1, messages: 1, weather: 2, app: 3, photos: 4, search: 5})[t.type] ?? 3;
+      const prio = t => ({call: 0, wa_video: 0, tg_video: 0, missed_calls: 1, messages: 1, weather: 2, app: 3, photos: 4, search: 5})[t.type] ?? 3;
       items.sort((a, b) => prio(a.t) - prio(b.t));
       const ROWS = MODELS[model].rows, pages = [{cols: 2, rows: ROWS, tiles: [{id: 'clock', col: 0, row: 0, w: 2, h: 1, type: 'clock', color: '#FFFFFF'}]}];
       let pg = 0, row = 1, col = 0;

@@ -293,3 +293,57 @@ adb shell "run-as $P cat files/config.json" | grep -A3 '"folders"' > "$OUT/v15_a
 adb logcat -d -s Album:* | tail -20 >> "$OUT/v15_album_folders.txt" || true
 adb logcat -d | grep -E "AndroidRuntime|FATAL" -A8 | head -60 > "$OUT/v15_errors.txt" || true
 home
+
+# ---- 0.17.0: nuovi riquadri (lente, dove sono, notizie, musica, mi chiami, torcia), opzioni di sicurezza
+adb shell mkdir -p /sdcard/Musica/Preferite
+adb push test-song.mp3 /sdcard/Musica/Preferite/01-Canzone.mp3 >/dev/null
+cat > /tmp/c17.json <<'J'
+{"version":1,"pages":[{"cols":2,"rows":5,"tiles":[
+ {"id":"clock","col":0,"row":0,"w":2,"h":1,"type":"clock","color":"#FFFFFF"},
+ {"id":"lente","col":0,"row":1,"w":1,"h":1,"type":"magnifier","label":"Lente","color":"#FFD54F"},
+ {"id":"dove","col":1,"row":1,"w":1,"h":1,"type":"where","label":"Dove sono?","color":"#1A1A1A"},
+ {"id":"news","col":0,"row":2,"w":1,"h":1,"type":"news","label":"Notizie","target":"https://www.ansa.it/sito/notizie/topnews/topnews_rss.xml","color":"#1A1A1A"},
+ {"id":"musica","col":1,"row":2,"w":1,"h":1,"type":"music","label":"Musica","color":"#FFA726"},
+ {"id":"chiamami","col":0,"row":3,"w":1,"h":1,"type":"call_me","label":"Anna","target":"+393331234567","color":"#1B7A34"},
+ {"id":"torcia","col":1,"row":3,"w":1,"h":1,"type":"torch","label":"Torcia","color":"#FFD54F"},
+ {"id":"sos","col":0,"row":4,"w":2,"h":1,"type":"sos","label":"SOS","color":"#C62828"}]}],
+ "sos":{"numbers":["+393331234567"]},
+ "emergency":{"name":"Maria Rossi","medications":"Cardioaspirina"},
+ "phone":{"remoteAppAlert":true,"scamGuard":true,"blockPremium":true,"callVolumePercent":90,"morningBrief":false}}
+J
+adb push /tmp/c17.json /data/local/tmp/c17.json >/dev/null
+adb shell am force-stop $P
+adb shell "run-as $P sh -c 'cp /data/local/tmp/c17.json files/config.json'"
+adb shell pm grant $P android.permission.CAMERA 2>/dev/null || true
+adb shell pm grant $P android.permission.ACCESS_FINE_LOCATION 2>/dev/null || true
+adb emu geo fix 12.4964 41.9028 2>/dev/null || true
+home; sleep 4; shot v17_1_home 1
+python3 tap.py "Lente" >/dev/null; shot v17_2_lens 5
+python3 tap.py "+" >/dev/null || true; python3 tap.py "FERMA" >/dev/null || true; shot v17_3_lens_frozen 2
+python3 tap.py "CHIUDI" >/dev/null || true; sleep 1
+python3 tap.py "Dove sono?" >/dev/null; shot v17_4_where 15
+adb shell input keyevent KEYCODE_BACK; sleep 1; home
+python3 tap.py "Notizie" >/dev/null; shot v17_5_news 10
+adb shell input keyevent KEYCODE_BACK; sleep 1; home
+python3 tap.py "Mi chiami?" >/dev/null || python3 tap.py "Anna" >/dev/null; shot v17_6_callme 2
+python3 tap.py "NO" >/dev/null || true; home
+# Musica: cartella scelta col selettore di Android
+adb shell "run-as $P sh -c 'rm -f shared_prefs/pin.xml'"
+python3 tap.py --times 5 --regex '^\d\d:\d\d$' >/dev/null; sleep 1
+for round in 1 2; do for d in 1 2 3 4; do python3 tap.py "$d" >/dev/null; done; python3 tap.py Conferma >/dev/null; sleep 1; done
+python3 tap.py "Musica" >/dev/null || true; sleep 2
+python3 tap.py --scroll "+ Aggiungi una cartella" >/dev/null || true; sleep 3
+python3 tap.py --regex "^(Mostra radici|Show roots)$" >/dev/null || true; sleep 1
+python3 tap.py --regex "^(sdk_gphone|Android SDK|Pixel|SDK)" >/dev/null || true; sleep 2
+python3 tap.py "Musica" >/dev/null || true; sleep 2
+python3 tap.py --regex "(?i)^(usa questa cartella|use this folder)$" >/dev/null || true; sleep 2
+python3 tap.py --regex "(?i)^(consenti|allow)$" >/dev/null || true; sleep 2
+python3 tap.py "Salva" >/dev/null || true; sleep 1; python3 tap.py "Salva" >/dev/null || true; sleep 2
+home; sleep 2
+python3 tap.py "Musica" >/dev/null; sleep 4; shot v17_7_music 1
+python3 tap.py "ASCOLTA" >/dev/null || true; shot v17_8_music_play 4
+adb shell dumpsys activity services $P | grep -E "RadioService|isForeground" | head -3 > "$OUT/v17_music.txt"
+python3 tap.py "FERMA" >/dev/null || true
+adb logcat -d | grep -E "FATAL|AndroidRuntime: Process|Caused by" -A6 | head -60 > "$OUT/v17_errors.txt" || true
+adb logcat -d -s Safety:* Magnifier:* News:* Torch:* | tail -20 >> "$OUT/v17_errors.txt" || true
+home

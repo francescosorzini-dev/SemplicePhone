@@ -93,5 +93,6 @@ object PhoneGuard {
         val cfg = config(context)
         enforceRinger(context, cfg)
         onBattery(context, null, cfg)
+        app.semplicephone.safety.Safety.checkAll(context, cfg)
     }
 }

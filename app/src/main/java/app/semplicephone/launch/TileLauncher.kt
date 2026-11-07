@@ -31,6 +31,8 @@ class TileLauncher(
     private val onSearch: () -> Unit = {},
     private val onRadio: (Tile) -> Unit = {},
     private val onVideo: (String) -> Unit = {},
+    /** Schermate interne: lente, «dove sono», «mi chiami?», musica, notizie. */
+    private val onTool: (Tile) -> Unit = {},
 ) {
 
     private val pm: PackageManager = context.packageManager
@@ -57,9 +59,10 @@ class TileLauncher(
         val name = tile.label.ifBlank { return null }
         return when (tile.type) {
             TileType.CALL -> context.getString(R.string.voice_call, name)
-            TileType.WA_VIDEO -> context.getString(R.string.voice_video, name)
+            TileType.WA_VIDEO, TileType.TG_VIDEO -> context.getString(R.string.voice_video, name)
             TileType.SMS -> context.getString(R.string.voice_sms, name)
-            TileType.APP, TileType.URL, TileType.SHORTCUT, TileType.SEARCH, TileType.RADIO -> context.getString(R.string.voice_open, name)
+            TileType.APP, TileType.URL, TileType.SHORTCUT, TileType.SEARCH, TileType.RADIO, TileType.MUSIC, TileType.NEWS,
+            TileType.MAGNIFIER, TileType.WHERE_AM_I -> context.getString(R.string.voice_open, name)
             else -> null
         }
     }
@@ -97,10 +100,13 @@ class TileLauncher(
                 TileType.SHORTCUT -> startShortcut(tile)
                 TileType.SOS -> if (sos.numbers.isEmpty()) toast(context.getString(R.string.launch_no_sos_numbers)) else onSos()
                 TileType.WA_VIDEO -> whatsAppVideo(tile)
+                TileType.TG_VIDEO -> telegramVideo(tile)
                 TileType.MISSED_CALLS -> openCallLog()
                 TileType.SEARCH -> onSearch()
                 TileType.RADIO -> onRadio(tile)
                 TileType.MESSAGES -> perform(tile.copy(type = TileType.APP, target = "@sms"), sos)
+                TileType.TORCH -> app.semplicephone.tools.Torch.toggle(context)
+                TileType.MAGNIFIER, TileType.WHERE_AM_I, TileType.CALL_ME, TileType.MUSIC, TileType.NEWS -> onTool(tile)
                 TileType.CLOCK, TileType.WEATHER, TileType.PHOTOS, TileType.UNKNOWN -> Unit
             }
         } catch (e: ActivityNotFoundException) {
@@ -190,6 +196,20 @@ class TileLauncher(
         }
     }
 
+    private fun telegramVideo(tile: Tile) {
+        if (tile.target.isBlank()) return toast(context.getString(R.string.launch_no_number))
+        val pkg = Contacts.TELEGRAM_PACKAGES.firstOrNull { pm.getLaunchIntentForPackage(it) != null }
+            ?: return toast(context.getString(R.string.launch_no_telegram))
+        val intent = contacts.telegramVideoIntent(tile.target)
+        if (intent != null) {
+            start(intent)
+        } else {
+            // Telegram non ha (ancora) la riga «Videochiamata» per questo numero: apre almeno la chat.
+            toast(context.getString(R.string.launch_telegram_chat))
+            start(Intent(Intent.ACTION_VIEW, Uri.parse("tg://resolve?phone=${tile.target.filter(Char::isDigit)}")).setPackage(pkg))
+        }
+    }
+
     /** Package name o ruolo "@xxx" → intent di avvio, null se non risolvibile. */
     fun appIntent(target: String): Intent? = when (target) {
         "@dialer" -> Intent(Intent.ACTION_DIAL)
@@ -225,6 +245,8 @@ class TileLauncher(
         TileType.APP -> appIntent(tile.target) != null
         TileType.SHORTCUT -> tile.target.contains('/')
         TileType.WA_VIDEO -> pm.getLaunchIntentForPackage(Contacts.WHATSAPP) != null
+        TileType.TG_VIDEO -> Contacts.TELEGRAM_PACKAGES.any { pm.getLaunchIntentForPackage(it) != null }
+        TileType.TORCH, TileType.MAGNIFIER -> app.semplicephone.tools.Torch.available(context)
         else -> true
     }
 
@@ -249,7 +271,7 @@ class TileLauncher(
         private const val TAG = "TileLauncher"
         private const val DEBOUNCE_MS = 1200L
         /** Riquadri che aprono un'altra app: per questi si può nascondere il pulsante «Casa». */
-        val HOME_BUTTON_TYPES = setOf(TileType.APP, TileType.SHORTCUT, TileType.URL, TileType.SMS, TileType.WA_VIDEO)
+        val HOME_BUTTON_TYPES = setOf(TileType.APP, TileType.SHORTCUT, TileType.URL, TileType.SMS, TileType.WA_VIDEO, TileType.TG_VIDEO)
     }
 }
 

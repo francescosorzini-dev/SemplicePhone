@@ -58,6 +58,7 @@ class ReminderReceiver : BroadcastReceiver() {
             ReminderScheduler(context).cancelRepeat(id)
             context.getSystemService(NotificationManager::class.java).cancel(ReminderScheduler.notificationId(id))
             ReminderLog.append(context, id, "preso")
+            ConfigRepository.readCurrent(context).reminders.firstOrNull { it.id == id }?.let { app.semplicephone.safety.Safety.onTaken(context, it) }
         }
 
         fun snooze(context: Context, id: String) {

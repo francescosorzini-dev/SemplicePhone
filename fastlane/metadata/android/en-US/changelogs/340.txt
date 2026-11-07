@@ -1,0 +1,4 @@
+- Telegram video call, Torch, Magnifier, "Where am I?", "Call me?", Music and News read aloud
+- Against scams: remote-control app alert, suspicious messages, premium-number blocking, long calls
+- Safety: falls, SIM, phone unused, heat, safe zone, rescuers' card
+- Voice replies to family, pill stock, spoken good morning, large text everywhere

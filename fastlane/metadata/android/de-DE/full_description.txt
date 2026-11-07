@@ -22,6 +22,8 @@ SemplicePhone ersetzt den Startbildschirm durch wenige große, klare Kacheln fü
 
 <b>Fertige Vorlagen und Album</b>: beim ersten Mal wählt man die Situation (selbstständig, nur Anrufe, Vergesslichkeit, Sehschwäche, schwerhörig, zitternde Hände). Das Album zeigt auch Fotos und Videos aus Ordnern des Telefons; die Familie kann Videonachrichten im Vollbild senden.
 
+<b>Gegen Betrug</b>: Hinweis bei Installation einer Fernsteuerungs-App (AnyDesk, TeamViewer…), Links von Unbekannten markiert, teure und Auslandsanrufe gesperrt, Hinweis bei langen Anrufen mit Unbekannten. Sturzerkennung, Notfallkarte, Lampe und Lupe.
+
 <b>Nicht verloren gehen</b>: eine Schaltfläche „Start“ bleibt in anderen Apps sichtbar; ein Tipp führt zum einfachen Bildschirm zurück.
 
 <b>Schutz</b>: Einstellungen mit PIN, Klingelton stellt sich selbst wieder ein, Hinweis bei schwachem Akku.

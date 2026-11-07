@@ -64,7 +64,7 @@ object Album {
      * «WhatsApp/Media» → Images, Video…). Si salta ciò che inizia con «.» (cartelle nascoste, .thumbnails,
      * .Statuses) e le cartelle «Sent»/«Private» di WhatsApp; al massimo [MAX_DEPTH] livelli e [MAX_SCAN] file.
      */
-    private fun list(context: Context, tree: Uri): List<AlbumItem> = runCatching {
+    private fun list(context: Context, tree: Uri, audio: Boolean = false): List<AlbumItem> = runCatching {
         val cols = arrayOf(
             DocumentsContract.Document.COLUMN_DOCUMENT_ID, DocumentsContract.Document.COLUMN_MIME_TYPE,
             DocumentsContract.Document.COLUMN_LAST_MODIFIED, DocumentsContract.Document.COLUMN_DISPLAY_NAME,
@@ -84,7 +84,9 @@ object Album {
                     when {
                         mime == DocumentsContract.Document.MIME_TYPE_DIR ->
                             if (depth < MAX_DEPTH && name !in SKIP_DIRS) queue += c.getString(0) to depth + 1
-                        mime.startsWith("video/") || mime.startsWith("image/") ->
+                        audio && mime.startsWith("audio/") ->
+                            out += AlbumItem(DocumentsContract.buildDocumentUriUsingTree(tree, c.getString(0)).toString(), false, c.getLong(2), name)
+                        !audio && (mime.startsWith("video/") || mime.startsWith("image/")) ->
                             out += AlbumItem(DocumentsContract.buildDocumentUriUsingTree(tree, c.getString(0)).toString(), mime.startsWith("video/"), c.getLong(2), name)
                     }
                 }
@@ -92,6 +94,11 @@ object Album {
         }
         out
     }.onFailure { Log.w(TAG, "cartella non leggibile: $tree", it) }.getOrDefault(emptyList())
+
+    /** Canzoni delle cartelle della [tile] Musica, in ordine di nome (come in un album). */
+    fun songs(context: Context, tile: Tile): List<AlbumItem> =
+        readable(context, tile).flatMap { list(context, Uri.parse(it), audio = true) }.distinctBy { it.ref }
+            .sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.name }).take(2000)
 
     /** Immagine ridotta a [maxPx] (lato lungo): la foto stessa o un fotogramma del video. */
     fun bitmap(context: Context, item: AlbumItem, maxPx: Int): Bitmap? = runCatching {

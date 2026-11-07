@@ -15,8 +15,8 @@ android {
         targetSdk = 36 // obbligatorio su Google Play dal 31/8/2026
         // Versione scritta qui (non calcolata in CI): F-Droid la legge da questo file e ricompila
         // lo stesso APK. A ogni release: versionName = tag senza «v», versionCode +10.
-        versionCode = 330
-        versionName = "0.16.0"
+        versionCode = 340
+        versionName = "0.17.0"
 
         // Valori predefiniti per la config remota (vuoti = da inserire nel telefono),
         // sovrascrivibili da gradle.properties o -P per build dedicate.
@@ -139,6 +139,10 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.9.1")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1")
     implementation("androidx.work:work-runtime-ktx:2.10.0")
+    // Lente d'ingrandimento: anteprima della fotocamera con zoom e luce.
+    implementation("androidx.camera:camera-camera2:1.4.2")
+    implementation("androidx.camera:camera-lifecycle:1.4.2")
+    implementation("androidx.camera:camera-view:1.4.2")
     // Solo la verifica Ed25519 (API di sistema solo da Android 13); R8 toglie il resto.
     implementation("org.bouncycastle:bcprov-jdk18on:1.78.1")
 

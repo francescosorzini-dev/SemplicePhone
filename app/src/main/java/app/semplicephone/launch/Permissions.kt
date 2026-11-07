@@ -31,7 +31,7 @@ object Permissions {
         val tiles = cfg.pages.flatMap { it.tiles }
         val out = linkedMapOf<String, String>()
         if (tiles.any { it.type == TileType.CALL }) out[Manifest.permission.CALL_PHONE] = s(R.string.perm_call_tiles)
-        if (tiles.any { it.type == TileType.WA_VIDEO || it.icon.kind == IconKind.PHOTO ||
+        if (tiles.any { it.type == TileType.WA_VIDEO || it.type == TileType.TG_VIDEO || it.icon.kind == IconKind.PHOTO ||
                 ((it.type == TileType.CALL || it.type == TileType.SMS) && it.icon.kind == IconKind.AUTO) }
         ) out[Manifest.permission.READ_CONTACTS] = s(R.string.perm_contacts)
         if (tiles.any { it.type == TileType.MISSED_CALLS } && BuildConfig.CALL_LOG) {
@@ -56,7 +56,22 @@ object Permissions {
             out.putIfAbsent(Manifest.permission.SEND_SMS, s(R.string.perm_battery_sms))
         }
         if (cfg.phone.smsUpdateCommand && BuildConfig.FULL) out[Manifest.permission.RECEIVE_SMS] = s(R.string.perm_sms_command, s(R.string.sms_keyword))
-        if (cfg.reminders.isNotEmpty() && Build.VERSION.SDK_INT >= 33) {
+        val types = tiles.map { it.type }.toSet()
+        if (TileType.MAGNIFIER in types) out[Manifest.permission.CAMERA] = s(R.string.perm_magnifier)
+        if (TileType.WHERE_AM_I in types) {
+            out.putIfAbsent(Manifest.permission.ACCESS_FINE_LOCATION, s(R.string.perm_where))
+            out.putIfAbsent(Manifest.permission.ACCESS_COARSE_LOCATION, s(R.string.perm_where))
+        }
+        if (TileType.CALL_ME in types && BuildConfig.SEND_SMS) out.putIfAbsent(Manifest.permission.SEND_SMS, s(R.string.perm_call_me))
+        if (TileType.CALL_ME in types || TileType.TG_VIDEO in types) out.putIfAbsent(Manifest.permission.READ_CONTACTS, s(R.string.perm_contacts))
+        if (cfg.phone.simAlert || cfg.phone.longCallMinutes > 0) out.putIfAbsent(Manifest.permission.READ_PHONE_STATE, s(R.string.perm_phone_state))
+        if (cfg.phone.longCallMinutes > 0 || cfg.phone.scamGuard) out.putIfAbsent(Manifest.permission.READ_CONTACTS, s(R.string.perm_contacts))
+        if (BuildConfig.FULL && cfg.phone.safeZoneRadius > 0) {
+            out.putIfAbsent(Manifest.permission.ACCESS_FINE_LOCATION, s(R.string.perm_safe_zone))
+            out[Manifest.permission.ACCESS_BACKGROUND_LOCATION] = s(R.string.perm_safe_zone)
+        }
+        val notices = cfg.phone.heatAlert || cfg.phone.morningBrief || cfg.phone.fallDetection || cfg.phone.remoteAppAlert
+        if ((cfg.reminders.isNotEmpty() || notices) && Build.VERSION.SDK_INT >= 33) {
             out[Manifest.permission.POST_NOTIFICATIONS] = s(R.string.perm_reminders)
         }
         return out.map { (p, w) -> Need(p, w) }
@@ -76,6 +91,13 @@ object Permissions {
             Special("overlay", context.getString(R.string.special_overlay), context.getString(R.string.special_overlay_why),
                 Settings.ACTION_MANAGE_OVERLAY_PERMISSION),
         )
+        if (cfg.phone.fontScale > 0f || cfg.phone.screenTimeoutSeconds > 0 || cfg.phone.brightnessPercent > 0) add(
+            Special("write_settings", context.getString(R.string.special_write_settings), context.getString(R.string.special_write_settings_why),
+                Settings.ACTION_MANAGE_WRITE_SETTINGS),
+        )
+        if (cfg.phone.blockPremium || cfg.phone.blockInternational || cfg.phone.longCallMinutes > 0) add(
+            Special("redirect", context.getString(R.string.special_redirect), context.getString(R.string.special_redirect_why), ""),
+        )
         if (cfg.phone.ringerLock) add(
             Special("dnd", context.getString(R.string.special_dnd), context.getString(R.string.special_dnd_why),
                 Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS),
@@ -87,14 +109,23 @@ object Permissions {
             "badges" -> !Badges.isEnabled(context)
             "dnd" -> !context.getSystemService(NotificationManager::class.java).isNotificationPolicyAccessGranted
             "overlay" -> !Settings.canDrawOverlays(context)
+            "write_settings" -> !Settings.System.canWrite(context)
+            "redirect" -> context.getSystemService(android.app.role.RoleManager::class.java).let {
+                it.isRoleAvailable(android.app.role.RoleManager.ROLE_CALL_REDIRECTION) && !it.isRoleHeld(android.app.role.RoleManager.ROLE_CALL_REDIRECTION)
+            }
             else -> false
         }
     }
 
     fun openSpecial(context: Context, s: Special) {
+        if (s.key == "redirect") {
+            val rm = context.getSystemService(android.app.role.RoleManager::class.java)
+            runCatching { context.startActivity(rm.createRequestRoleIntent(android.app.role.RoleManager.ROLE_CALL_REDIRECTION).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+            return
+        }
         val intent = Intent(s.settingsAction).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         // La pagina della sovrapposizione va aperta direttamente sull'app, non sull'elenco.
-        if (s.key == "overlay") intent.data = android.net.Uri.parse("package:${context.packageName}")
+        if (s.key == "overlay" || s.key == "write_settings") intent.data = android.net.Uri.parse("package:${context.packageName}")
         // Accesso alle notifiche: direttamente sulla pagina di SemplicePhone; se Android lo tiene
         // bloccato (app scaricata dal browser) toccando l'interruttore spiega come sbloccarlo.
         if (s.key == "badges") {

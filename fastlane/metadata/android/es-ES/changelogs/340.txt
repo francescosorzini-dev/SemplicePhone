@@ -1,0 +1,4 @@
+- Videollamada de Telegram, linterna, lupa, «¿Dónde estoy?», «¿Me llamas?», música y noticias en voz alta
+- Antiestafas: apps de control remoto, mensajes sospechosos, números de pago bloqueados, llamadas largas
+- Seguridad: caídas, SIM, inactividad, calor, zona segura, ficha de emergencias
+- Respuestas de voz, pastillas, buenos días hablado, texto grande

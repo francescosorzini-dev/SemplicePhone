@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <uses-feature android:name="android.hardware.telephony" android:required="false" />
     <uses-feature android:name="android.hardware.location.gps" android:required="false" />
@@ -22,6 +23,14 @@
     <!-- Radio: continua a suonare a schermo spento -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+    <!-- Rilevamento cadute: servizio in primo piano «salute» con l'accelerometro. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_HEALTH" />
+    <uses-permission android:name="android.permission.HIGH_SAMPLING_RATE_SENSORS" />
+    <!-- Lente d'ingrandimento e risposte vocali alla famiglia. -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <!-- Testo grande, durata dello schermo e luminosità decisi dalla famiglia. -->
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" tools:ignore="ProtectedPermissions" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
@@ -33,6 +42,8 @@
     <!-- Package visibility: elenco delle app avviabili senza QUERY_ALL_PACKAGES -->
     <queries>
         <package android:name="com.whatsapp" />
+        <package android:name="org.telegram.messenger" />
+        <package android:name="org.telegram.messenger.web" />
         <intent>
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />
@@ -57,6 +68,27 @@
         <intent>
             <action android:name="android.intent.action.TTS_SERVICE" />
         </intent>
+        <!-- App di controllo remoto usate nelle truffe: si controlla se vengono installate. -->
+        <package android:name="com.anydesk.anydeskandroid" />
+        <package android:name="com.teamviewer.quicksupport.market" />
+        <package android:name="com.teamviewer.teamviewer.market.mobile" />
+        <package android:name="com.teamviewer.host.market" />
+        <package android:name="com.carriez.flutter_hbb" />
+        <package android:name="com.rustdesk.rustdesk" />
+        <package android:name="com.sand.airdroid" />
+        <package android:name="com.sand.airdroidbiz" />
+        <package android:name="com.sand.airmirror" />
+        <package android:name="com.splashtop.remote.pad.v2" />
+        <package android:name="com.splashtop.sos" />
+        <package android:name="com.logmein.rescuemobile" />
+        <package android:name="com.zoho.assist.agent" />
+        <package android:name="com.supremocontrol.supremo" />
+        <package android:name="com.realvnc.viewer.android" />
+        <package android:name="com.microsoft.rdc.androidx" />
+        <package android:name="com.google.chromeremotedesktop" />
+        <package android:name="com.iiordanov.freebVNC" />
+        <package android:name="com.ammyy.admin" />
+        <package android:name="net.ultraviewer.android" />
     </queries>
 
     <application
@@ -167,5 +199,27 @@
                 <action android:name="android.app.action.DEVICE_ADMIN_ENABLED" />
             </intent-filter>
         </receiver>
+        <service
+            android:name=".phone.CallGuard"
+            android:exported="true"
+            android:permission="android.permission.BIND_CALL_REDIRECTION_SERVICE">
+            <intent-filter>
+                <action android:name="android.telecom.CallRedirectionService" />
+            </intent-filter>
+        </service>
+        <service
+            android:name=".phone.FallDetector"
+            android:exported="false"
+            android:foregroundServiceType="health" />
+        <activity
+            android:name=".phone.FallActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:launchMode="singleTask"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
+            android:screenOrientation="portrait"
+            android:taskAffinity="app.semplicephone.fall"
+            android:theme="@style/Theme.SemplicePhone" />
     </application>
 </manifest>

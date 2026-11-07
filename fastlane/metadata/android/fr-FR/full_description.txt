@@ -22,6 +22,8 @@ SemplicePhone remplace l'écran d'accueil par quelques grandes tuiles claires, p
 
 <b>Modèles prêts et album</b> : la première fois, on choisit la situation (autonome, appels seulement, mémoire fragile, vue faible, audition faible, mains qui tremblent). L'album montre aussi les photos et vidéos des dossiers du téléphone ; les proches peuvent envoyer des messages vidéo en plein écran.
 
+<b>Contre les arnaques</b> : alerte si une appli de contrôle à distance est installée (AnyDesk, TeamViewer…), liens d'inconnus signalés, appels surtaxés et étrangers bloqués, alerte sur les appels longs avec des inconnus. Détection de chute, fiche de secours, torche et loupe.
+
 <b>Ne pas se perdre</b> : un bouton « Accueil » reste visible dans les autres applis ; un appui ramène à l'écran simple.
 
 <b>Protection</b> : paramètres protégés par code PIN, sonnerie qui revient au volume choisi, alerte batterie faible.

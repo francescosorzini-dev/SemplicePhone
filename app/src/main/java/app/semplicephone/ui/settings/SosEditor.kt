@@ -37,13 +37,17 @@ import app.semplicephone.ui.Palette
 
 /** Numeri SOS (il primo viene chiamato, a tutti l'SMS da M4) e durata della pressione. */
 @Composable
-fun SosEditor(initial: SosConfig, onSave: (SosConfig) -> Unit, onCancel: () -> Unit) {
+fun SosEditor(
+    initial: SosConfig, onSave: (SosConfig, app.semplicephone.model.EmergencyInfo) -> Unit, onCancel: () -> Unit,
+    emergency: app.semplicephone.model.EmergencyInfo = app.semplicephone.model.EmergencyInfo(),
+) {
+    var e by remember { mutableStateOf(emergency) }
     var numbers by remember { mutableStateOf(initial.numbers.ifEmpty { listOf("") }) }
     var hold by remember { mutableStateOf(initial.holdSeconds) }
     val clean = numbers.map { it.trim() }.filter { it.isNotEmpty() }
 
     Column(Modifier.fillMaxSize().background(Color(0xFFECE9E2)).windowInsetsPadding(WindowInsets.safeDrawing)) {
-        EditorHeader("SOS", onCancel, stringResource(R.string.action_done), enabled = clean.isNotEmpty()) { onSave(initial.copy(numbers = clean, holdSeconds = hold)) }
+        EditorHeader("SOS", onCancel, stringResource(R.string.action_done), enabled = clean.isNotEmpty()) { onSave(initial.copy(numbers = clean, holdSeconds = hold), e) }
         Column(
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
@@ -74,6 +78,21 @@ fun SosEditor(initial: SosConfig, onSave: (SosConfig) -> Unit, onCancel: () -> U
                 Text(stringResource(R.string.sos_editor_add))
             }
             Stepper(stringResource(R.string.sos_editor_hold), hold, 1..10, { hold = it })
+            // Scheda per i soccorritori: compare nella schermata SOS dopo l'invio.
+            Text(stringResource(R.string.emergency_title), fontSize = 20.sp, color = Palette.Ink)
+            Text(stringResource(R.string.emergency_editor_hint), fontSize = 15.sp, color = Color(0xFF4A4A4A))
+            listOf<Triple<Int, String, (String) -> Unit>>(
+                Triple(R.string.emergency_name, e.name) { v -> e = e.copy(name = v) },
+                Triple(R.string.emergency_birth, e.birth) { v -> e = e.copy(birth = v) },
+                Triple(R.string.emergency_conditions, e.conditions) { v -> e = e.copy(conditions = v) },
+                Triple(R.string.emergency_medications, e.medications) { v -> e = e.copy(medications = v) },
+                Triple(R.string.emergency_allergies, e.allergies) { v -> e = e.copy(allergies = v) },
+                Triple(R.string.emergency_blood, e.bloodType) { v -> e = e.copy(bloodType = v) },
+                Triple(R.string.emergency_doctor, e.doctor) { v -> e = e.copy(doctor = v) },
+                Triple(R.string.emergency_notes, e.notes) { v -> e = e.copy(notes = v) },
+            ).forEach { (label, value, set) ->
+                OutlinedTextField(value, set, label = { Text(stringResource(label)) }, modifier = Modifier.fillMaxWidth())
+            }
         }
     }
 }

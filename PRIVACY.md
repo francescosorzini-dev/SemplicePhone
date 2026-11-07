@@ -22,6 +22,11 @@ invia dati allo sviluppatore.
 | Copie di sicurezza della configurazione | tornare a una versione precedente, passare a un telefono nuovo | no; il file esportato va dove lo salva chi lo esporta |
 | Cartelle del telefono collegate all'album | mostrare foto e video in un riquadro | no: il telefono le legge solo localmente, con il permesso dato sulla singola cartella |
 | Videomessaggi della famiglia | mostrarli a tutto schermo | caricati dal familiare sul suo portale; il telefono li scarica e li cancella dopo «HO VISTO» |
+| Scheda per i soccorsi (farmaci, allergie, note) | mostrarla dopo l'SOS | sì, se compilata nel portale; resta sul telefono e nel portale |
+| Risposte vocali ai messaggi | farle ascoltare alla famiglia | sì, al portale della famiglia (ultime 30) |
+| Mittente di un messaggio sospetto (non il testo) | avvisare la famiglia | sì, se l'avviso è attivo |
+| Posizione per la zona sicura (edizione completa) | avviso di uscita/rientro | solo all'uscita e al rientro, al portale |
+| Movimento (accelerometro) per le cadute | riconoscere una caduta | no: si analizza sul telefono, solo l'avviso va al portale |
 | Stazioni radio scelte | riquadro «Radio» | sì, il telefono si collega all'indirizzo della stazione per ascoltarla |
 | Coordinate della località del meteo | riquadro meteo | sì, al servizio Open-Meteo (open-meteo.com) per ottenere le previsioni; nessun dato personale |
 

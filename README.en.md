@@ -42,6 +42,15 @@ and a web page where the family sets everything up from afar. Free, no ads, free
 - **Messages from the family** full screen and read aloud, until someone taps "GOT IT".
 - **Unread messages.** A tile lists unread SMS and WhatsApp messages: a tap opens the
   conversation, a long press reads it aloud.
+- **WhatsApp and Telegram video calls** with one tap on the family member's photo.
+- **Tools**: torch, magnifier (camera with zoom and freeze), "Where am I?" read aloud, "Call me?" to a
+  family member, music from the phone's folders, news read aloud.
+- **Against scams**: alert when a remote-control app is installed (AnyDesk, TeamViewer…), links from
+  strangers flagged and not openable, premium and foreign calls blocked, alert on long calls with strangers.
+- **Safety**: fall detection with "Are you OK?", alerts for SIM removed and phone unused, extreme heat,
+  safe zone (Full edition), rescuers' card on the SOS screen.
+- **Comfort**: voice replies to family messages, pill stock, spoken good morning, loud calls, large text
+  in all apps.
 - **Album.** Uploaded photos plus the phone's folders (Camera, WhatsApp) change by themselves; a tap on a
   video opens it full screen, loud, with a single button to close.
 - **Radio.** A tile with favourite stations: huge PLAY/STOP buttons, next station, volume.

@@ -19,7 +19,28 @@ data class UnreadMessage(
     val text: String,
     val at: Long,
     val open: android.app.PendingIntent?,
+    /** Da sconosciuto e con un link: possibile truffa (non si apre col tocco). */
+    val suspicious: Boolean = false,
 )
+
+/** Regole pure (testabili) per riconoscere i messaggi sospetti. */
+object ScamRules {
+    private val LINK = Regex("""(https?://|www\.|\b[a-z0-9-]+\.(it|com|net|org|info|top|xyz|ly|me|co|link|site|online|click)(/|\b))""", RegexOption.IGNORE_CASE)
+
+    fun hasLink(text: String) = LINK.containsMatchIn(text)
+
+    /** Mittente che sembra un numero (non un nome di rubrica) o una sigla breve tipo «INFO». */
+    fun looksUnknown(sender: String): Boolean {
+        val s = sender.trim()
+        val digits = s.count(Char::isDigit)
+        return digits >= 6 && digits >= s.count(Char::isLetter) || (s.isNotEmpty() && ' ' !in s && s.length <= 11 && s == s.uppercase() && s.any(Char::isLetter))
+    }
+
+    fun suspicious(sender: String, text: String, inContacts: (String) -> Boolean?): Boolean {
+        if (!hasLink(text) || !looksUnknown(sender)) return false
+        return sender.count(Char::isDigit) < 6 || inContacts(sender) != true
+    }
+}
 
 /** Notifiche non lette per pacchetto, alimentate da [BadgeListener]. */
 object Badges {
@@ -67,7 +88,15 @@ object Badges {
 
     internal fun updateMessages(context: Context, active: Array<StatusBarNotification>?) {
         val sms = runCatching { android.provider.Telephony.Sms.getDefaultSmsPackage(context) }.getOrNull()
+        val guard = runCatching { app.semplicephone.data.ConfigRepository.readCurrent(context).phone.scamGuard }.getOrDefault(true)
+        val contacts = app.semplicephone.data.Contacts(context)
+        val before = _messages.value.filter { it.suspicious }.map { it.key }.toSet()
         _messages.value = active.orEmpty().flatMap { messagesOf(context, it, sms) }.sortedByDescending { it.at }.take(20)
+            .map { m -> if (guard && ScamRules.suspicious(m.sender, m.text) { contacts.isInContacts(it) }) m.copy(suspicious = true) else m }
+        // Nuovo messaggio sospetto: la famiglia lo sa (solo mittente, non il testo).
+        _messages.value.filter { it.suspicious && it.key !in before }.forEach { m ->
+            app.semplicephone.remote.RemoteEvents.enqueue(context, "scam_message", context.getString(app.semplicephone.R.string.scam_event, m.sender, m.app))
+        }
     }
 
     internal fun update(own: String, active: Array<StatusBarNotification>?) {

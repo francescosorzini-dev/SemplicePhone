@@ -79,6 +79,7 @@ class MessageActivity : ComponentActivity() {
                             finishAndRemoveTask()
                         },
                         title = title, extra = body,
+                        footer = { VoiceReplyButton(m!!.id) },
                     )
                 }
             }
@@ -104,6 +105,8 @@ class MessageActivity : ComponentActivity() {
                         shape = RoundedCornerShape(20.dp),
                         modifier = Modifier.fillMaxWidth().heightIn(min = 72.dp),
                     ) { Text(stringResource(R.string.message_read_again), fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Palette.Ink) }
+                    // Risposta a voce alla famiglia (solo per i messaggi, non per gli avvisi del telefono).
+                    if (m != null) VoiceReplyButton(m.id)
                     Button(
                         onClick = {
                             if (notice != null) Notice.dismiss(this@MessageActivity)

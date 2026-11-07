@@ -189,9 +189,50 @@ class Contacts(private val context: Context) {
         }
     }
 
+    /**
+     * Intent per la videochiamata Telegram verso [number]. Telegram (con «Sincronizza contatti»
+     * attivo) aggiunge ai contatti righe «Videochiamata»; la riga non contiene il numero in modo
+     * affidabile, quindi si cercano i contatti con quel numero (ultime 9 cifre) e poi la riga di
+     * Telegram dello stesso contatto. null se manca.
+     */
+    fun telegramVideoIntent(number: String): Intent? {
+        if (!canRead()) return null
+        val want = number.filter(Char::isDigit).takeLast(9)
+        if (want.length < 6) return null
+        return try {
+            val ids = mutableSetOf<Long>()
+            cr.query(
+                ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                arrayOf(ContactsContract.CommonDataKinds.Phone.CONTACT_ID, ContactsContract.CommonDataKinds.Phone.NUMBER),
+                null, null, null,
+            )?.use { c -> while (c.moveToNext()) if (c.getString(1).orEmpty().filter(Char::isDigit).takeLast(9) == want) ids += c.getLong(0) }
+            cr.query(
+                ContactsContract.Data.CONTENT_URI,
+                arrayOf(ContactsContract.Data._ID, ContactsContract.Data.CONTACT_ID, ContactsContract.Data.MIMETYPE, ContactsContract.Data.DATA3),
+                "${ContactsContract.Data.MIMETYPE} IN (?, ?)", TG_VIDEO_MIMES.toTypedArray(), null,
+            )?.use { c ->
+                while (c.moveToNext()) {
+                    val match = c.getLong(1) in ids || c.getString(3).orEmpty().filter(Char::isDigit).takeLast(9) == want
+                    if (match) return Intent(Intent.ACTION_VIEW)
+                        .setDataAndType(ContentUris.withAppendedId(ContactsContract.Data.CONTENT_URI, c.getLong(0)), c.getString(2))
+                }
+                null
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "ricerca riga Telegram fallita", e)
+            null
+        }
+    }
+
     companion object {
         private const val TAG = "Contacts"
         const val WHATSAPP = "com.whatsapp"
+        /** Telegram e la sua versione dal sito (stessa app, altro nome di pacchetto). */
+        val TELEGRAM_PACKAGES = listOf("org.telegram.messenger", "org.telegram.messenger.web")
+        private val TG_VIDEO_MIMES = listOf(
+            "vnd.android.cursor.item/vnd.org.telegram.messenger.android.call.video",
+            "vnd.android.cursor.item/vnd.org.telegram.messenger.web.android.call.video",
+        )
         private const val WA_VIDEO_MIME = "vnd.android.cursor.item/vnd.com.whatsapp.video.call"
     }
 }

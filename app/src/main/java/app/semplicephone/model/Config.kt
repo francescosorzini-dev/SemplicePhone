@@ -14,7 +14,24 @@ data class LauncherConfig(
     val sos: SosConfig = SosConfig(),
     val reminders: List<Reminder> = emptyList(),
     val phone: PhoneConfig = PhoneConfig(),
+    /** Scheda per i soccorritori, dalla schermata SOS. */
+    val emergency: EmergencyInfo = EmergencyInfo(),
 )
+
+/** Informazioni per i soccorritori (restano sul telefono e nel portale della famiglia). */
+@Serializable
+data class EmergencyInfo(
+    val name: String = "",
+    val birth: String = "",
+    val conditions: String = "",
+    val medications: String = "",
+    val allergies: String = "",
+    val bloodType: String = "",
+    val doctor: String = "",
+    val notes: String = "",
+) {
+    val isEmpty: Boolean get() = listOf(name, birth, conditions, medications, allergies, bloodType, doctor, notes).all { it.isBlank() }
+}
 
 /** Comportamento del telefono attorno alla Home: suoneria, batteria, pallini, comandi SMS. */
 @Serializable
@@ -58,6 +75,39 @@ data class PhoneConfig(
     val holdToOpen: Boolean = false,
     /** Tema: "normal", "contrast" (alto contrasto), "night" (scuro la sera, dalle 21 alle 7). */
     val theme: String = "normal",
+    /** Avviso se viene installata un'app di controllo remoto (AnyDesk, TeamViewer…). */
+    val remoteAppAlert: Boolean = true,
+    /** Messaggi da sconosciuti con link segnalati come possibile truffa e non apribili col tocco. */
+    val scamGuard: Boolean = true,
+    /** Chiamate in uscita bloccate verso numeri a pagamento (899, 144, 166…) ed estere. */
+    val blockPremium: Boolean = false,
+    val blockInternational: Boolean = false,
+    /** Avviso alla famiglia se una chiamata con un numero non in rubrica dura più di N minuti (0 = no). */
+    val longCallMinutes: Int = 0,
+    /** Avviso se la SIM viene tolta o cambiata. */
+    val simAlert: Boolean = false,
+    /** Avviso se di giorno (8–21) il telefono non viene usato per N ore (0 = no). */
+    val inactivityHours: Int = 0,
+    /** Rilevamento caduta: urto forte e immobilità → «Stai bene?» → SOS. */
+    val fallDetection: Boolean = false,
+    /** Zona sicura (solo edizione completa): raggio in metri attorno al punto indicato, 0 = no. */
+    val safeZoneRadius: Int = 0,
+    val safeZoneLat: Double = 0.0,
+    val safeZoneLon: Double = 0.0,
+    /** Caldo: con massima prevista ≥ soglia, promemoria «bevi» e avviso alla famiglia. */
+    val heatAlert: Boolean = false,
+    val heatThreshold: Int = 32,
+    /** Volume delle chiamate tenuto almeno a questa percentuale (0 = non toccare). */
+    val callVolumePercent: Int = 0,
+    /** Testo di sistema (tutte le app): 0 = non toccare, altrimenti 1.15/1.3/1.5. */
+    val fontScale: Float = 0f,
+    /** Durata dello schermo acceso in secondi (0 = non toccare). */
+    val screenTimeoutSeconds: Int = 0,
+    /** Luminosità fissa in percentuale (0 = non toccare). */
+    val brightnessPercent: Int = 0,
+    /** «Buongiorno» parlato con data, meteo e appuntamenti all'ora scelta. */
+    val morningBrief: Boolean = false,
+    val morningTime: String = "09:00",
     /** Pulsante «Casa» sempre visibile sopra le altre app: un tocco riporta al launcher. */
     val homeButton: Boolean = false,
     /** Colore del pulsante «Casa» (uno dei colori dei riquadri). */
@@ -89,6 +139,12 @@ data class Reminder(
     val date: String = "",
     /** Foto mostrata nell'allarme (la pastiglia, il luogo…): "media:<sha256>", vedi Media. */
     val photo: String = "",
+    /** Scorta: pastiglie nella scatola al momento [stockSetAt] (-1 = non contare). */
+    val stock: Int = -1,
+    val stockSetAt: Long = 0,
+    /** Pastiglie per ogni «Presa» e soglia per l'avviso «stanno finendo». */
+    val perDose: Int = 1,
+    val lowAt: Int = 5,
 )
 
 @Serializable
@@ -109,7 +165,7 @@ data class Tile(
     /**
      * Destinazione, interpretata in base a [type]:
      * - APP: package name oppure ruolo "@dialer", "@sms", "@camera", "@gallery", "@browser"
-     * - CALL / WA_VIDEO / SMS: numero di telefono
+     * - CALL / WA_VIDEO / TG_VIDEO / SMS: numero di telefono
      * - URL: indirizzo https
      * - SHORTCUT: "package/shortcutId"
      * - CLOCK / SOS: ignorato
@@ -146,7 +202,7 @@ const val OPEN_RESUME = "resume"
  */
 @Serializable(with = TileTypeSerializer::class)
 enum class TileType(val code: String) {
-    APP("app"), CALL("call"), WA_VIDEO("wa_video"), SMS("sms"), URL("url"), SHORTCUT("shortcut"),
+    APP("app"), CALL("call"), WA_VIDEO("wa_video"), TG_VIDEO("tg_video"), SMS("sms"), URL("url"), SHORTCUT("shortcut"),
     CLOCK("clock"), SOS("sos"),
     /** target = "lat,lon", label = località (Open-Meteo). */
     WEATHER("weather"),
@@ -160,6 +216,12 @@ enum class TileType(val code: String) {
     MESSAGES("messages"),
     /** Radio: una o più stazioni in streaming, con pulsanti grandi dentro il launcher. */
     RADIO("radio"),
+    TORCH("torch"),
+    MAGNIFIER("magnifier"),
+    WHERE_AM_I("where"),
+    CALL_ME("call_me"),
+    MUSIC("music"),
+    NEWS("news"),
     UNKNOWN("unknown"),
 }
 
