@@ -20,6 +20,8 @@ SemplicePhone ersetzt den Startbildschirm durch wenige große, klare Kacheln fü
 
 <b>Nachrichten, Radio, ruhige Nacht</b>: Kachel mit ungelesenen Nachrichten (SMS, WhatsApp), vorgelesen; Radio mit Lieblingssendern und großen Tasten. Nachts klingeln nur SOS-Nummern; abends erinnert es ans Laden. Kacheln öffnen sich auf Wunsch nur durch Halten, gegen versehentliches Tippen; hoher Kontrast oder abends dunkel.
 
+<b>Fertige Vorlagen und Album</b>: beim ersten Mal wählt man die Situation (selbstständig, nur Anrufe, Vergesslichkeit, Sehschwäche, schwerhörig, zitternde Hände). Das Album zeigt auch Fotos und Videos aus Ordnern des Telefons; die Familie kann Videonachrichten im Vollbild senden.
+
 <b>Nicht verloren gehen</b>: eine Schaltfläche „Start“ bleibt in anderen Apps sichtbar; ein Tipp führt zum einfachen Bildschirm zurück.
 
 <b>Schutz</b>: Einstellungen mit PIN, Klingelton stellt sich selbst wieder ein, Hinweis bei schwachem Akku.

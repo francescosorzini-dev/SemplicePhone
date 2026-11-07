@@ -20,6 +20,8 @@ SemplicePhone replaces the home screen with a few large, clear tiles for people 
 
 <b>Messages, radio, quiet night</b>: a tile with unread messages (SMS, WhatsApp) read aloud; radio with favourite stations and huge buttons. At night only SOS numbers ring; in the evening it reminds to charge the phone. Tiles can open only when held, against accidental touches; high contrast or dark theme in the evening.
 
+<b>Ready-made layouts and album</b>: the first time you pick the situation (independent, calls only, memory difficulties, poor eyesight, hard of hearing, shaky hands). The album also shows photos and videos from the phone's folders; the family can send full-screen video messages.
+
 <b>No getting lost</b>: a "Home" button stays visible inside other apps; one tap goes back to the simple screen.
 
 <b>Protection</b>: PIN-protected settings, ringer volume that restores itself, low-battery alert.

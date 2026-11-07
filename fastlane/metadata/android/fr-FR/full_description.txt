@@ -20,6 +20,8 @@ SemplicePhone remplace l'écran d'accueil par quelques grandes tuiles claires, p
 
 <b>Messages, radio, nuit tranquille</b> : tuile des messages non lus (SMS, WhatsApp) lus à voix haute ; radio avec les stations préférées et de très gros boutons. La nuit, seuls les numéros SOS sonnent ; le soir, rappel de mettre en charge. Tuiles qui ne s'ouvrent qu'en les maintenant, contre les appuis involontaires ; contraste élevé ou sombre le soir.
 
+<b>Modèles prêts et album</b> : la première fois, on choisit la situation (autonome, appels seulement, mémoire fragile, vue faible, audition faible, mains qui tremblent). L'album montre aussi les photos et vidéos des dossiers du téléphone ; les proches peuvent envoyer des messages vidéo en plein écran.
+
 <b>Ne pas se perdre</b> : un bouton « Accueil » reste visible dans les autres applis ; un appui ramène à l'écran simple.
 
 <b>Protection</b> : paramètres protégés par code PIN, sonnerie qui revient au volume choisi, alerte batterie faible.

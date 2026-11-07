@@ -1,0 +1,3 @@
+- Ready-made layouts: independent, calls only, memory difficulties, poor eyesight, hard of hearing, shaky hands
+- "Album": photos and videos also from phone folders (Camera, WhatsApp), videos full screen
+- Video messages from the family via the portal, full screen

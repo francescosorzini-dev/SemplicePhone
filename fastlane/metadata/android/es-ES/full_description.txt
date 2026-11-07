@@ -20,6 +20,8 @@ SemplicePhone sustituye la pantalla de inicio por unos pocos mosaicos grandes y 
 
 <b>Mensajes, radio, noche tranquila</b>: mosaico con los mensajes sin leer (SMS, WhatsApp) leídos en voz alta; radio con las emisoras favoritas y botones enormes. De noche solo suenan los números SOS; por la noche recuerda poner a cargar. Mosaicos que se abren solo manteniéndolos pulsados, contra toques involuntarios; alto contraste u oscuro por la noche.
 
+<b>Plantillas listas y álbum</b>: la primera vez se elige la situación (autónomo, solo llamadas, memoria frágil, poca vista, poco oído, manos temblorosas). El álbum muestra también fotos y vídeos de las carpetas del teléfono; la familia puede enviar videomensajes a pantalla completa.
+
 <b>Sin perderse</b>: un botón «Inicio» queda visible dentro de las otras apps; un toque vuelve a la pantalla sencilla.
 
 <b>Protección</b>: ajustes protegidos con PIN, tono que vuelve al volumen elegido, aviso de batería baja.

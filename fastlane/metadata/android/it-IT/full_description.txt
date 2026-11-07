@@ -26,6 +26,9 @@ Riquadro meteo, riquadro con le foto di famiglia che scorrono, orologio grande q
 <b>Messaggi, radio e notte tranquilla</b>
 Riquadro con i messaggi non letti (SMS, WhatsApp), letti ad alta voce; radio con le stazioni preferite e pulsanti enormi. Di notte squillano solo i numeri SOS; la sera ricorda di mettere in carica. Riquadri che si aprono solo tenendoli premuti, contro i tocchi involontari; alto contrasto o tema scuro la sera.
 
+<b>Modelli pronti e album</b>
+Alla prima apertura si sceglie la situazione (autonomo, solo telefonate, memoria fragile, vista ridotta, udito ridotto, mani che tremano). L'album mostra anche foto e video delle cartelle del telefono; la famiglia può mandare videomessaggi a tutto schermo.
+
 <b>Non ci si perde</b>
 Un pulsante «Casa» resta visibile dentro le altre app: un tocco e si torna alla schermata semplice.
 
