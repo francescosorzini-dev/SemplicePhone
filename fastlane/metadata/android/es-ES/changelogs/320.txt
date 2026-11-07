@@ -1,0 +1,1 @@
+- Videollamada de WhatsApp: el número se encuentra en cualquier formato (+39, espacios) y con varios números en el mismo contacto; aviso en el editor si WhatsApp aún no la ofrece

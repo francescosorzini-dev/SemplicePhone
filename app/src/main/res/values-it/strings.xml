@@ -44,7 +44,7 @@
     <string name="launch_no_sos_numbers">Nessun numero SOS configurato</string>
     <string name="launch_no_number">Numero non impostato</string>
     <string name="launch_no_whatsapp">WhatsApp non è installato</string>
-    <string name="launch_whatsapp_chat">Apro la chat WhatsApp</string>
+    <string name="launch_whatsapp_chat">Videochiamata non disponibile per questo numero: apro la chat WhatsApp</string>
     <string name="launch_set_home">Imposta SemplicePhone come Home</string>
     <string name="launch_unavailable">%1$s non disponibile</string>
     <string name="sos_title">Chiamata di emergenza</string>
@@ -399,6 +399,7 @@
     <string name="tpl_back">Indietro</string>
     <string name="tpl_apply">Usa questo modello</string>
     <string name="tpl_confirm">La disposizione dei riquadri viene sostituita. Familiari, SOS, promemoria, meteo e album restano. Finché non premi Salva puoi tornare indietro.</string>
+    <string name="tile_wa_not_found">WhatsApp non ha ancora la videochiamata per questo numero: salvalo in rubrica, apri WhatsApp e aggiorna i contatti (Nuova chat › ⋮ › Aggiorna). Finché manca, il riquadro apre la chat.</string>
     <string name="color_blue">Blu</string>
     <string name="color_green">Verde</string>
     <string name="color_purple">Viola</string>

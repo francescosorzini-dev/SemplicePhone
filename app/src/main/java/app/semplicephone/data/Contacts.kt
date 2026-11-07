@@ -155,27 +155,36 @@ class Contacts(private val context: Context) {
     }
 
     /**
-     * Intent per la videochiamata WhatsApp verso [number]: usa la data row che WhatsApp
-     * aggiunge al contatto. Non documentato da WhatsApp, quindi null se non trovato.
+     * Intent per la videochiamata WhatsApp verso [number]: usa la riga «Videochiamata» che WhatsApp
+     * aggiunge ai contatti in rubrica (non documentata, quindi null se manca).
+     * La riga si cerca dal numero WhatsApp che contiene (DATA1 = «393331234567@s.whatsapp.net»),
+     * confrontando le ultime 9 cifre: così funziona qualunque formato abbia il numero in rubrica o nel
+     * riquadro (+39, 0039, spazi), e con più numeri sullo stesso contatto prende quello giusto.
      */
     fun whatsAppVideoIntent(number: String): Intent? {
-        val contact = contactUri("", number) ?: return null
-        val contactId = ContentUris.parseId(contact)
+        if (!canRead()) return null
+        val want = number.filter(Char::isDigit).takeLast(9)
+        if (want.length < 6) return null
         return try {
             cr.query(
                 ContactsContract.Data.CONTENT_URI,
-                arrayOf(ContactsContract.Data._ID),
-                "${ContactsContract.Data.CONTACT_ID}=? AND ${ContactsContract.Data.MIMETYPE}=?",
-                arrayOf(contactId.toString(), WA_VIDEO_MIME),
+                arrayOf(ContactsContract.Data._ID, ContactsContract.Data.DATA1),
+                "${ContactsContract.Data.MIMETYPE}=?",
+                arrayOf(WA_VIDEO_MIME),
                 null,
             )?.use { c ->
-                if (!c.moveToFirst()) null
-                else Intent(Intent.ACTION_VIEW)
-                    .setDataAndType(ContentUris.withAppendedId(ContactsContract.Data.CONTENT_URI, c.getLong(0)), WA_VIDEO_MIME)
-                    .setPackage(WHATSAPP)
+                while (c.moveToNext()) {
+                    val jid = c.getString(1).orEmpty().substringBefore('@').filter(Char::isDigit)
+                    if (jid.takeLast(9) == want) {
+                        return Intent(Intent.ACTION_VIEW)
+                            .setDataAndType(ContentUris.withAppendedId(ContactsContract.Data.CONTENT_URI, c.getLong(0)), WA_VIDEO_MIME)
+                            .setPackage(WHATSAPP)
+                    }
+                }
+                null
             }
         } catch (e: Exception) {
-            Log.w(TAG, "ricerca data row WhatsApp fallita", e)
+            Log.w(TAG, "ricerca riga WhatsApp fallita", e)
             null
         }
     }

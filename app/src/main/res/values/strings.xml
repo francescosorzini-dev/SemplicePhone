@@ -45,7 +45,7 @@
     <string name="launch_no_sos_numbers">No SOS numbers set up</string>
     <string name="launch_no_number">Number not set</string>
     <string name="launch_no_whatsapp">WhatsApp is not installed</string>
-    <string name="launch_whatsapp_chat">Opening the WhatsApp chat</string>
+    <string name="launch_whatsapp_chat">Video call not available for this number: opening the WhatsApp chat</string>
     <string name="launch_set_home">Set SemplicePhone as Home</string>
     <string name="launch_unavailable">%1$s not available</string>
     <string name="sos_title">Emergency call</string>
@@ -400,6 +400,7 @@
     <string name="tpl_back">Back</string>
     <string name="tpl_apply">Use this layout</string>
     <string name="tpl_confirm">The tile layout is replaced. Family members, SOS, reminders, weather and album stay. Until you press Save you can go back.</string>
+    <string name="tile_wa_not_found">WhatsApp has no video call for this number yet: save it in contacts, open WhatsApp and refresh contacts (New chat › ⋮ › Refresh). Until then the tile opens the chat.</string>
     <string name="color_blue">Blue</string>
     <string name="color_green">Green</string>
     <string name="color_purple">Purple</string>

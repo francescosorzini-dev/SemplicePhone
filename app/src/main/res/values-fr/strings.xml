@@ -44,7 +44,7 @@
     <string name="launch_no_sos_numbers">Aucun numéro SOS configuré</string>
     <string name="launch_no_number">Numéro non défini</string>
     <string name="launch_no_whatsapp">WhatsApp n\'est pas installé</string>
-    <string name="launch_whatsapp_chat">Ouverture de la discussion WhatsApp</string>
+    <string name="launch_whatsapp_chat">Appel vidéo indisponible pour ce numéro : ouverture de la discussion WhatsApp</string>
     <string name="launch_set_home">Définissez SemplicePhone comme écran d\'accueil</string>
     <string name="launch_unavailable">%1$s indisponible</string>
     <string name="sos_title">Appel d\'urgence</string>
@@ -399,6 +399,7 @@
     <string name="tpl_back">Retour</string>
     <string name="tpl_apply">Utiliser ce modèle</string>
     <string name="tpl_confirm">La disposition des tuiles est remplacée. Proches, SOS, rappels, météo et album restent. Tant que tu n\'appuies pas sur Enregistrer, tu peux revenir en arrière.</string>
+    <string name="tile_wa_not_found">WhatsApp n\'a pas encore l\'appel vidéo pour ce numéro : enregistre-le dans les contacts, ouvre WhatsApp et actualise les contacts (Nouvelle discussion › ⋮ › Actualiser). En attendant, la tuile ouvre la discussion.</string>
     <string name="color_blue">Bleu</string>
     <string name="color_green">Vert</string>
     <string name="color_purple">Violet</string>
