@@ -1,0 +1,4 @@
+--------- beginning of main
+11-07 09:43:28.614  8737  8737 I TextToSpeech: Sucessfully bound to com.google.android.tts
+11-07 09:43:28.652  8737  8766 I TextToSpeech: Connected to TTS engine
+11-07 09:43:28.657  8737  8851 I TextToSpeech: Setting up the connection to TTS engine...

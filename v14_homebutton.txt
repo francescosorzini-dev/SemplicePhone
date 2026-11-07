@@ -1,0 +1,2 @@
+  Window #7 Window{696adb0 u0 app.semplicephone}:
+  Window #11 Window{23f93d3 u0 app.semplicephone/app.semplicephone.MainActivity}:

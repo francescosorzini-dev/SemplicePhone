@@ -1,0 +1,1 @@
+11-07 09:40:38.207   521  2263 W WindowManager: Exception thrown during dispatchAppVisibility Window{8fc5c35 u0 app.semplicephone/app.semplicephone.reminders.ReminderActivity EXITING}

@@ -1,0 +1,1 @@
+  mCurrentFocus=Window{5160935 u0 com.google.android.dialer/com.android.incallui.LegacyInCallActivity}

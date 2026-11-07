@@ -1,0 +1,60 @@
+11-07 09:43:38.456  8923  8923 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 0 <<<<<<
+11-07 09:43:38.460  8923  8923 I AndroidRuntime: Using default boot image
+11-07 09:43:38.460  8923  8923 I AndroidRuntime: Leaving lock profiling enabled
+11-07 09:43:38.462  8923  8923 I app_process: Core platform API reporting enabled, enforcing=false
+11-07 09:43:38.462  8923  8923 I app_process: Using CollectorTypeCC GC.
+11-07 09:43:38.501  4313  4456 D EGL_emulation: app_time_stats: avg=227.54ms min=64.65ms max=600.55ms count=7
+11-07 09:43:38.510  8923  8923 D nativeloader: InitDefaultPublicLibraries for_preload=1: libandroid.so:libaaudio.so:libamidi.so:libbinder_ndk.so:libc.so:libcamera2ndk.so:libdl.so:libEGL.so:libGLESv1_CM.so:libGLESv2.so:libGLESv3.so:libicu.so:libicui18n.so:libicuuc.so:libjnigraphics.so:liblog.so:libmediandk.so:libm.so:libnativehelper.so:libnativewindow.so:libOpenMAXAL.so:libOpenSLES.so:libRS.so:libstdc++.so:libsync.so:libvulkan.so:libwebviewchromium_plat_support.so:libz.so
+11-07 09:43:38.531   340  8899 D android.hardware.audio@7.1-impl.ranchu: TinyalsaSource::read:143 pcm_readi was late delivering frames, inserting 16000 us of silence
+11-07 09:43:38.540  8923  8923 D app_process: Time zone APEX ICU file found: /apex/com.android.tzdata/etc/icu/icu_tzdata.dat
+11-07 09:43:38.541  8923  8923 D app_process: I18n APEX ICU file found: /apex/com.android.i18n/etc/icu/icudt72l.dat
+11-07 09:43:38.547  8923  8923 W app_process: Unexpected CPU variant for x86: x86_64.
+--
+11-07 09:43:38.565  8923  8923 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+11-07 09:43:38.567  8923  8923 D UiAutomationConnection: Created on user UserHandle{0}
+11-07 09:43:38.567  8923  8923 I UiAutomation: Initialized for user 0 on display 0
+11-07 09:43:38.567  8923  8923 W UiAutomation: Created with deprecatead constructor, assumes DEFAULT_DISPLAY
+11-07 09:43:38.571   521   536 D AccessibilityManagerService: changeCurrentUserForTestAutomationIfNeededLocked(0): ignoring because device doesn't support visible background users
+11-07 09:43:38.572   521   536 I UiAutomationManager: Registering UiTestAutomationService (id=com.android.server.accessibility/UiAutomation) when called by user 0
+11-07 09:43:38.573   521   536 W WindowMagnificationMgr: requestConnection duplicated request: connect=false, mConnectionState=DISCONNECTED
+11-07 09:43:38.574  8923  8936 V UiAutomation: Init UiAutomation@7f499f1[id=59, displayId=0, flags=0]
+11-07 09:43:38.574  1715  1761 I AiAiEcho: Settings changed for uri: content://settings/secure/accessibility_enabled
+--
+11-07 09:43:40.413  8923  8923 D AndroidRuntime: Shutting down VM
+11-07 09:43:40.413  1715  2608 I AiAiEcho: Settings changed for uri: content://settings/secure/accessibility_enabled
+11-07 09:43:40.413  1715  2016 I AiAiEcho: Predicting[0]: 
+11-07 09:43:40.414  1715  2016 I AiAiEcho: EchoTargets: 
+11-07 09:43:40.414  1715  2016 I AiAiEcho: Filtered by AiAi flag check: 
+11-07 09:43:40.414  1715  2016 I AiAiEcho: Ranked targets strategy: SORT, count: 0, ranking metadata: 
+11-07 09:43:40.414  1715  2016 I AiAiEcho: Predicting[0]: 
+11-07 09:43:40.414  1715  2016 I AiAiEcho: EchoTargets: 
+11-07 09:43:40.414  1715  2016 I AiAiEcho: Filtered by AiAi flag check: 
+--
+11-07 09:43:49.027  8973  8973 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 0 <<<<<<
+11-07 09:43:49.031  8973  8973 I AndroidRuntime: Using default boot image
+11-07 09:43:49.031  8973  8973 I AndroidRuntime: Leaving lock profiling enabled
+11-07 09:43:49.032  8973  8973 I app_process: Core platform API reporting enabled, enforcing=false
+11-07 09:43:49.033  8973  8973 I app_process: Using CollectorTypeCC GC.
+11-07 09:43:49.080  8973  8973 D nativeloader: InitDefaultPublicLibraries for_preload=1: libandroid.so:libaaudio.so:libamidi.so:libbinder_ndk.so:libc.so:libcamera2ndk.so:libdl.so:libEGL.so:libGLESv1_CM.so:libGLESv2.so:libGLESv3.so:libicu.so:libicui18n.so:libicuuc.so:libjnigraphics.so:liblog.so:libmediandk.so:libm.so:libnativehelper.so:libnativewindow.so:libOpenMAXAL.so:libOpenSLES.so:libRS.so:libstdc++.so:libsync.so:libvulkan.so:libwebviewchromium_plat_support.so:libz.so
+11-07 09:43:49.087  8973  8973 D app_process: Time zone APEX ICU file found: /apex/com.android.tzdata/etc/icu/icu_tzdata.dat
+11-07 09:43:49.087  8973  8973 D app_process: I18n APEX ICU file found: /apex/com.android.i18n/etc/icu/icudt72l.dat
+11-07 09:43:49.091  8973  8973 W app_process: Unexpected CPU variant for x86: x86_64.
+11-07 09:43:49.091  8973  8973 W app_process: Known variants: atom, sandybridge, silvermont, goldmont, goldmont-plus, tremont, kabylake, default
+11-07 09:43:49.093  8973  8973 W app_process: ClassLoaderContext shared library size mismatch. Expected=2, found=0 (PCL[]{PCL[/system/framework/android.test.base.jar*836642756]#PCL[/system/framework/android.test.mock.jar*3186112116]} | PCL[])
+--
+11-07 09:43:49.104  8973  8973 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+11-07 09:43:49.106  8973  8973 D UiAutomationConnection: Created on user UserHandle{0}
+11-07 09:43:49.106  8973  8973 I UiAutomation: Initialized for user 0 on display 0
+11-07 09:43:49.106  8973  8973 W UiAutomation: Created with deprecatead constructor, assumes DEFAULT_DISPLAY
+11-07 09:43:49.107   521  2583 D AccessibilityManagerService: changeCurrentUserForTestAutomationIfNeededLocked(0): ignoring because device doesn't support visible background users
+11-07 09:43:49.107   521  2583 I UiAutomationManager: Registering UiTestAutomationService (id=com.android.server.accessibility/UiAutomation) when called by user 0
+11-07 09:43:49.108   521  2583 W WindowMagnificationMgr: requestConnection duplicated request: connect=false, mConnectionState=DISCONNECTED
+11-07 09:43:49.108  1715  3125 I AiAiEcho: Settings changed for uri: content://settings/secure/accessibility_enabled
+11-07 09:43:49.109  1715  2016 I AiAiEcho: Predicting[0]: 
+--
+11-07 09:43:50.161  8973  8973 D AndroidRuntime: Shutting down VM
+11-07 09:43:50.162   521   521 D BatterySaverPolicy: accessibility changed to false, updating policy.
+11-07 09:43:50.164  1715  3125 I AiAiEcho: Settings changed for uri: content://settings/secure/accessibility_enabled
+11-07 09:43:50.167  1715  2016 I AiAiEcho: Predicting[0]: 
+11-07 09:43:50.167  1715  2016 I AiAiEcho: EchoTargets: 
+11-07 09:43:50.167  1715  2016 I AiAiEcho: Filtered by AiAi flag check: 

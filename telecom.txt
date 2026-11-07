@@ -1,0 +1,5 @@
+    CallAudioModeStateMachine:
+      Looper (CallAudioModeStateMachine, tid 202) {4f9e821}
+    CallAudioRouteStateMachine:
+      Current state: QuiescentSpeakerRoute
+        Looper (com.android.server.telecom.CallAudioRouteStateMachine, tid 201) {da81446}

@@ -1,0 +1,9 @@
+    state=null
+      state=PlaybackState {state=ERROR(7), position=0, buffered position=0, speed=0.0, updated=33800, actions=0, custom actions=[], active item id=-1, error=Bluetooth audio disconnected}
+      state=PlaybackState {state=ERROR(7), position=0, buffered position=0, speed=0.0, updated=33850, actions=0, custom actions=[], active item id=-1, error=Bluetooth audio disconnected}
+      state=PlaybackState {state=ERROR(7), position=0, buffered position=0, speed=0.0, updated=38010, actions=0, custom actions=[], active item id=-1, error=Bluetooth audio disconnected}
+      state=PlaybackState {state=ERROR(7), position=0, buffered position=0, speed=0.0, updated=38023, actions=0, custom actions=[], active item id=-1, error=Bluetooth audio disconnected}
+  * ServiceRecord{9054d45 u0 app.semplicephone/.radio.RadioService}
+    intent={act=app.semplicephone.RADIO_PLAY cmp=app.semplicephone/.radio.RadioService}
+    infoAllowStartForeground=[callingPackage: app.semplicephone; callingUid: 10192; uidState: TOP ; uidBFSL: [BFSL]; intent: Intent { act=app.semplicephone.RADIO_PLAY cmp=app.semplicephone/.radio.RadioService (has extras) }; code:PROC_STATE_TOP; tempAllowListReason:<null>; targetSdkVersion:36; callerTargetSdkVersion:36; startForegroundCount:0; bindFromPackage:null: isBindService:false]
+    isForeground=true foregroundId=24080 types=00000002 foregroundNoti=Notification(channel=radio shortcut=null contentView=null vibrate=null sound=null defaults=0x0 flags=0x62 color=0x00000000 actions=1 vis=PRIVATE)

@@ -1,0 +1,30 @@
+-- set en: 
+== home it->en
+7527
+Locales for app.semplicephone for user 0 are [en]
+      topResumedActivity=ActivityRecord{9f55938 u0 app.semplicephone/.MainActivity t23}
+  ResumedActivity: ActivityRecord{9f55938 u0 app.semplicephone/.MainActivity t23}
+-- set de: 
+== editor en->de
+7527
+Locales for app.semplicephone for user 0 are [de]
+      topResumedActivity=ActivityRecord{9f55938 u0 app.semplicephone/.MainActivity t23}
+  ResumedActivity: ActivityRecord{9f55938 u0 app.semplicephone/.MainActivity t23}
+-- set fr: 
+== promemoria de->fr
+7527
+Locales for app.semplicephone for user 0 are [fr]
+    topResumedActivity=ActivityRecord{304d135 u0 app.semplicephone/.reminders.ReminderActivity t24}
+  ResumedActivity: ActivityRecord{304d135 u0 app.semplicephone/.reminders.ReminderActivity t24}
+-- set es: 
+== home fr->es
+7527
+Locales for app.semplicephone for user 0 are [es]
+      topResumedActivity=ActivityRecord{9f55938 u0 app.semplicephone/.MainActivity t23}
+  ResumedActivity: ActivityRecord{9f55938 u0 app.semplicephone/.MainActivity t23}
+-- set it: 
+== altra app con pulsante Casa es->it
+7527
+Locales for app.semplicephone for user 0 are [it]
+    topResumedActivity=ActivityRecord{29c6075 u0 com.google.android.contacts/com.google.android.apps.contacts.activities.OnboardingSignInActivity t13}
+  ResumedActivity: ActivityRecord{29c6075 u0 com.google.android.contacts/com.google.android.apps.contacts.activities.OnboardingSignInActivity t13}

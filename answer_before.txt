@@ -1,0 +1,7 @@
+    [Call id=TC@2, state=RINGING, tpac=ComponentInfo{com.android.phone/com.android.services.telephony.TelephonyConnectionService}, 1, UserHandle{0}, cmgr=ComponentInfo{com.android.phone/com.android.services.telephony.TelephonyConnectionService}, 1, UserHandle{0}, handle=tel:********67, vidst=A, childs(0), has_parent(false), cap=[ sup_hld mut !v2a spd_aud], prop=[]], voip=false
+    [Call id=TC@2, state=RINGING, tpac=ComponentInfo{com.android.phone/com.android.services.telephony.TelephonyConnectionService}, 1, UserHandle{0}, cmgr=ComponentInfo{com.android.phone/com.android.services.telephony.TelephonyConnectionService}, 1, UserHandle{0}, handle=tel:********67, vidst=A, childs(0), has_parent(false), cap=[ sup_hld mut !v2a spd_aud], prop=[]], voip=false
+    CallAudioRouteStateMachine:
+      Current state: ActiveSpeakerRoute
+        Looper (com.android.server.telecom.CallAudioRouteStateMachine, tid 201) {da81446}
+    Call TC@1: {
+    Call TC@2: {
