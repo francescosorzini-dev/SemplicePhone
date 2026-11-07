@@ -551,5 +551,8 @@
  "grp_aids": "🤝 Bedienhilfen",
  "grp_home": "🏠 Home-Taste und Startbildschirm",
  "grp_battery": "🔋 Akku und Klingelton",
- "grp_remote": "📡 Fernverwaltung"
+ "grp_remote": "📡 Fernverwaltung",
+ "type_tg_video": "Telegram-Videoanruf",
+ "tg_hint": "Die Nummer muss in den Kontakten des Telefons sein, mit aktivem Telegram und „Kontakte synchronisieren“ in Telegram (Einstellungen › Datenschutz); sonst öffnet sich der Chat.",
+ "old_app_warn_0170": "Das Telefon hat App {0}: der Telegram-Videoanruf erfordert Version 0.17.0 oder neuer."
 }

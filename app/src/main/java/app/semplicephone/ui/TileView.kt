@@ -261,7 +261,7 @@ private fun TileIconView(tile: Tile, launcher: TileLauncher, tint: Color, size: 
     }
 }
 
-private val PersonTypes = setOf(TileType.CALL, TileType.WA_VIDEO, TileType.SMS)
+private val PersonTypes = setOf(TileType.CALL, TileType.WA_VIDEO, TileType.TG_VIDEO, TileType.SMS)
 
 /**
  * Foto del contatto in un cerchio con bordo. Senza foto: iniziali (icona "foto" scelta

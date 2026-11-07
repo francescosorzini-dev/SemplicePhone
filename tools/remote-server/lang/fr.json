@@ -551,5 +551,8 @@
  "grp_aids": "🤝 Aides à l'utilisation",
  "grp_home": "🏠 Bouton Accueil et écran d'accueil",
  "grp_battery": "🔋 Batterie et sonnerie",
- "grp_remote": "📡 Gestion à distance"
+ "grp_remote": "📡 Gestion à distance",
+ "type_tg_video": "Appel vidéo Telegram",
+ "tg_hint": "Le numéro doit être dans les contacts du téléphone, avec Telegram actif et « Synchroniser les contacts » activé dans Telegram (Paramètres › Confidentialité) ; sinon la discussion s'ouvre.",
+ "old_app_warn_0170": "Le téléphone a l'appli {0} : l'appel vidéo Telegram nécessite la version 0.17.0 ou ultérieure."
 }

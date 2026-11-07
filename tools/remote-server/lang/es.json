@@ -551,5 +551,8 @@
  "grp_aids": "🤝 Ayudas de uso",
  "grp_home": "🏠 Botón Inicio y pantalla de inicio",
  "grp_battery": "🔋 Batería y timbre",
- "grp_remote": "📡 Gestión remota"
+ "grp_remote": "📡 Gestión remota",
+ "type_tg_video": "Videollamada de Telegram",
+ "tg_hint": "El número debe estar en los contactos del teléfono, con Telegram activo y «Sincronizar contactos» activado en Telegram (Ajustes › Privacidad); si no, se abre el chat.",
+ "old_app_warn_0170": "El teléfono tiene la app {0}: la videollamada de Telegram necesita la versión 0.17.0 o posterior."
 }

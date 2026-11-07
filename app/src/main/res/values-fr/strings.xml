@@ -400,6 +400,11 @@
     <string name="tpl_apply">Utiliser ce modèle</string>
     <string name="tpl_confirm">La disposition des tuiles est remplacée. Proches, SOS, rappels, météo et album restent. Tant que tu n\'appuies pas sur Enregistrer, tu peux revenir en arrière.</string>
     <string name="tile_wa_not_found">WhatsApp n\'a pas encore l\'appel vidéo pour ce numéro : enregistre-le dans les contacts, ouvre WhatsApp et actualise les contacts (Nouvelle discussion › ⋮ › Actualiser). En attendant, la tuile ouvre la discussion.</string>
+    <string name="type_tg_video">Appel vidéo Telegram</string>
+    <string name="tile_tg_hint">Le numéro doit être dans les contacts, avec Telegram actif et « Synchroniser les contacts » activé dans Telegram (Paramètres › Confidentialité).</string>
+    <string name="tile_tg_not_found">Telegram n\'a pas encore l\'appel vidéo pour ce numéro : vérifie qu\'il est dans les contacts, qu\'il utilise Telegram et que « Synchroniser les contacts » est activé dans Telegram. En attendant, la tuile ouvre la discussion.</string>
+    <string name="launch_no_telegram">Telegram n\'est pas installé</string>
+    <string name="launch_telegram_chat">Appel vidéo indisponible pour ce numéro : ouverture de la discussion Telegram</string>
     <string name="color_blue">Bleu</string>
     <string name="color_green">Vert</string>
     <string name="color_purple">Violet</string>

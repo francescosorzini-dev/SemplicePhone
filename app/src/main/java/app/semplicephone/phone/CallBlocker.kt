@@ -14,7 +14,7 @@ object CallFilter {
     /** Numeri sempre ammessi: SOS e numeri dei riquadri di chiamata, videochiamata e SMS. */
     fun knownNumbers(cfg: LauncherConfig): List<String> =
         cfg.sos.numbers + cfg.pages.flatMap { p ->
-            p.tiles.filter { it.type in setOf(TileType.CALL, TileType.WA_VIDEO, TileType.SMS) }.map { it.target }
+            p.tiles.filter { it.type in setOf(TileType.CALL, TileType.WA_VIDEO, TileType.TG_VIDEO, TileType.SMS) }.map { it.target }
         }
 
     /** [number] vuoto = numero nascosto: si blocca. Confronto sulle ultime 9 cifre, come per gli SMS. */

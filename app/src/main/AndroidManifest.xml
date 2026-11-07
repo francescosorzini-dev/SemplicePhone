@@ -33,6 +33,8 @@
     <!-- Package visibility: elenco delle app avviabili senza QUERY_ALL_PACKAGES -->
     <queries>
         <package android:name="com.whatsapp" />
+        <package android:name="org.telegram.messenger" />
+        <package android:name="org.telegram.messenger.web" />
         <intent>
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />

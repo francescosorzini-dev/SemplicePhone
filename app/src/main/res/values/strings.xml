@@ -401,6 +401,11 @@
     <string name="tpl_apply">Use this layout</string>
     <string name="tpl_confirm">The tile layout is replaced. Family members, SOS, reminders, weather and album stay. Until you press Save you can go back.</string>
     <string name="tile_wa_not_found">WhatsApp has no video call for this number yet: save it in contacts, open WhatsApp and refresh contacts (New chat › ⋮ › Refresh). Until then the tile opens the chat.</string>
+    <string name="type_tg_video">Telegram video call</string>
+    <string name="tile_tg_hint">The number must be in contacts, with Telegram active and \"Sync contacts\" turned on in Telegram (Settings › Privacy).</string>
+    <string name="tile_tg_not_found">Telegram has no video call for this number yet: check it is in contacts, uses Telegram and that \"Sync contacts\" is on in Telegram. Until then the tile opens the chat.</string>
+    <string name="launch_no_telegram">Telegram is not installed</string>
+    <string name="launch_telegram_chat">Video call not available for this number: opening the Telegram chat</string>
     <string name="color_blue">Blue</string>
     <string name="color_green">Green</string>
     <string name="color_purple">Purple</string>

@@ -28,7 +28,7 @@ const MAX_REPORT = 262144;
 const HISTORY_KEEP = 30;
 const SOURCE_URL = 'https://github.com/francescosorzini-dev/SemplicePhone';
 const VERSION = '0.5.1'; // aggiornata in automatico nelle release
-const TILE_TYPES = ['app', 'call', 'wa_video', 'sms', 'url', 'shortcut', 'clock', 'sos', 'weather', 'photos', 'missed_calls', 'search', 'messages', 'radio'];
+const TILE_TYPES = ['app', 'call', 'wa_video', 'tg_video', 'sms', 'url', 'shortcut', 'clock', 'sos', 'weather', 'photos', 'missed_calls', 'search', 'messages', 'radio'];
 const MEDIA_MAX = 8 * 1024 * 1024;
 // Versione dell'app che conosce meteo, foto e promemoria in una data: le precedenti li ignorano o scartano.
 const APP_FEATURES_090 = '0.9.0';
@@ -1418,11 +1418,11 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
   if (!ta) return;
 
   // Un simbolo per ogni tipo: nell'elenco «Cosa fa» e nell'anteprima del telefono.
-  const TYPE_EMOJI = {app: '📱', call: '📞', wa_video: '🎥', sms: '✉️', url: '🌐', shortcut: '↗️', clock: '🕑', weather: '☀️', photos: '🖼', missed_calls: '📵',
+  const TYPE_EMOJI = {app: '📱', call: '📞', wa_video: '🎥', tg_video: '📹', sms: '✉️', url: '🌐', shortcut: '↗️', clock: '🕑', weather: '☀️', photos: '🖼', missed_calls: '📵',
     messages: '💬', search: '🔍', radio: '📻', sos: '⚠️'};
   const TYPES = Object.fromEntries(Object.keys(TYPE_EMOJI).map(k => [k, TYPE_EMOJI[k] + ' ' + T('type_' + k)]));
   // Colore tipico di ogni tipo (stessa tavolozza del telefono) e colori predefiniti delle versioni vecchie.
-  const TYPE_COLOR = {wa_video: '#4FC3F7', weather: '#4FC3F7', clock: '#FFFFFF', photos: '#6A1B9A', missed_calls: '#FFD54F', search: '#1A1A1A', url: '#1A1A1A',
+  const TYPE_COLOR = {wa_video: '#4FC3F7', tg_video: '#4FC3F7', weather: '#4FC3F7', clock: '#FFFFFF', photos: '#6A1B9A', missed_calls: '#FFD54F', search: '#1A1A1A', url: '#1A1A1A',
     radio: '#FFA726', sos: '#C62828'};
   const typeColor = k => TYPE_COLOR[k] || '#1F4FA8';
   const OLD_COLORS = {'#0B6E4F': '#1B7A34', '#00695C': '#4FC3F7', '#B71C1C': '#C62828', '#A84300': '#FFA726', '#FFF3C4': '#FFD54F', '#FFE7A8': '#FFD54F',
@@ -1540,7 +1540,7 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
         const w = t.w || 1, h = t.h || 1;
         if (t.col < 0 || t.row < 0 || t.col + w > p.cols || t.row + h > p.rows) out.push(T('p_out', pi + 1, name(t)));
         p.tiles.forEach(o => { if (o !== t && o.id > t.id && overlap(t, o)) out.push(T('p_overlap', pi + 1, name(t), name(o))); });
-        if (['call', 'wa_video', 'sms'].includes(t.type) && !(t.target || '').trim()) out.push(T('p_no_number', name(t)));
+        if (['call', 'wa_video', 'tg_video', 'sms'].includes(t.type) && !(t.target || '').trim()) out.push(T('p_no_number', name(t)));
         if (t.type === 'url' && !/^https?:\/\//.test(t.target || '')) out.push(T('p_bad_url', name(t)));
       });
     });
@@ -1563,9 +1563,10 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
       old0120 = cfg.pages.some(p => p.tiles.some(t => t.type === 'search')) && !newer(app, '0.12.0'),
       old0130 = (cfg.phone.autoAnswer || cfg.phone.announceCaller) && !newer(app, '0.13.0'),
       old0140 = (cfg.pages.some(p => p.tiles.some(t => ['messages', 'radio'].includes(t.type) || (t.icon && /^media:/.test(t.icon.ref || ''))))
-        || cfg.phone.nightQuiet || cfg.phone.chargeReminder || cfg.phone.holdToOpen || (cfg.phone.theme && cfg.phone.theme !== 'normal')) && !newer(app, '0.14.0');
-    warn.hidden = !(app && (old090 || old0100 || old0101 || old0120 || old0130 || old0140));
-    warn.textContent = old090 ? T('old_app_warn', app || '?') : old0100 ? T('old_app_warn_0100', app || '?') : old0101 ? T('old_app_warn_0101', app || '?') : old0120 ? T('old_app_warn_0120', app || '?') : old0130 ? T('old_app_warn_0130', app || '?') : T('old_app_warn_0140', app || '?');
+        || cfg.phone.nightQuiet || cfg.phone.chargeReminder || cfg.phone.holdToOpen || (cfg.phone.theme && cfg.phone.theme !== 'normal')) && !newer(app, '0.14.0'),
+      old0170 = cfg.pages.some(p => p.tiles.some(t => t.type === 'tg_video')) && !newer(app, '0.17.0');
+    warn.hidden = !(app && (old090 || old0100 || old0101 || old0120 || old0130 || old0140 || old0170));
+    warn.textContent = old090 ? T('old_app_warn', app || '?') : old0100 ? T('old_app_warn_0100', app || '?') : old0101 ? T('old_app_warn_0101', app || '?') : old0120 ? T('old_app_warn_0120', app || '?') : old0130 ? T('old_app_warn_0130', app || '?') : old0140 ? T('old_app_warn_0140', app || '?') : T('old_app_warn_0170', app || '?');
     const p = problems(), box = document.getElementById('issues');
     box.replaceChildren(...(p.length ? [el('b', {}, T('p_title')), el('ul', {}, p.map(x => el('li', {}, x)))] : []));
     document.getElementById('pubbtn').disabled = p.length > 0;
@@ -1650,7 +1651,7 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
     const parts = [el('h3', {}, T('selected_tile')),
       field(T('what_it_does'), select(TYPES, t.type, v => {
         // Il valore del tipo precedente non vale per il nuovo (es. «@dialer» per una videochiamata).
-        const phoneTypes = ['call', 'wa_video', 'sms'];
+        const phoneTypes = ['call', 'wa_video', 'tg_video', 'sms'];
         const keep = (phoneTypes.includes(t.type) && phoneTypes.includes(v)) || t.type === v;
         if (!keep) t.target = '';
         // Scritta e colore seguono il nuovo tipo, a meno che siano stati scelti a mano.
@@ -1665,7 +1666,7 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
         if (v === 'radio') { t.target = ''; t.stations = t.stations || [{name: '', url: ''}]; }
         if (v === 'missed_calls') { t.target = ''; t.icon = {kind: 'auto', ref: ''}; }
         if (v === 'sos') { t.label = 'SOS'; t.w = Math.min(2, p.cols); }
-        if (['call', 'wa_video', 'sms'].includes(v) && t.icon.kind === 'symbol') t.icon = {kind: 'auto', ref: ''};
+        if (['call', 'wa_video', 'tg_video', 'sms'].includes(v) && t.icon.kind === 'symbol') t.icon = {kind: 'auto', ref: ''};
         changed(); render();
       }))];
 
@@ -1682,9 +1683,10 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
       parts.push(field(T('tile_open'), select({default: T('open_default'), fresh: T('open_fresh'), resume: T('open_resume')}, t.open || 'default',
         v => { if (v === 'default') delete t.open; else t.open = v; changed(); render(); })));
     }
-    if (['call', 'wa_video', 'sms'].includes(t.type)) {
+    if (['call', 'wa_video', 'tg_video', 'sms'].includes(t.type)) {
       parts.push(field(T('phone_number'), el('input', {type: 'tel', value: t.target || '', placeholder: T('phone_placeholder'), onchange: e => upd('target', e.target.value.replace(/[^\d+]/g, ''))})));
       if (t.type === 'wa_video') parts.push(el('p', {class: 'hint'}, T('wa_hint')));
+      if (t.type === 'tg_video') parts.push(el('p', {class: 'hint'}, T('tg_hint')));
       if (t.type === 'sms') parts.push(field(T('msg_text'), el('input', {type: 'text', value: t.body || '', onchange: e => upd('body', e.target.value)})));
     }
     if (t.type === 'weather') {
@@ -1729,21 +1731,21 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
       parts.push(field(T('icon'), select(ICONS, t.icon.kind || 'auto', v => { t.icon = {kind: v, ref: v === 'symbol' ? (t.icon.ref && SYMBOLS[t.icon.ref] ? t.icon.ref : 'phone') : (v === 'photo' || v === 'auto' ? /^(contact|media):/.test(t.icon.ref || '') ? t.icon.ref : '' : '')}; changed(); render(); })));
       if (t.icon.kind === 'symbol') parts.push(field(T('symbol'), select(SYMBOLS, t.icon.ref || 'phone', v => { t.icon.ref = v; changed(); render(); })));
       // Foto del familiare caricata da qui: non serve averla nella rubrica del telefono.
-      if (['call', 'wa_video', 'sms'].includes(t.type)) {
+      if (['call', 'wa_video', 'tg_video', 'sms'].includes(t.type)) {
         const media = (t.icon.ref || '').startsWith('media:') ? t.icon.ref : '';
         parts.push(el('label', {}, T('family_photo')),
           media ? thumb(media, () => { t.icon = {kind: 'auto', ref: '', fill: t.icon.fill}; if (!t.icon.fill) delete t.icon.fill; changed(); render(); }) : '',
           fileInput(false, refs => { t.icon = Object.assign({}, t.icon, {kind: 'photo', ref: refs[0]}); changed(); render(); }),
           el('div', {class: 'hint'}, T('family_photo_hint')));
       }
-      if (t.icon.kind === 'photo' || (t.icon.kind === 'auto' && ['call', 'wa_video', 'sms'].includes(t.type)))
+      if (t.icon.kind === 'photo' || (t.icon.kind === 'auto' && ['call', 'wa_video', 'tg_video', 'sms'].includes(t.type)))
         parts.push(el('p', {class: 'hint'}, T('photo_hint')),
           el('label', {style: 'font-weight:400'}, el('input', {type: 'checkbox', checked: !!t.icon.fill,
             onchange: e => { t.icon.fill = e.target.checked; if (!t.icon.fill) delete t.icon.fill; changed(); render(); }}), ' ' + T('photo_fill')),
           el('div', {class: 'hint'}, T('photo_fill_hint')));
     }
 
-    if (cfg.phone.homeButton && ['app', 'shortcut', 'url', 'sms', 'wa_video'].includes(t.type))
+    if (cfg.phone.homeButton && ['app', 'shortcut', 'url', 'sms', 'wa_video', 'tg_video'].includes(t.type))
       parts.push(el('label', {style: 'font-weight:400'}, el('input', {type: 'checkbox', checked: t.homeButton !== false,
         onchange: e => { if (e.target.checked) delete t.homeButton; else t.homeButton = false; changed(); render(); }}), ' ' + T('tile_home_button')),
         el('div', {class: 'hint'}, T('tile_home_button_hint')));
@@ -2010,7 +2012,7 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
       });
       // Ordine di importanza: familiari, chiamate perse, meteo, app, ricerca. Un riquadro largo
       // che capiterebbe a metà riga aspetta l'inizio della riga successiva, così non restano buchi.
-      const prio = t => ({call: 0, wa_video: 0, missed_calls: 1, messages: 1, weather: 2, app: 3, photos: 4, search: 5})[t.type] ?? 3;
+      const prio = t => ({call: 0, wa_video: 0, tg_video: 0, missed_calls: 1, messages: 1, weather: 2, app: 3, photos: 4, search: 5})[t.type] ?? 3;
       items.sort((a, b) => prio(a.t) - prio(b.t));
       const ROWS = MODELS[model].rows, pages = [{cols: 2, rows: ROWS, tiles: [{id: 'clock', col: 0, row: 0, w: 2, h: 1, type: 'clock', color: '#FFFFFF'}]}];
       let pg = 0, row = 1, col = 0;

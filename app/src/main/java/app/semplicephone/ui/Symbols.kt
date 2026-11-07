@@ -77,7 +77,7 @@ object Symbols {
 
     fun defaultFor(type: TileType): String = when (type) {
         TileType.CALL -> "phone"
-        TileType.WA_VIDEO -> "video"
+        TileType.WA_VIDEO, TileType.TG_VIDEO -> "video"
         TileType.SMS -> "message"
         TileType.URL -> "web"
         TileType.SOS -> "alert"

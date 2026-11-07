@@ -31,7 +31,7 @@ object Permissions {
         val tiles = cfg.pages.flatMap { it.tiles }
         val out = linkedMapOf<String, String>()
         if (tiles.any { it.type == TileType.CALL }) out[Manifest.permission.CALL_PHONE] = s(R.string.perm_call_tiles)
-        if (tiles.any { it.type == TileType.WA_VIDEO || it.icon.kind == IconKind.PHOTO ||
+        if (tiles.any { it.type == TileType.WA_VIDEO || it.type == TileType.TG_VIDEO || it.icon.kind == IconKind.PHOTO ||
                 ((it.type == TileType.CALL || it.type == TileType.SMS) && it.icon.kind == IconKind.AUTO) }
         ) out[Manifest.permission.READ_CONTACTS] = s(R.string.perm_contacts)
         if (tiles.any { it.type == TileType.MISSED_CALLS } && BuildConfig.CALL_LOG) {

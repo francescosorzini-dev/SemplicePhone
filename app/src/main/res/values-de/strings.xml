@@ -400,6 +400,11 @@
     <string name="tpl_apply">Diese Vorlage verwenden</string>
     <string name="tpl_confirm">Die Kachelanordnung wird ersetzt. Familie, SOS, Erinnerungen, Wetter und Album bleiben. Bis du Speichern drückst, kannst du zurück.</string>
     <string name="tile_wa_not_found">WhatsApp hat für diese Nummer noch keinen Videoanruf: in den Kontakten speichern, WhatsApp öffnen und Kontakte aktualisieren (Neuer Chat › ⋮ › Aktualisieren). Bis dahin öffnet die Kachel den Chat.</string>
+    <string name="type_tg_video">Telegram-Videoanruf</string>
+    <string name="tile_tg_hint">Die Nummer muss in den Kontakten sein, mit aktivem Telegram und eingeschaltetem „Kontakte synchronisieren“ in Telegram (Einstellungen › Datenschutz).</string>
+    <string name="tile_tg_not_found">Telegram hat für diese Nummer noch keinen Videoanruf: prüfen, ob sie in den Kontakten ist, Telegram nutzt und „Kontakte synchronisieren“ in Telegram an ist. Bis dahin öffnet die Kachel den Chat.</string>
+    <string name="launch_no_telegram">Telegram ist nicht installiert</string>
+    <string name="launch_telegram_chat">Videoanruf für diese Nummer nicht verfügbar: Telegram-Chat wird geöffnet</string>
     <string name="color_blue">Blau</string>
     <string name="color_green">Grün</string>
     <string name="color_purple">Violett</string>

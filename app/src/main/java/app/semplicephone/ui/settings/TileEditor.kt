@@ -66,6 +66,7 @@ private val TypeLabels = linkedMapOf(
     TileType.APP to R.string.type_app,
     TileType.CALL to R.string.type_call,
     TileType.WA_VIDEO to R.string.type_wa_video,
+    TileType.TG_VIDEO to R.string.type_tg_video,
     TileType.SMS to R.string.type_sms,
     TileType.URL to R.string.type_url,
     TileType.SHORTCUT to R.string.type_shortcut,
@@ -155,7 +156,7 @@ fun TileEditor(
 
             OptionPicker(stringResource(R.string.tile_action), TypeLabels.keys.toList(), t.type, { typeLabel(context, it) }) { type ->
                 // Il valore del tipo precedente non vale per il nuovo (es. «@dialer» per una videochiamata).
-                val phoneTypes = setOf(TileType.CALL, TileType.WA_VIDEO, TileType.SMS)
+                val phoneTypes = setOf(TileType.CALL, TileType.WA_VIDEO, TileType.TG_VIDEO, TileType.SMS)
                 val keep = type == t.type || (type in phoneTypes && t.type in phoneTypes)
                 // Scritta e colore seguono il nuovo tipo, a meno che siano stati scelti a mano.
                 val autoLabel = isAutoLabel(context, t.label)
@@ -185,7 +186,7 @@ fun TileEditor(
                         { context.getString(openLabels.getValue(it)) },
                     ) { t = t.copy(open = it) }
                 }
-                TileType.CALL, TileType.WA_VIDEO, TileType.SMS -> {
+                TileType.CALL, TileType.WA_VIDEO, TileType.TG_VIDEO, TileType.SMS -> {
                     OutlinedButton(
                         onClick = {
                             onExternalStart()
@@ -200,6 +201,11 @@ fun TileEditor(
                         // Controllo subito: senza la riga «Videochiamata» di WhatsApp in rubrica si aprirebbe solo la chat.
                         val waReady = remember(t.target) { t.target.filter(Char::isDigit).length < 6 || launcher.contacts.whatsAppVideoIntent(t.target) != null }
                         if (!waReady) Text(stringResource(R.string.tile_wa_not_found), fontSize = 15.sp, color = Palette.Sos)
+                    }
+                    if (t.type == TileType.TG_VIDEO) {
+                        Hint(stringResource(R.string.tile_tg_hint))
+                        val tgReady = remember(t.target) { t.target.filter(Char::isDigit).length < 6 || launcher.contacts.telegramVideoIntent(t.target) != null }
+                        if (!tgReady) Text(stringResource(R.string.tile_tg_not_found), fontSize = 15.sp, color = Palette.Sos)
                     }
                     if (t.type == TileType.SMS) Field(stringResource(R.string.tile_sms_text), t.body) { t = t.copy(body = it) }
                 }
@@ -277,8 +283,8 @@ fun TileEditor(
                 if (t.icon.kind == IconKind.SYMBOL) SymbolGrid(t.icon.ref) { t = t.copy(icon = TileIcon(IconKind.SYMBOL, it)) }
                 if (t.icon.kind == IconKind.PHOTO) Hint(stringResource(R.string.tile_photo_hint))
                 val withPhoto = t.icon.kind == IconKind.PHOTO ||
-                    (t.icon.kind == IconKind.AUTO && t.type in setOf(TileType.CALL, TileType.WA_VIDEO, TileType.SMS))
-                if (t.type in setOf(TileType.CALL, TileType.WA_VIDEO, TileType.SMS)) {
+                    (t.icon.kind == IconKind.AUTO && t.type in setOf(TileType.CALL, TileType.WA_VIDEO, TileType.TG_VIDEO, TileType.SMS))
+                if (t.type in setOf(TileType.CALL, TileType.WA_VIDEO, TileType.TG_VIDEO, TileType.SMS)) {
                     // Foto scelta o scattata qui (anche se il numero non ha foto in rubrica).
                     SectionLabel(stringResource(R.string.tile_own_photo))
                     SinglePhotoField(
@@ -371,7 +377,7 @@ fun TileEditor(
 
 /** Colore tipico di ogni tipo di riquadro (stessa tavolozza del portale). */
 fun defaultColor(type: TileType): String = when (type) {
-    TileType.WA_VIDEO, TileType.WEATHER -> "#4FC3F7"
+    TileType.WA_VIDEO, TileType.TG_VIDEO, TileType.WEATHER -> "#4FC3F7"
     TileType.CLOCK -> "#FFFFFF"
     TileType.PHOTOS -> "#6A1B9A"
     TileType.MISSED_CALLS -> "#FFD54F"
@@ -406,7 +412,7 @@ fun isAutoLabel(context: Context, label: String): Boolean {
 fun defaultLabel(context: Context, type: TileType): String = when (type) {
     TileType.APP -> context.getString(R.string.label_app)
     TileType.CALL -> context.getString(R.string.label_call)
-    TileType.WA_VIDEO -> context.getString(R.string.label_video)
+    TileType.WA_VIDEO, TileType.TG_VIDEO -> context.getString(R.string.label_video)
     TileType.SMS -> context.getString(R.string.label_message)
     TileType.URL -> context.getString(R.string.label_internet)
     TileType.SHORTCUT -> context.getString(R.string.label_shortcut)

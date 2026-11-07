@@ -400,6 +400,11 @@
     <string name="tpl_apply">Usar esta plantilla</string>
     <string name="tpl_confirm">La disposición de los mosaicos se sustituye. Familiares, SOS, recordatorios, tiempo y álbum se mantienen. Hasta que pulses Guardar puedes volver atrás.</string>
     <string name="tile_wa_not_found">WhatsApp aún no tiene la videollamada para este número: guárdalo en contactos, abre WhatsApp y actualiza los contactos (Nuevo chat › ⋮ › Actualizar). Mientras tanto, el mosaico abre el chat.</string>
+    <string name="type_tg_video">Videollamada de Telegram</string>
+    <string name="tile_tg_hint">El número debe estar en contactos, con Telegram activo y «Sincronizar contactos» activado en Telegram (Ajustes › Privacidad).</string>
+    <string name="tile_tg_not_found">Telegram aún no tiene la videollamada para este número: comprueba que esté en contactos, que use Telegram y que «Sincronizar contactos» esté activado en Telegram. Mientras tanto, el mosaico abre el chat.</string>
+    <string name="launch_no_telegram">Telegram no está instalado</string>
+    <string name="launch_telegram_chat">Videollamada no disponible para este número: abro el chat de Telegram</string>
     <string name="color_blue">Azul</string>
     <string name="color_green">Verde</string>
     <string name="color_purple">Morado</string>

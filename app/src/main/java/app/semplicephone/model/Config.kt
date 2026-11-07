@@ -109,7 +109,7 @@ data class Tile(
     /**
      * Destinazione, interpretata in base a [type]:
      * - APP: package name oppure ruolo "@dialer", "@sms", "@camera", "@gallery", "@browser"
-     * - CALL / WA_VIDEO / SMS: numero di telefono
+     * - CALL / WA_VIDEO / TG_VIDEO / SMS: numero di telefono
      * - URL: indirizzo https
      * - SHORTCUT: "package/shortcutId"
      * - CLOCK / SOS: ignorato
@@ -146,7 +146,7 @@ const val OPEN_RESUME = "resume"
  */
 @Serializable(with = TileTypeSerializer::class)
 enum class TileType(val code: String) {
-    APP("app"), CALL("call"), WA_VIDEO("wa_video"), SMS("sms"), URL("url"), SHORTCUT("shortcut"),
+    APP("app"), CALL("call"), WA_VIDEO("wa_video"), TG_VIDEO("tg_video"), SMS("sms"), URL("url"), SHORTCUT("shortcut"),
     CLOCK("clock"), SOS("sos"),
     /** target = "lat,lon", label = località (Open-Meteo). */
     WEATHER("weather"),

@@ -551,5 +551,8 @@
  "grp_aids": "🤝 Aiuti per l'uso",
  "grp_home": "🏠 Pulsante Casa e Home",
  "grp_battery": "🔋 Batteria e suoneria",
- "grp_remote": "📡 Gestione da remoto"
+ "grp_remote": "📡 Gestione da remoto",
+ "type_tg_video": "Videochiamata Telegram",
+ "tg_hint": "Il numero deve essere nella rubrica del telefono, con Telegram attivo e «Sincronizza contatti» acceso in Telegram (Impostazioni › Privacy); altrimenti si apre la chat.",
+ "old_app_warn_0170": "Il telefono ha l'app {0}: la videochiamata Telegram richiede la versione 0.17.0 o successiva."
 }

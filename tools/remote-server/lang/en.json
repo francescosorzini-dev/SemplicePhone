@@ -551,5 +551,8 @@
  "grp_aids": "🤝 Help using it",
  "grp_home": "🏠 Home button and Home screen",
  "grp_battery": "🔋 Battery and ringer",
- "grp_remote": "📡 Remote management"
+ "grp_remote": "📡 Remote management",
+ "type_tg_video": "Telegram video call",
+ "tg_hint": "The number must be in the phone's contacts, with Telegram active and \"Sync contacts\" on in Telegram (Settings › Privacy); otherwise the chat opens.",
+ "old_app_warn_0170": "The phone has app {0}: the Telegram video call needs version 0.17.0 or later."
 }
