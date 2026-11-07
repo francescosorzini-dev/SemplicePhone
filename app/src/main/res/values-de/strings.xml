@@ -373,7 +373,7 @@
     <string name="special_badges_restricted">Wenn der Schalter grau ist: Einstellungen › Apps › SemplicePhone › Menü ⋮ oben › „Eingeschränkte Einstellungen zulassen“, dann hierher zurück.</string>
     <string name="label_album">Album</string>
     <string name="album_folders">Ordner des Telefons</string>
-    <string name="album_folders_hint">Fotos und Videos aus den gewählten Ordnern (z. B. Kamera, WhatsApp Images, WhatsApp Video) erscheinen von selbst, auch neue.</string>
+    <string name="album_folders_hint">Fotos und Videos aus den gewählten Ordnern und allen Unterordnern (z. B. DCIM, WhatsApp › Media) erscheinen von selbst, auch neue. Von WhatsApp gesendete Fotos und versteckte Ordner werden übersprungen.</string>
     <string name="album_folder_other_phone">Ordner eines anderen Telefons (hier nicht lesbar)</string>
     <string name="album_add_folder">+ Ordner hinzufügen</string>
     <string name="video_error">Dieses Video lässt sich nicht abspielen.</string>

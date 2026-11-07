@@ -1,1 +1,2 @@
 - WhatsApp video call: the number is found in any format (+39, spaces) and with several numbers on the same contact; warning in the editor if WhatsApp doesn't offer it yet
+- Album: photos and videos also in subfolders of the chosen folders (e.g. DCIM, WhatsApp › Media)

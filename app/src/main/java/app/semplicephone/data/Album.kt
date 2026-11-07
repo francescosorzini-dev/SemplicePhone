@@ -20,6 +20,10 @@ data class AlbumItem(val ref: String, val video: Boolean, val at: Long, val name
 object Album {
     private const val TAG = "Album"
     private const val MAX_ITEMS = 300
+    private const val MAX_DEPTH = 6
+    private const val MAX_SCAN = 20_000
+    /** Foto inviate da WhatsApp (doppioni) e cartelle private: non sono ricordi da mostrare. */
+    private val SKIP_DIRS = setOf("Sent", "Private", "Inviati")
 
     /** Nome leggibile di una cartella scelta (es. «WhatsApp Images»). */
     fun folderName(context: Context, tree: String): String = runCatching {
@@ -54,22 +58,35 @@ object Album {
         return (own + fromFolders).take(MAX_ITEMS)
     }
 
-    /** Foto e video della cartella (solo il primo livello: le cartelle del telefono sono già divise per tipo). */
+    /**
+     * Foto e video della cartella e di tutte le sue sottocartelle (es. «DCIM» → Camera, Screenshots…,
+     * «WhatsApp/Media» → Images, Video…). Si salta ciò che inizia con «.» (cartelle nascoste, .thumbnails,
+     * .Statuses) e le cartelle «Sent»/«Private» di WhatsApp; al massimo [MAX_DEPTH] livelli e [MAX_SCAN] file.
+     */
     private fun list(context: Context, tree: Uri): List<AlbumItem> = runCatching {
-        val children = DocumentsContract.buildChildDocumentsUriUsingTree(tree, DocumentsContract.getTreeDocumentId(tree))
         val cols = arrayOf(
             DocumentsContract.Document.COLUMN_DOCUMENT_ID, DocumentsContract.Document.COLUMN_MIME_TYPE,
             DocumentsContract.Document.COLUMN_LAST_MODIFIED, DocumentsContract.Document.COLUMN_DISPLAY_NAME,
         )
         val out = mutableListOf<AlbumItem>()
-        context.contentResolver.query(children, cols, null, null, null)?.use { c ->
-            while (c.moveToNext()) {
-                val mime = c.getString(1).orEmpty()
-                val name = c.getString(3).orEmpty()
-                if (name.startsWith(".")) continue
-                val video = mime.startsWith("video/")
-                if (!video && !mime.startsWith("image/")) continue
-                out += AlbumItem(DocumentsContract.buildDocumentUriUsingTree(tree, c.getString(0)).toString(), video, c.getLong(2), name)
+        val queue = ArrayDeque(listOf(DocumentsContract.getTreeDocumentId(tree) to 0))
+        var seen = 0
+        while (queue.isNotEmpty() && seen < MAX_SCAN) {
+            val (docId, depth) = queue.removeFirst()
+            val children = DocumentsContract.buildChildDocumentsUriUsingTree(tree, docId)
+            context.contentResolver.query(children, cols, null, null, null)?.use { c ->
+                while (c.moveToNext() && seen < MAX_SCAN) {
+                    seen++
+                    val mime = c.getString(1).orEmpty()
+                    val name = c.getString(3).orEmpty()
+                    if (name.startsWith(".")) continue
+                    when {
+                        mime == DocumentsContract.Document.MIME_TYPE_DIR ->
+                            if (depth < MAX_DEPTH && name !in SKIP_DIRS) queue += c.getString(0) to depth + 1
+                        mime.startsWith("video/") || mime.startsWith("image/") ->
+                            out += AlbumItem(DocumentsContract.buildDocumentUriUsingTree(tree, c.getString(0)).toString(), mime.startsWith("video/"), c.getLong(2), name)
+                    }
+                }
             }
         }
         out

@@ -1,1 +1,2 @@
 - Videollamada de WhatsApp: el número se encuentra en cualquier formato (+39, espacios) y con varios números en el mismo contacto; aviso en el editor si WhatsApp aún no la ofrece
+- Álbum: fotos y vídeos también en las subcarpetas de las carpetas elegidas (p. ej. DCIM, WhatsApp › Media)

@@ -1,1 +1,2 @@
 - Appel vidéo WhatsApp : le numéro est trouvé quel que soit son format (+39, espaces) et avec plusieurs numéros sur un contact ; avertissement dans l'éditeur si WhatsApp ne le propose pas encore
+- Album : photos et vidéos aussi dans les sous-dossiers des dossiers choisis (ex. DCIM, WhatsApp › Media)
