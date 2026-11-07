@@ -479,31 +479,45 @@ private fun WeatherTile(tile: Tile, launcher: TileLauncher, modifier: Modifier) 
     }
 }
 
-/** Foto di famiglia che scorrono ogni 8 secondi; un tocco passa alla successiva. */
+/**
+ * Album: foto caricate e foto/video delle cartelle del telefono, che scorrono ogni 8 secondi.
+ * Un tocco su una foto passa alla successiva; su un video (simbolo ▶) lo apre a tutto schermo.
+ */
 @Composable
 private fun PhotosTile(tile: Tile, launcher: TileLauncher, modifier: Modifier) {
     val context = LocalContext.current
-    val photos = tile.photos.filter { app.semplicephone.data.Media.exists(context, it) }
-    var index by remember(photos) { mutableStateOf(0) }
-    LaunchedEffect(photos) {
-        while (photos.size > 1) {
+    var reload by remember { mutableStateOf(0) }
+    val items by produceState(emptyList<app.semplicephone.data.AlbumItem>(), tile.photos, tile.folders, reload) {
+        value = withContext(Dispatchers.IO) { app.semplicephone.data.Album.items(context, tile) }
+    }
+    // Le foto nuove nelle cartelle (es. arrivate su WhatsApp) compaiono senza riaprire nulla.
+    LaunchedEffect(tile.folders) { while (tile.folders.isNotEmpty()) { delay(10 * 60_000L); reload++ } }
+    var index by remember(items) { mutableStateOf(0) }
+    LaunchedEffect(items) {
+        while (items.size > 1) {
             delay(8_000)
-            index = (index + 1) % photos.size
+            index = (index + 1) % items.size
         }
     }
     val bg = parseColor(tile.color)
     val fg = contentColorFor(bg)
+    val current = items.getOrNull(index % items.size.coerceAtLeast(1))
     Box(
         modifier
             .clip(TileShape)
             .background(bg)
             .combinedClickable(
                 onLongClick = { launcher.speakLabel(tile) },
-                onClick = { if (photos.isNotEmpty()) index = (index + 1) % photos.size },
+                onClick = {
+                    when {
+                        current?.video == true -> launcher.openVideo(current.ref)
+                        items.isNotEmpty() -> index = (index + 1) % items.size
+                    }
+                },
             ),
         contentAlignment = Alignment.Center,
     ) {
-        if (photos.isEmpty()) {
+        if (items.isEmpty()) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Icon(Symbols.get("photo"), null, Modifier.size(56.dp), tint = fg)
                 TileLabel(tile.label, fg, 22.dp.fixedSp(), TextAlign.Center, Modifier.fillMaxWidth())
@@ -511,11 +525,17 @@ private fun PhotosTile(tile: Tile, launcher: TileLauncher, modifier: Modifier) {
         } else {
             BoxWithConstraints(Modifier.fillMaxSize()) {
                 val px = with(LocalDensity.current) { maxOf(maxWidth, maxHeight).roundToPx() }
-                androidx.compose.animation.Crossfade(photos[index % photos.size], label = "foto") { ref ->
-                    val bmp by produceState<ImageBitmap?>(null, ref, px) {
-                        value = withContext(Dispatchers.IO) { app.semplicephone.data.Media.bitmap(context, ref, px)?.asImageBitmap() }
+                androidx.compose.animation.Crossfade(current, label = "foto") { item ->
+                    val bmp by produceState<ImageBitmap?>(null, item, px) {
+                        value = item?.let { withContext(Dispatchers.IO) { app.semplicephone.data.Album.bitmap(context, it, px)?.asImageBitmap() } }
                     }
-                    bmp?.let { Image(it, null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize()) }
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        bmp?.let { Image(it, null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize()) }
+                        if (item?.video == true) Box(
+                            Modifier.size(72.dp).clip(androidx.compose.foundation.shape.CircleShape).background(Color(0xCC000000)),
+                            contentAlignment = Alignment.Center,
+                        ) { Text("▶", color = Color.White, fontSize = 34.dp.fixedSp(), fontWeight = FontWeight.Bold) }
+                    }
                 }
                 if (tile.label.isNotBlank()) {
                     Box(

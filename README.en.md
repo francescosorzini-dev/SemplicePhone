@@ -42,6 +42,8 @@ and a web page where the family sets everything up from afar. Free, no ads, free
 - **Messages from the family** full screen and read aloud, until someone taps "GOT IT".
 - **Unread messages.** A tile lists unread SMS and WhatsApp messages: a tap opens the
   conversation, a long press reads it aloud.
+- **Album.** Uploaded photos plus the phone's folders (Camera, WhatsApp) change by themselves; a tap on a
+  video opens it full screen, loud, with a single button to close.
 - **Radio.** A tile with favourite stations: huge PLAY/STOP buttons, next station, volume.
 - **Quiet night.** At night the phone does not ring, except for SOS numbers. In the evening, if the
   battery is low, it reminds aloud to put it on charge.
@@ -69,6 +71,10 @@ Changes are signed: the phone only accepts those from its own portal.
 - **Alerts** on Telegram or email: SOS with location, unconfirmed reminder, low battery, phone
   out of contact, blocked calls.
 - **Family photos** on call tiles, uploaded from the portal.
+- **Video messages**: a short video from the portal appears full screen and starts by itself until "SEEN IT"
+  is tapped. If the file is too big for the hosting, the browser shrinks it before sending.
+- **Ready-made layouts by situation** (independent, calls only, memory difficulties, poor eyesight, hard of
+  hearing, shaky hands), on the phone the first time and in the guided setup.
 - **Family calendar**: appointments from a Google, Outlook or iCloud calendar (iCal address) become
   reminders on the phone, also the evening before.
 - **Guided setup**: a few questions (who they call, what they need, which medicines) and the screen is ready.

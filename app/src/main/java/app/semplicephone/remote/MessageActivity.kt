@@ -66,6 +66,24 @@ class MessageActivity : ComponentActivity() {
         val body = notice?.text ?: m!!.text
         val symbol = notice?.symbol ?: "message"
         val spoken = "$title. $body"
+        val video = m?.let { FamilyMessages.videoFile(this, it) }?.takeIf { it.exists() }
+
+        if (video != null) {
+            // Videomessaggio: il video parte da solo (senza voce sopra), poi «HO VISTO».
+            setContent {
+                SempliceTheme {
+                    app.semplicephone.ui.VideoPlayer(
+                        android.net.Uri.fromFile(video), getString(R.string.message_seen),
+                        onClose = {
+                            sendBroadcast(Intent(this@MessageActivity, FamilyReceiver::class.java).setAction(FamilyMessages.ACTION_READ))
+                            finishAndRemoveTask()
+                        },
+                        title = title, extra = body,
+                    )
+                }
+            }
+            return
+        }
 
         setContent {
             LaunchedEffect(spoken) { Voice.speak(this@MessageActivity, spoken) }

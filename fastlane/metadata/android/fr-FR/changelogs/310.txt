@@ -1,0 +1,3 @@
+- Modèles prêts : autonome, appels seulement, mémoire fragile, vue faible, audition faible, mains qui tremblent
+- « Album » : photos et vidéos aussi depuis les dossiers du téléphone (Appareil photo, WhatsApp), vidéos en plein écran
+- Messages vidéo des proches via le portail, en plein écran

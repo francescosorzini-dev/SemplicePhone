@@ -76,6 +76,9 @@ sealed interface Screen {
     data object Search : Screen
     /** Radio del riquadro [tile]. */
     data class Radio(val tile: Tile) : Screen
+    data class Video(val uri: String) : Screen
+    /** Modelli pronti; [firstTime] alla prima apertura delle impostazioni. */
+    data class Templates(val firstTime: Boolean) : Screen
 }
 
 class MainActivity : ComponentActivity() {
@@ -115,7 +118,7 @@ class MainActivity : ComponentActivity() {
         contacts = Contacts(applicationContext)
         protection = DeviceProtection(applicationContext)
         scheduler = ReminderScheduler(applicationContext)
-        launcher = TileLauncher(this, contacts, onSos = ::onSosRequested, onSearch = ::openSearch, onRadio = { screen = Screen.Radio(it) })
+        launcher = TileLauncher(this, contacts, onSos = ::onSosRequested, onSearch = ::openSearch, onRadio = { screen = Screen.Radio(it) }, onVideo = { screen = Screen.Video(it) })
         pins = PinStore(applicationContext)
         catalog = AppCatalog(applicationContext)
         apps = catalog.roles()
@@ -182,6 +185,9 @@ class MainActivity : ComponentActivity() {
                                         Permissions.missingSpecial(this@MainActivity, d).any { it.key == "badges" })
                             },
                             extraSections = {
+                                OutlinedButton(onClick = { screen = Screen.Templates(false) }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
+                                    Text(stringResource(R.string.tpl_title))
+                                }
                                 OutlinedButton(onClick = { screen = Screen.Phone }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
                                     Text(stringResource(R.string.layout_phone_settings))
                                 }
@@ -248,6 +254,19 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                     Screen.Remote -> RemoteScreen(onBack = { screen = Screen.Layout })
+                    is Screen.Templates -> draft?.let { d ->
+                        app.semplicephone.ui.settings.TemplatesScreen(
+                            firstTime = s.firstTime,
+                            onPick = { t ->
+                                draft = app.semplicephone.data.Template.apply(this@MainActivity, t, d) { key ->
+                                    !key.contains('.') || runCatching { packageManager.getPackageInfo(key, 0) }.isSuccess
+                                }
+                                editPage = 0
+                                screen = Screen.Layout
+                            },
+                            onSkip = { screen = Screen.Layout },
+                        )
+                    }
                     Screen.Backup -> draft?.let { d ->
                         app.semplicephone.ui.settings.BackupScreen(
                             current = d,
@@ -267,6 +286,7 @@ class MainActivity : ComponentActivity() {
                     }
                     Screen.Protection -> ProtectionScreen(protection, onBack = { screen = Screen.Layout })
                     is Screen.Radio -> app.semplicephone.radio.RadioScreen(s.tile, onClose = { screen = Screen.Home })
+                    is Screen.Video -> app.semplicephone.ui.VideoPlayer(android.net.Uri.parse(s.uri), stringResource(R.string.video_close), onClose = { screen = Screen.Home })
                     Screen.Search -> AppSearchScreen(
                         apps = searchApps,
                         launcher = launcher,
@@ -316,11 +336,13 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun openSettings() {
-        screen = Screen.Pin(if (pins.isSet()) PinMode.ENTER else PinMode.CREATE, then = Screen.Layout)
+        // Prima volta (nessun PIN, nessuna configurazione salvata): si parte dai modelli pronti.
+        val first = !pins.isSet() && !java.io.File(filesDir, "config.json").exists()
+        screen = Screen.Pin(if (pins.isSet()) PinMode.ENTER else PinMode.CREATE, then = if (first) Screen.Templates(true) else Screen.Layout)
     }
 
     private fun navigate(target: Screen) {
-        if (target == Screen.Layout && draft == null) {
+        if ((target == Screen.Layout || target is Screen.Templates) && draft == null) {
             draft = app.semplicephone.data.LocalizedDefaults.apply(this, repo.config.value)
             editPage = 0
             saveError = null
@@ -340,8 +362,8 @@ class MainActivity : ComponentActivity() {
             Screen.Home -> Screen.Home
             is Screen.Pin -> if (draft != null) Screen.Layout else { closeSettings(); Screen.Home }
             Screen.Layout -> { closeSettings(); Screen.Home }
-            is Screen.EditTile, Screen.Sos, Screen.Protection, Screen.Reminders, Screen.Remote, Screen.Phone, Screen.Backup -> Screen.Layout
-            Screen.SosCountdown, Screen.Search, is Screen.Radio -> Screen.Home
+            is Screen.EditTile, Screen.Sos, Screen.Protection, Screen.Reminders, Screen.Remote, Screen.Phone, Screen.Backup, is Screen.Templates -> Screen.Layout
+            Screen.SosCountdown, Screen.Search, is Screen.Radio, is Screen.Video -> Screen.Home
         }
     }
 

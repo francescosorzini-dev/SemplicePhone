@@ -123,6 +123,8 @@ data class Tile(
     val body: String = "",
     /** Solo per PHOTOS: immagini che scorrono ("media:<sha256>", vedi Media). */
     val photos: List<String> = emptyList(),
+    /** Solo per PHOTOS (Album): cartelle del telefono scelte col selettore di Android (URI dell'albero). */
+    val folders: List<String> = emptyList(),
     /** Solo per RADIO: stazioni (nome e indirizzo dello stream). */
     val stations: List<Station> = emptyList(),
     /**

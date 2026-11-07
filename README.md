@@ -43,6 +43,8 @@ e una pagina web da cui la famiglia sistema tutto da lontano. Gratis, senza pubb
 - **Messaggi dalla famiglia** a tutto schermo e letti ad alta voce, finché non si tocca «HO LETTO».
 - **Messaggi da leggere.** Un riquadro elenca SMS e WhatsApp non letti: un tocco
   apre la conversazione, una pressione lunga la legge ad alta voce.
+- **Album.** Le foto caricate e quelle delle cartelle del telefono (Fotocamera, WhatsApp) scorrono da sole;
+  un tocco su un video lo apre a tutto schermo, volume alto, un solo pulsante per chiudere.
 - **Radio.** Un riquadro con le stazioni preferite: ASCOLTA/FERMA enormi, stazione dopo, volume.
 - **Notte tranquilla.** Di notte il telefono non squilla, tranne per i numeri SOS. La sera, se la
   batteria è bassa, ricorda a voce di metterlo in carica.
@@ -70,6 +72,10 @@ telefono. Le modifiche sono firmate: il telefono accetta solo quelle del proprio
 - **Avvisi** su Telegram o email: SOS con posizione, promemoria non confermato, batteria scarica,
   telefono che non si fa sentire, chiamate bloccate.
 - **Foto dei familiari** sui riquadri di chiamata, caricate dal portale.
+- **Videomessaggi**: un breve video dal portale compare a tutto schermo e parte da solo, finché non si
+  tocca «HO VISTO». Se il file è troppo pesante per l'hosting, il browser lo rimpicciolisce prima di inviarlo.
+- **Modelli pronti per situazione** (autonomo, solo telefonate, memoria fragile, vista ridotta, udito
+  ridotto, mani che tremano), sul telefono alla prima apertura e nella configurazione guidata.
 - **Calendario di famiglia**: gli appuntamenti di un calendario Google, Outlook o iCloud (indirizzo
   iCal) diventano promemoria sul telefono, anche la sera prima.
 - **Configurazione guidata**: poche domande (chi chiama, cosa serve, quali medicine) e la schermata è pronta.
@@ -275,6 +281,7 @@ validazione.
 | M12 – riquadro «Cerca app» (anche a voce) | ✅ |
 | M13 – messaggi dalla famiglia, «Fai squillare», risposta automatica, configurazione guidata | ✅ |
 | M14 – messaggi da leggere, radio, notte tranquilla, «metti in carica», calendario, foto dal portale, temi, copie di sicurezza | ✅ |
+| M15 – modelli pronti, album con cartelle e video, videomessaggi | ✅ |
 
 ### Limiti noti
 

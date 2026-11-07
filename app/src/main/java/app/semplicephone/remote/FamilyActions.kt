@@ -15,6 +15,7 @@ import android.util.Base64
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import app.semplicephone.R
+import app.semplicephone.data.Media
 import app.semplicephone.reminders.ReminderScheduler
 import kotlinx.coroutines.delay
 import kotlinx.serialization.Serializable
@@ -90,7 +91,7 @@ object FindPhone {
 
 /** Messaggio della famiglia, firmato dal portale come la configurazione. */
 @Serializable
-data class FamilyMessage(val device: String = "*", val id: Long, val text: String, val from: String = "", val at: Long = 0)
+data class FamilyMessage(val device: String = "*", val id: Long, val text: String, val from: String = "", val at: Long = 0, val video: String = "")
 
 /**
  * Messaggi dalla famiglia: scaricati dal portale (firma verificata), mostrati a tutto schermo e
@@ -103,6 +104,47 @@ object FamilyMessages {
     private val json = Json { ignoreUnknownKeys = true }
 
     private fun file(context: Context) = File(context.filesDir, "family_message.json")
+
+    /** Videomessaggio scaricato (uno solo alla volta: si cancella quando è visto). */
+    fun videoFile(context: Context, m: FamilyMessage): File? =
+        Media.hashOf(m.video)?.let { File(File(context.filesDir, "video").apply { mkdirs() }, "$it.vid") }
+
+    private const val VIDEO_MAX = 80L * 1024 * 1024
+
+    /**
+     * Scarica il video del messaggio controllando l'hash firmato mentre arriva (su file, non in
+     * memoria); true se c'è già o è arrivato intero. Toglie i video di messaggi precedenti.
+     */
+    fun fetchVideo(context: Context, m: FamilyMessage, baseUrl: String, secret: String): Boolean {
+        val dest = videoFile(context, m) ?: return m.video.isBlank()
+        if (dest.exists()) return true
+        dest.parentFile?.listFiles()?.forEach { it.delete() }
+        val tmp = File(dest.parentFile, "dl.part")
+        return runCatching {
+            val conn = (java.net.URL(baseUrl + (if ('?' in baseUrl) "&" else "?") + "media=" + Media.hashOf(m.video)).openConnection() as java.net.HttpURLConnection).apply {
+                connectTimeout = 15_000; readTimeout = 60_000
+                setRequestProperty("X-Device-Secret", secret)
+            }
+            try {
+                if (conn.responseCode != 200) error("HTTP ${conn.responseCode}")
+                val md = java.security.MessageDigest.getInstance("SHA-256")
+                var total = 0L
+                conn.inputStream.use { input -> tmp.outputStream().use { out ->
+                    val buf = ByteArray(64 * 1024)
+                    while (true) {
+                        val n = input.read(buf)
+                        if (n < 0) break
+                        total += n
+                        require(total <= VIDEO_MAX) { "video troppo grande" }
+                        md.update(buf, 0, n); out.write(buf, 0, n)
+                    }
+                } }
+                require(md.digest().joinToString("") { "%02x".format(it) } == Media.hashOf(m.video)) { "hash diverso" }
+                require(tmp.renameTo(dest)) { "rename" }
+                true
+            } finally { conn.disconnect() }
+        }.onFailure { Log.w(TAG, "video non scaricato", it); tmp.delete() }.getOrDefault(false)
+    }
 
     /** Messaggio non letto per la Home, aggiornato subito quando arriva o viene letto (stesso processo). */
     val current = kotlinx.coroutines.flow.MutableStateFlow<FamilyMessage?>(null)
@@ -149,9 +191,10 @@ object FamilyMessages {
     fun markRead(context: Context) {
         val m = unread(context) ?: return
         file(context).delete()
+        videoFile(context, m)?.delete()
         current.value = null
         context.getSystemService(NotificationManager::class.java).cancel(NOTIFICATION_ID)
-        RemoteEvents.enqueue(context, "message_read", context.getString(R.string.message_read_event, m.text.take(80)), mapOf("message" to m.id))
+        RemoteEvents.enqueue(context, "message_read", context.getString(if (m.video.isNotBlank()) R.string.message_seen_event else R.string.message_read_event, m.text.take(80)), mapOf("message" to m.id))
     }
 }
 

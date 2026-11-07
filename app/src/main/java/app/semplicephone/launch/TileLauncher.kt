@@ -30,11 +30,15 @@ class TileLauncher(
     private val onSos: () -> Unit = {},
     private val onSearch: () -> Unit = {},
     private val onRadio: (Tile) -> Unit = {},
+    private val onVideo: (String) -> Unit = {},
 ) {
 
     private val pm: PackageManager = context.packageManager
     /** Contesto per chi disegna i riquadri (foto caricate, ecc.). */
     val appContext: Context get() = context
+
+    /** Video dell'album a tutto schermo. */
+    fun openVideo(ref: String) = onVideo(ref)
     private var lastLaunch = 0L
 
     fun launch(tile: Tile, sos: SosConfig) {

@@ -17,7 +17,7 @@ object LocalizedDefaults {
 
     /** Nomi predefiniti dei riquadri, sul telefono e nel portale («Famiglia» per le foto). */
     private val TILE_LABELS = listOf(
-        R.string.label_phone, R.string.label_messages, R.string.label_camera, R.string.label_photos,
+        R.string.label_phone, R.string.label_messages, R.string.label_camera, R.string.label_photos, R.string.label_album,
         R.string.label_family, R.string.label_internet, R.string.label_app, R.string.label_call,
         R.string.label_video, R.string.label_message, R.string.label_shortcut, R.string.label_missed_calls,
         R.string.label_search, R.string.label_messages_unread, R.string.label_radio,

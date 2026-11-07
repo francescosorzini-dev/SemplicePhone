@@ -38,6 +38,14 @@ const EVENT_TYPES = ['sos', 'reminder_missed', 'battery', 'offline', 'online', '
 // Versione che riceve messaggi, «Fai squillare» e la risposta automatica.
 const APP_FEATURES_0130 = '0.13.0';
 const MESSAGE_MAX = 300;
+/** Videomessaggi: al massimo 80 MB, o meno se l'hosting accetta caricamenti più piccoli. */
+function ini_bytes(string $v): int { $n = (int)$v; $u = strtolower(substr(trim($v), -1)); return $u === 'g' ? $n << 30 : ($u === 'm' ? $n << 20 : ($u === 'k' ? $n << 10 : $n)); }
+function video_max(): int {
+    $lim = [80 << 20];
+    foreach (['upload_max_filesize', 'post_max_size'] as $k) if (($b = ini_bytes((string)ini_get($k))) > 0) $lim[] = $b - ($k === 'post_max_size' ? 65536 : 0);
+    return max(0, min($lim));
+}
+const VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/3gpp', 'video/quicktime', 'video/x-matroska'];
 // Testi delle lingue: nelle release sono incorporati qui (file unico); in sviluppo si leggono da lang/*.json.
 const LANG_DATA = null;
 
@@ -758,7 +766,7 @@ session_set_cookie_params(['httponly' => true, 'samesite' => 'Strict', 'secure' 
 session_start();
 $nonce = base64_encode(random_bytes(16));
 header('X-Frame-Options: DENY');
-header("Content-Security-Policy: default-src 'self'; style-src 'unsafe-inline'; script-src 'nonce-$nonce'; connect-src 'self' https://geocoding-api.open-meteo.com; img-src 'self' blob:");
+header("Content-Security-Policy: default-src 'self'; style-src 'unsafe-inline'; script-src 'nonce-$nonce'; connect-src 'self' https://geocoding-api.open-meteo.com; img-src 'self' blob:; media-src 'self' blob:");
 $adminFile = DATA . '/admin.json';
 $admin = read_json($adminFile);
 $csrf = $_SESSION['csrf'] ??= bin2hex(random_bytes(16));
@@ -859,14 +867,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif ($act === 'message') {
             $text = trim(preg_replace('/\s+/u', ' ', (string)($_POST['text'] ?? '')));
             $from = mb_substr(trim((string)($_POST['from'] ?? '')), 0, 40);
-            if ($text === '' || mb_strlen($text) > MESSAGE_MAX) { $err[] = t('e_message', MESSAGE_MAX); }
+            // Videomessaggio facoltativo: salvato come le foto (per hash), il telefono ne verifica l'hash.
+            $video = '';
+            $vf = $_FILES['video'] ?? null;
+            if ($vf && $vf['error'] !== UPLOAD_ERR_NO_FILE) {
+                $mime = $vf['error'] === UPLOAD_ERR_OK && function_exists('finfo_open') ? (string)finfo_file(finfo_open(FILEINFO_MIME_TYPE), $vf['tmp_name']) : '';
+                if ($vf['error'] !== UPLOAD_ERR_OK || $vf['size'] > video_max()) $err[] = t('e_video_size', round(video_max() / 1048576));
+                elseif (!in_array($mime, VIDEO_TYPES, true)) $err[] = t('e_video_type');
+                else {
+                    $vh = hash_file('sha256', $vf['tmp_name']);
+                    if (!is_file(media_path($vh))) move_uploaded_file($vf['tmp_name'], media_path($vh));
+                    $video = 'media:' . $vh;
+                }
+            } elseif (($_SERVER['CONTENT_LENGTH'] ?? 0) > 0 && empty($_POST)) $err[] = t('e_video_size', round(video_max() / 1048576));
+            if ($video !== '' && $text === '') $text = t('video_message_text');
+            if ($err) { /* errori già raccolti */ }
+            elseif ($text === '' || mb_strlen($text) > MESSAGE_MAX) { $err[] = t('e_message', MESSAGE_MAX); }
             else {
                 $meta = read_json(dev_path($id, 'meta.json'), []);
+                // Il video del messaggio precedente non serve più (a meno che sia anche una foto della config).
+                $oldV = substr((string)($meta['message']['video'] ?? ''), 6);
+                $keep = phone_media_refs(read_json(dev_path($id, 'config.json'), []));
+                if ($oldV !== '' && $oldV !== substr($video, 6) && !in_array($oldV, $keep, true) && ($op = media_path($oldV)) && is_file($op)) @unlink($op);
                 $mid = (int)(microtime(true) * 1000);
-                $payload = json_encode(['device' => $id, 'id' => $mid, 'text' => $text, 'from' => $from, 'at' => $mid], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+                $payload = json_encode(['device' => $id, 'id' => $mid, 'text' => $text, 'from' => $from, 'at' => $mid] + ($video !== '' ? ['video' => $video] : []), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
                 $sig = sodium_crypto_sign_detached($payload, sodium_crypto_sign_secretkey(keypair()));
                 write_atomic(dev_path($id, 'message.json'), json_encode(['v' => 1, 'payload' => base64_encode($payload), 'sig' => base64_encode($sig)]));
-                $meta['message'] = ['id' => $mid, 'text' => $text, 'from' => $from, 'at' => time()];
+                $meta['message'] = ['id' => $mid, 'text' => $text, 'from' => $from, 'at' => time()] + ($video !== '' ? ['video' => $video] : []);
                 $meta['messageFrom'] = $from;
                 write_atomic(dev_path($id, 'meta.json'), json_encode($meta));
                 header('Location: ?edit=' . urlencode($id) . '#family'); exit;
@@ -1189,15 +1216,66 @@ details summary{cursor:pointer;font-weight:600}
   <h2 id="family"><?= th('family_title') ?></h2>
   <div class="card">
     <?php if ($oldApp): ?><p class="msg warn"><?= th('family_old_app', $meta['appVersion']) ?></p><?php endif; ?>
-    <form method="post"><input type="hidden" name="csrf" value="<?= h($csrf) ?>"><input type="hidden" name="act" value="message"><input type="hidden" name="id" value="<?= h($edit) ?>">
+    <form method="post" enctype="multipart/form-data" id="msgform" data-vmax="<?= video_max() ?>"><input type="hidden" name="csrf" value="<?= h($csrf) ?>"><input type="hidden" name="act" value="message"><input type="hidden" name="id" value="<?= h($edit) ?>">
       <label for="mtext"><?= th('message_label') ?> <span class="hint"><?= th('message_hint', MESSAGE_MAX) ?></span></label>
-      <textarea id="mtext" name="text" maxlength="<?= MESSAGE_MAX ?>" rows="3" required placeholder="<?= th('message_placeholder') ?>"></textarea>
+      <textarea id="mtext" name="text" maxlength="<?= MESSAGE_MAX ?>" rows="3" placeholder="<?= th('message_placeholder') ?>"></textarea>
+      <label for="mvideo"><?= th('video_label') ?> <span class="hint"><?= th('video_hint', round(video_max() / 1048576)) ?></span></label>
+      <input id="mvideo" type="file" name="video" accept="video/*">
+      <?php if (!empty($meta['appVersion']) && version_compare((string)$meta['appVersion'], '0.15.0', '<')): ?><p class="msg warn"><?= th('video_old_app', $meta['appVersion']) ?></p><?php endif; ?>
+      <?php if (video_max() < (20 << 20)): ?><p class="hint"><?= th('video_small_host', round(video_max() / 1048576)) ?></p><?php endif; ?>
+      <p class="hint" id="vstatus"></p>
       <div class="row" style="align-items:flex-end">
         <div><label for="mfrom"><?= th('message_from_label') ?></label><input id="mfrom" type="text" name="from" maxlength="40" value="<?= h($meta['messageFrom'] ?? '') ?>" placeholder="<?= th('message_from_placeholder') ?>"></div>
         <div style="flex:0 0 auto"><button><?= th('message_send') ?></button></div>
       </div>
     </form>
-    <?php if ($fm): ?><p class="hint"><?= th('message_last', date('d/m H:i', (int)$fm['at']), $fm['text']) ?> —
+    <script nonce="<?= h($nonce) ?>">
+    // Videomessaggio troppo pesante per l'hosting: lo si rimpicciolisce nel browser (640 px, ~1 Mbit/s,
+    // WebM) riproducendolo una volta; dura quanto il video. Senza testo né video non si invia.
+    (() => {
+      const f = document.getElementById('msgform'), inp = document.getElementById('mvideo'), st = document.getElementById('vstatus');
+      const max = +f.dataset.vmax, TX = <?= json_encode(['need' => t('e_message_or_video'), 'shrink' => t('video_shrinking'), 'nosh' => t('video_cannot_shrink', round(video_max() / 1048576)), 'big' => t('e_video_size', round(video_max() / 1048576))], JSON_UNESCAPED_UNICODE) ?>;
+      let busy = false;
+      async function shrink(file) {
+        const v = document.createElement('video'); v.src = URL.createObjectURL(file); v.playsInline = true;
+        await new Promise((ok, ko) => { v.onloadedmetadata = ok; v.onerror = ko; });
+        const sc = Math.min(1, (max / (v.duration || 60) < 100000 ? 480 : 640) / Math.max(v.videoWidth, v.videoHeight));
+        const c = document.createElement('canvas'); c.width = Math.round(v.videoWidth * sc / 2) * 2; c.height = Math.round(v.videoHeight * sc / 2) * 2;
+        const g = c.getContext('2d'), stream = c.captureStream(25);
+        try {
+          const ac = new AudioContext(), dest = ac.createMediaStreamDestination();
+          ac.createMediaElementSource(v).connect(dest);
+          dest.stream.getAudioTracks().forEach(t => stream.addTrack(t));
+        } catch (e) { /* senza audio piuttosto che niente */ }
+        const type = ['video/webm;codecs=vp8,opus', 'video/webm'].find(t => MediaRecorder.isTypeSupported(t));
+        // Bitrate scelto per stare nel limite (con margine), tra 250 e 1200 kbit/s.
+        const vbr = Math.max(250000, Math.min(1200000, Math.floor(max * 8 * 0.8 / (v.duration || 60)) - 64000));
+        const rec = new MediaRecorder(stream, {mimeType: type, videoBitsPerSecond: vbr, audioBitsPerSecond: 64000}), parts = [];
+        rec.ondataavailable = e => e.data.size && parts.push(e.data);
+        const done = new Promise(ok => { rec.onstop = ok; });
+        const draw = () => { if (!v.paused && !v.ended) { g.drawImage(v, 0, 0, c.width, c.height); st.textContent = TX.shrink + ' ' + Math.round(100 * v.currentTime / (v.duration || 1)) + '%'; requestAnimationFrame(draw); } };
+        v.onended = () => rec.stop();
+        rec.start(1000); await v.play(); draw();
+        await done;
+        return new File(parts, file.name.replace(/\.\w+$/, '') + '.webm', {type: 'video/webm'});
+      }
+      f.addEventListener('submit', async e => {
+        const file = inp.files[0];
+        if (!file && !document.getElementById('mtext').value.trim()) { e.preventDefault(); st.textContent = TX.need; return; }
+        if (!file || file.size <= max || busy) return;
+        e.preventDefault();
+        if (!window.MediaRecorder || !HTMLCanvasElement.prototype.captureStream) { st.textContent = TX.nosh; return; }
+        busy = true;
+        try {
+          const small = await shrink(file);
+          if (small.size > max) { st.textContent = TX.big; return; }
+          const dt = new DataTransfer(); dt.items.add(small); inp.files = dt.files;
+          f.submit();
+        } catch (err) { st.textContent = TX.nosh; } finally { busy = false; }
+      });
+    })();
+    </script>
+    <?php if ($fm): ?><p class="hint"><?= !empty($fm['video']) ? '🎬 ' : '' ?><?= th('message_last', date('d/m H:i', (int)$fm['at']), $fm['text']) ?> —
       <b><?= !empty($fm['readAt']) ? th('message_read_at', date('d/m H:i', (int)$fm['readAt'])) : th('message_waiting') ?></b></p><?php endif; ?>
     <hr style="border:0;border-top:1px solid #ddd;margin:16px 0">
     <form method="post"><input type="hidden" name="csrf" value="<?= h($csrf) ?>"><input type="hidden" name="act" value="ring"><input type="hidden" name="id" value="<?= h($edit) ?>">
@@ -1484,7 +1562,7 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
         class: 'tile' + (t.id === selId ? ' sel' : '') + (isL ? ' light' : ''), role: 'button', tabindex: '0',
         style: 'grid-column:' + (t.col + 1) + ' / span ' + w + ';grid-row:' + (t.row + 1) + ' / span ' + h + ';background:' + (t.color || '#1F4FA8') + ';color:' + (isL ? '#1A1A1A' : '#fff'),
         onclick: () => { selId = t.id; render(); }, onkeydown: e => { if (e.key === 'Enter') { selId = t.id; render(); } }
-      }, t.type === 'clock' ? '🕑 ' + T('clock') : t.type === 'weather' ? '☀ ' + (t.label || T('type_weather')) : t.type === 'photos' ? '🖼 ' + (t.label || T('type_photos')) : t.type === 'missed_calls' ? '📞 ' + (t.label || T('def_missed')) : t.type === 'search' ? '🔍 ' + (t.label || T('def_search')) : t.type === 'messages' ? '💬 ' + (t.label || T('def_messages_unread')) : t.type === 'radio' ? '📻 ' + (t.label || T('def_radio')) : t.type === 'sos' ? '⚠ ' + (t.label || 'SOS') : name(t)));
+      }, t.type === 'clock' ? '🕑 ' + T('clock') : t.type === 'weather' ? '☀ ' + (t.label || T('type_weather')) : t.type === 'photos' ? '🖼 ' + (t.label || T('def_album')) : t.type === 'missed_calls' ? '📞 ' + (t.label || T('def_missed')) : t.type === 'search' ? '🔍 ' + (t.label || T('def_search')) : t.type === 'messages' ? '💬 ' + (t.label || T('def_messages_unread')) : t.type === 'radio' ? '📻 ' + (t.label || T('def_radio')) : t.type === 'sos' ? '⚠ ' + (t.label || 'SOS') : name(t)));
     });
     for (let r = 0; r < p.rows; r++) for (let c = 0; c < p.cols; c++) if (!occ[r][c]) {
       kids.push(el('button', {type: 'button', class: 'cell', title: T('add_tile_here'), 'aria-label': T('add_tile_at', r + 1, c + 1),
@@ -1513,7 +1591,7 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
         if (!keep) t.target = '';
         t.type = v;
         if (v === 'clock') { t.color = '#FFFFFF'; delete t.label; }
-        if (v === 'photos' && !t.label) t.label = T('def_photos');
+        if (v === 'photos' && !t.label) t.label = T('def_album');
         if (v === 'search') { t.label = T('def_search'); t.target = ''; t.icon = {kind: 'auto', ref: ''}; }
         if (v === 'messages') { t.label = T('def_messages_unread'); t.target = ''; t.icon = {kind: 'auto', ref: ''}; }
         if (v === 'radio') { t.label = t.label || T('def_radio'); t.target = ''; t.stations = t.stations || [{name: '', url: ''}]; }
@@ -1555,6 +1633,7 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
     }
     if (t.type === 'photos') {
       t.photos = t.photos || [];
+      if ((t.folders || []).length) parts.push(el('p', {class: 'msg'}, T('album_phone_folders', t.folders.length)));
       parts.push(el('label', {}, T('photos_label')), el('p', {class: 'hint'}, T('photos_hint')),
         el('div', {}, t.photos.map(ref => thumb(ref, () => { t.photos = t.photos.filter(x => x !== ref); changed(); render(); }))),
         field(T('upload_photos'), fileInput(true, refs => { t.photos = [...new Set(t.photos.concat(refs))]; changed(); render(); })));
@@ -1769,8 +1848,31 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
     const appsOpts = [
       ['@dialer', T('def_phone'), true], ['@sms', T('def_messages'), true], ['com.whatsapp', 'WhatsApp', hasWa && DEV.length > 0],
       ['@camera', T('def_camera'), true], ['@gallery', T('def_gallery'), false], ['missed_calls', T('def_missed'), true],
-      ['search', T('def_search'), false], ['photos', T('def_photos'), false], ['@browser', T('def_internet'), false],
+      ['messages', T('def_messages_unread'), false], ['search', T('def_search'), false], ['photos', T('def_album'), false], ['@browser', T('def_internet'), false],
     ].map(([k, label, on]) => ({k, label, box: el('input', {type: 'checkbox', checked: on})}));
+    // Modelli per situazione (gli stessi del telefono): preimpostano app, opzioni e altezza dei riquadri.
+    const MODELS = {
+      custom: {rows: 5},
+      autonomous: {rows: 5, apps: ['@dialer', '@sms', 'com.whatsapp', 'missed_calls', 'messages', '@camera', 'photos', 'search', '@browser'],
+        opts: {homeButton: true}, phone: {holdToOpen: false, theme: 'normal'}},
+      calls: {rows: 4, apps: ['missed_calls'], opts: {speakerCalls: true, speakTiles: true, autoAnswer: true, announceCaller: true, blockUnknown: true, bedsideClock: true, homeButton: false}},
+      memory: {rows: 5, apps: ['missed_calls', 'photos'], opts: {speakerCalls: true, speakTiles: true, voiceConfirm: true, autoAnswer: true, announceCaller: true, blockUnknown: true, bedsideClock: true, homeButton: true},
+        phone: {holdToOpen: true, nightQuiet: true, chargeReminder: true}},
+      sight: {rows: 4, apps: ['@dialer', 'missed_calls', 'com.whatsapp'], opts: {speakerCalls: true, speakTiles: true, voiceConfirm: true, announceCaller: true, homeButton: true},
+        phone: {theme: 'contrast', homeButtonLabel: true}},
+      hearing: {rows: 5, apps: ['com.whatsapp', '@sms', 'messages', 'missed_calls', '@camera'], video: true, opts: {speakerCalls: true, speakTiles: false, announceCaller: false, homeButton: true}},
+      tremor: {rows: 4, apps: ['@dialer', '@sms', 'com.whatsapp', 'missed_calls', '@camera'], opts: {speakerCalls: true, speakTiles: true, voiceConfirm: true, autoAnswer: true, announceCaller: true, homeButton: true},
+        phone: {holdToOpen: true}},
+    };
+    let model = 'custom';
+    const modelDesc = el('p', {class: 'hint'});
+    const modelSel = select(Object.fromEntries(Object.keys(MODELS).map(k => [k, T('tpl_' + k)])), 'custom', v => {
+      model = v; const m = MODELS[v];
+      modelDesc.textContent = v === 'custom' ? '' : T('tpl_' + v + '_desc');
+      if (m.apps) appsOpts.forEach(a => { a.box.checked = m.apps.includes(a.k); });
+      if (m.opts) OPTS.forEach(o => { o.box.checked = !!m.opts[o.k]; });
+      fam.forEach(f => { f.video.checked = !!m.video; });
+    });
     const city = el('input', {type: 'text', placeholder: T('wiz_city_ph')});
     const KINDS = {pill: T('preset_medicine'), shower: T('preset_shower'), cart: T('preset_shopping'), doctor: T('preset_visit'), calendar: T('wiz_other')};
     const rem = [0, 1, 2, 3].map(() => {
@@ -1786,6 +1888,7 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
 
     box.replaceChildren(
       el('p', {class: 'hint'}, T('wiz_lead')),
+      field(T('tpl_situation'), modelSel), modelDesc,
       el('h3', {}, '1. ' + T('wiz_family')),
       el('table', {}, el('tr', {}, el('th', {}, T('wiz_name')), el('th', {}, T('phone_number')), el('th', {}, T('wiz_video')), el('th', {}, 'SOS')),
         fam.map(f => el('tr', {}, el('td', {}, f.name), el('td', {}, f.num), el('td', {style: 'text-align:center'}, f.video), el('td', {style: 'text-align:center'}, f.sos)))),
@@ -1808,7 +1911,7 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
       const greens = ['#1B7A34', '#6A1B9A'];
       people.forEach((f, i) => {
         items.push({w: 1, t: {type: 'call', target: f.num, label: f.name, icon: {kind: 'auto', ref: ''}, color: greens[i % 2]}});
-        if (f.video) items.push({w: 1, t: {type: 'wa_video', target: f.num, label: T('wiz_video_of', f.name), icon: {kind: 'auto', ref: ''}, color: '#00695C'}});
+        if (f.video) items.push({w: 1, t: {type: 'wa_video', target: f.num, label: T('wiz_video_of', f.name), icon: {kind: 'auto', ref: ''}, color: '#4FC3F7'}});
       });
       let place = null;
       if (city.value.trim()) {
@@ -1816,19 +1919,20 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
         place = (await searchPlace(city.value.trim()).catch(() => []))[0] || null;
         if (!place) { out.textContent = T('weather_no_results'); return; }
       }
-      if (place) items.push({w: 1, t: {type: 'weather', target: place.target, label: place.name, color: '#0277BD'}});
+      if (place) items.push({w: 1, t: {type: 'weather', target: place.target, label: place.name, color: '#4FC3F7'}});
       appsOpts.filter(a => a.box.checked).forEach(a => {
-        if (a.k === 'missed_calls') items.push({w: 2, t: {type: 'missed_calls', target: '', label: T('def_missed'), color: '#FFE7A8'}});
-        else if (a.k === 'search') items.push({w: 2, t: {type: 'search', target: '', label: T('def_search'), color: '#37474F'}});
-        else if (a.k === 'photos') items.push({w: 1, t: {type: 'photos', target: '', label: T('def_photos'), photos: [], color: '#6A1B9A'}});
+        if (a.k === 'missed_calls') items.push({w: 2, t: {type: 'missed_calls', target: '', label: T('def_missed'), color: '#FFD54F'}});
+        else if (a.k === 'messages') items.push({w: 2, t: {type: 'messages', target: '', label: T('def_messages_unread'), color: '#1F4FA8'}});
+        else if (a.k === 'search') items.push({w: 2, t: {type: 'search', target: '', label: T('def_search'), color: '#1A1A1A'}});
+        else if (a.k === 'photos') items.push({w: 1, t: {type: 'photos', target: '', label: T('def_album'), photos: [], color: '#6A1B9A'}});
         else items.push({w: 1, t: {type: 'app', target: a.k, label: APP_LABEL[a.k] || a.label, icon: {kind: 'auto', ref: ''},
-          color: ['@camera', '@gallery'].includes(a.k) ? '#6A1B9A' : a.k === 'com.whatsapp' ? '#1B7A34' : '#1F4FA8'}});
+          color: ['@camera', '@gallery'].includes(a.k) ? '#6A1B9A' : a.k === 'com.whatsapp' ? '#1B7A34' : a.k === '@browser' ? '#1A1A1A' : '#1F4FA8'}});
       });
       // Ordine di importanza: familiari, chiamate perse, meteo, app, ricerca. Un riquadro largo
       // che capiterebbe a metà riga aspetta l'inizio della riga successiva, così non restano buchi.
-      const prio = t => ({call: 0, wa_video: 0, missed_calls: 1, weather: 2, app: 3, photos: 4, search: 5})[t.type] ?? 3;
+      const prio = t => ({call: 0, wa_video: 0, missed_calls: 1, messages: 1, weather: 2, app: 3, photos: 4, search: 5})[t.type] ?? 3;
       items.sort((a, b) => prio(a.t) - prio(b.t));
-      const ROWS = 5, pages = [{cols: 2, rows: ROWS, tiles: [{id: 'clock', col: 0, row: 0, w: 2, h: 1, type: 'clock', color: '#FFFFFF'}]}];
+      const ROWS = MODELS[model].rows, pages = [{cols: 2, rows: ROWS, tiles: [{id: 'clock', col: 0, row: 0, w: 2, h: 1, type: 'clock', color: '#FFFFFF'}]}];
       let pg = 0, row = 1, col = 0;
       const lastRow = () => pg === 0 ? ROWS - 2 : ROWS - 1;   // sulla prima pagina l'ultima riga è dell'SOS
       const put = it => {
@@ -1845,7 +1949,7 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
       }
       if (col === 1 && waiting.length) { col = 0; row++; }
       waiting.forEach(put);
-      pages[0].tiles.push({id: 'sos', col: 0, row: ROWS - 1, w: 2, h: 1, type: 'sos', label: 'SOS', color: '#B71C1C'});
+      pages[0].tiles.push({id: 'sos', col: 0, row: ROWS - 1, w: 2, h: 1, type: 'sos', label: 'SOS', color: '#C62828'});
       cfg.pages = pages;
       cfg.sos.numbers = people.filter(f => f.sos).map(f => f.num);
       const rems = rem.filter(r => r.time.value).map(r => ({id: uid('r'), time: r.time.value, days: [],
@@ -1853,6 +1957,7 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
       if (rems.length) cfg.reminders = rems;
       OPTS.forEach(o => { cfg.phone[o.k] = o.box.checked; });
       if (cfg.phone.autoAnswer && !cfg.phone.autoAnswerSeconds) cfg.phone.autoAnswerSeconds = 10;
+      Object.assign(cfg.phone, MODELS[model].phone || {});
       page = 0; selId = null; changed(); render();
       document.getElementById('wizard').open = false;
       out.textContent = '';

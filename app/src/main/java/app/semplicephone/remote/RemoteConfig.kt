@@ -197,6 +197,8 @@ class RemoteClient(private val context: Context) {
             if (c.responseCode != 200) return false
             val body = c.inputStream.use { readLimited(it, 16 * 1024) }
             val m = FamilyMessages.parse(body, settings.publicKey, settings.deviceId) ?: return false
+            // Videomessaggio: si mostra solo quando il video è arrivato intero (altrimenti si riprova).
+            if (m.video.isNotBlank() && !FamilyMessages.fetchVideo(context, m, url, settings.deviceSecret)) return false
             FamilyMessages.show(context, m)
             return true
         } finally {

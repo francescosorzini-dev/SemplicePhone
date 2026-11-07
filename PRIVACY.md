@@ -20,6 +20,8 @@ invia dati allo sviluppatore.
 | Registro chiamate (numero, tipo, ora) | riquadro «Chiamate perse» (edizioni fuori da Google Play) | no |
 | Messaggi non letti (mittente, app, testo, dalle notifiche) | riquadro «Messaggi da leggere» (edizione completa) | no: restano in memoria sul telefono, non vengono salvati né inviati al portale |
 | Copie di sicurezza della configurazione | tornare a una versione precedente, passare a un telefono nuovo | no; il file esportato va dove lo salva chi lo esporta |
+| Cartelle del telefono collegate all'album | mostrare foto e video in un riquadro | no: il telefono le legge solo localmente, con il permesso dato sulla singola cartella |
+| Videomessaggi della famiglia | mostrarli a tutto schermo | caricati dal familiare sul suo portale; il telefono li scarica e li cancella dopo «HO VISTO» |
 | Stazioni radio scelte | riquadro «Radio» | sì, il telefono si collega all'indirizzo della stazione per ascoltarla |
 | Coordinate della località del meteo | riquadro meteo | sì, al servizio Open-Meteo (open-meteo.com) per ottenere le previsioni; nessun dato personale |
 
