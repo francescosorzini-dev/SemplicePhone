@@ -1,1 +1,4 @@
-- Nouvelle tuile « Appel vidéo Telegram » (comme celle de WhatsApp)
+- Appel vidéo Telegram, torche, loupe, « Où suis-je ? », « Tu m'appelles ? », musique, actualités lues
+- Anti-arnaques : applis de contrôle à distance, messages suspects, numéros surtaxés bloqués, appels longs
+- Sécurité : chutes, SIM, inactivité, chaleur, zone sûre, fiche de secours
+- Réponses vocales, stock de comprimés, bonjour parlé, grand texte

@@ -29,6 +29,9 @@ Riquadro con i messaggi non letti (SMS, WhatsApp), letti ad alta voce; radio con
 <b>Modelli pronti e album</b>
 Alla prima apertura si sceglie la situazione (autonomo, solo telefonate, memoria fragile, vista ridotta, udito ridotto, mani che tremano). L'album mostra anche foto e video delle cartelle del telefono; la famiglia può mandare videomessaggi a tutto schermo.
 
+<b>Contro le truffe</b>
+Avviso se viene installata un'app di controllo remoto (AnyDesk, TeamViewer…), messaggi con link da sconosciuti segnalati, blocco delle chiamate a pagamento ed estere, avviso sulle chiamate lunghe con sconosciuti. Rilevamento cadute, scheda per i soccorsi, torcia e lente d'ingrandimento.
+
 <b>Non ci si perde</b>
 Un pulsante «Casa» resta visibile dentro le altre app: un tocco e si torna alla schermata semplice.
 
