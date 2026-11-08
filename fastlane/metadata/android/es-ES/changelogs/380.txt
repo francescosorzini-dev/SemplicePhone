@@ -1,0 +1,3 @@
+- Explicaciones corregidas: los ajustes se abren con 5 toques rápidos en el reloj o en un espacio vacío del inicio
+- Al elegir el PIN, el teléfono indica cómo volver a los ajustes
+- Textos revisados (noticias, mantener pulsado, recordatorios, existencias)

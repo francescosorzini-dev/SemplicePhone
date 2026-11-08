@@ -62,7 +62,7 @@ I testi e le immagini sono in `fastlane/metadata/android/it-IT/` (e `en-US/`):
 - **Target**: 18+. Non rivolta ai bambini.
 - **Annunci**: no.
 - **Accesso all'app**: tutto è accessibile senza login. Indica che le impostazioni si aprono
-  toccando 5 volte l'orologio e che il PIN si sceglie al primo accesso.
+  con 5 tocchi rapidi sull'orologio (o su uno spazio vuoto della Home) e che il PIN si sceglie al primo accesso.
 - **App governative / finanziarie / sanitarie**: no. I promemoria sono generici: li scrive il
   familiare e l'app non tratta dati sanitari.
 

@@ -1,0 +1,3 @@
+- Spiegazioni corrette: le impostazioni si aprono con 5 tocchi rapidi sull'orologio o su uno spazio vuoto della Home
+- Scegliendo il PIN, il telefono dice come tornare alle impostazioni
+- Testi rivisti (notizie, «tieni premuto», promemoria, scorte)

@@ -21,7 +21,7 @@ sorgente copia anche la cartella `lang/` accanto a `index.php`. Per tradurre ved
 
 ## Collegare un telefono
 
-1. Sul telefono: impostazioni (5 tocchi sull'orologio) › Gestione da remoto. Lì trovi l'**ID del telefono**.
+1. Sul telefono: impostazioni (5 tocchi rapidi sull'orologio o su uno spazio vuoto della Home, poi il PIN) › Gestione da remoto. Lì trovi l'**ID del telefono**.
 2. Sempre sul telefono, inserisci l'indirizzo `https://…/semplicephone/?device={device}` e la
    **chiave pubblica** mostrata in cima al pannello. Poi attiva e premi «Aggiorna ora».
 3. Il telefono compare nel pannello. Aprilo e configura tutto senza toccare codice:

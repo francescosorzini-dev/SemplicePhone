@@ -1,0 +1,3 @@
+- Erklärungen korrigiert: die Einstellungen öffnen sich mit 5 schnellen Tippern auf die Uhr oder eine freie Stelle des Startbildschirms
+- Bei der PIN-Wahl zeigt das Telefon, wie man zurückkommt
+- Texte überarbeitet (Nachrichten, Gedrückthalten, Erinnerungen, Vorrat)

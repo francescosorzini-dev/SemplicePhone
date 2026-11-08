@@ -1,0 +1,3 @@
+- Corrected explanations: settings open with 5 quick taps on the clock or on an empty spot of the Home screen
+- When choosing the PIN, the phone says how to get back to the settings
+- Texts revised (news, "hold to open", reminders, pill stock)

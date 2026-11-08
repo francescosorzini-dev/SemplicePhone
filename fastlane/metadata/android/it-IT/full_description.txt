@@ -37,7 +37,7 @@ Un pulsante «Casa» resta visibile dentro le altre app: un tocco e si torna all
 
 <b>Telefono protetto</b>
 <ul>
-<li>Impostazioni protette da PIN: si aprono toccando 5 volte l'orologio</li>
+<li>Impostazioni protette da PIN: si aprono con 5 tocchi rapidi sull'orologio o su uno spazio vuoto della Home</li>
 <li>Suoneria che torna al volume scelto se viene abbassata per errore</li>
 <li>Avviso di batteria scarica</li>
 </ul>

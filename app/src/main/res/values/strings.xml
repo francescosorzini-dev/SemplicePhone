@@ -167,7 +167,7 @@
     <string name="tile_shortcut">Shortcut</string>
     <string name="tile_choose">Choose…</string>
     <string name="tile_shortcut_hint">Shortcuts are direct app actions (e.g. a WhatsApp chat, a destination in Maps).</string>
-    <string name="tile_clock_hint">Shows time and date. 5 quick taps open the settings.</string>
+    <string name="tile_clock_hint">Shows time and date; holding it says them aloud. 5 quick taps on the clock (or on an empty spot of the Home screen) open the settings.</string>
     <string name="tile_sos_hint">Numbers and hold time are set in the SOS section.</string>
     <string name="tile_label">Tile text</string>
     <string name="tile_icon">Icon</string>
@@ -337,7 +337,7 @@
     <string name="charge_text">The battery is at %1$d%%. Plug in the charger before going to bed.</string>
     <string name="notice_ok">OK</string>
     <string name="phone_hold">Open tiles by holding</string>
-    <string name="phone_hold_detail">Against accidental touches (tremor): a tile opens only when held for a moment; a short tap says its name.</string>
+    <string name="phone_hold_detail">Against accidental touches (tremor): a tile opens only when held for a moment; a short tap says its name and shows a reminder to hold at the bottom.</string>
     <string name="phone_theme">Appearance</string>
     <string name="phone_theme_normal">Normal</string>
     <string name="phone_theme_contrast">High contrast</string>
@@ -426,7 +426,7 @@
     <string name="music_folders">Music folders</string>
     <string name="music_folders_hint">For example Music or Download: audio files in the folders and subfolders play in name order.</string>
     <string name="music_no_songs">No songs: choose a music folder when editing the tile.</string>
-    <string name="tile_news_hint">News headlines read aloud, one at a time.</string>
+    <string name="tile_news_hint">News headlines read aloud, one at a time or all in a row; \"Open the article\" shows the full story.</string>
     <string name="tile_news_source">Source</string>
     <string name="tile_news_other">Other address</string>
     <string name="tile_news_url">RSS feed address</string>
@@ -560,6 +560,7 @@
     <string name="phone_app_icons">Single-colour app icons</string>
     <string name="phone_app_icons_detail">In the tile colour, like the symbols. Only for apps that provide it (Android 13 and later): the others stay as they are.</string>
     <string name="action_remove">Remove</string>
+    <string name="pin_how_back">To come back here: tap 5 times quickly on the clock or on an empty spot of the Home screen.</string>
     <string name="color_blue">Blue</string>
     <string name="color_green">Green</string>
     <string name="color_purple">Purple</string>

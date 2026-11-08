@@ -101,7 +101,8 @@ telefono. Le modifiche sono firmate: il telefono accetta solo quelle del proprio
   con l'elenco di cosa è cambiato; segnala i permessi che mancano.
 - **Storico delle versioni**, copia della configurazione da un telefono all'altro.
 
-Le impostazioni si possono cambiare anche sul telefono: 5 tocchi sull'orologio e PIN.
+Le impostazioni si possono cambiare anche sul telefono: 5 tocchi rapidi (entro 3 secondi) sull'orologio o su uno
+spazio vuoto della Home, poi il PIN.
 
 ## Scarica e installa
 
@@ -133,7 +134,7 @@ sopra, senza perdere le impostazioni.
 4. Se compare **«App dannosa bloccata»**, è un falso positivo dovuto ai permessi dell'SOS
    (SMS, posizione, chiamate). Premi **Installa comunque**. Il codice sorgente è qui, verificabile.
 5. Apri SemplicePhone e tocca il banner «usa SemplicePhone come schermata Home».
-6. Tocca **5 volte l'orologio** (o lo sfondo della griglia) e scegli il PIN.
+6. Tocca **5 volte di seguito, in fretta,** l'orologio o uno spazio vuoto della Home (anche tra i riquadri) e scegli il PIN.
 7. Configura riquadri, numeri SOS e promemoria, poi premi **Salva**. Vengono chiesti solo i
    permessi che servono.
 

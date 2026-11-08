@@ -166,7 +166,7 @@
     <string name="tile_shortcut">Acceso directo</string>
     <string name="tile_choose">Elegir…</string>
     <string name="tile_shortcut_hint">Los accesos directos son acciones directas de las apps (p. ej. un chat de WhatsApp, un destino en Maps).</string>
-    <string name="tile_clock_hint">Muestra la hora y la fecha. 5 toques rápidos abren los ajustes.</string>
+    <string name="tile_clock_hint">Muestra la hora y la fecha; manteniéndolo pulsado las dice en voz alta. 5 toques rápidos en el reloj (o en un espacio vacío del inicio) abren los ajustes.</string>
     <string name="tile_sos_hint">Los números y el tiempo de pulsación se configuran en la sección SOS.</string>
     <string name="tile_label">Texto del mosaico</string>
     <string name="tile_icon">Icono</string>
@@ -336,7 +336,7 @@
     <string name="charge_text">La batería está al %1$d%%. Conecte el cargador antes de ir a dormir.</string>
     <string name="notice_ok">OK</string>
     <string name="phone_hold">Abrir los mosaicos manteniendo pulsado</string>
-    <string name="phone_hold_detail">Contra los toques involuntarios (temblor): un mosaico se abre solo manteniéndolo pulsado un momento; un toque breve dice el nombre.</string>
+    <string name="phone_hold_detail">Contra los toques involuntarios (temblor): un mosaico se abre solo manteniéndolo pulsado un momento; un toque breve dice el nombre y recuerda abajo que hay que mantener.</string>
     <string name="phone_theme">Apariencia</string>
     <string name="phone_theme_normal">Normal</string>
     <string name="phone_theme_contrast">Alto contraste</string>
@@ -425,7 +425,7 @@
     <string name="music_folders">Carpetas de música</string>
     <string name="music_folders_hint">Por ejemplo Music o Download: los archivos de audio de las carpetas y subcarpetas suenan por orden de nombre.</string>
     <string name="music_no_songs">Ninguna canción: elige una carpeta de música al editar el mosaico.</string>
-    <string name="tile_news_hint">Titulares leídos en voz alta, uno a uno.</string>
+    <string name="tile_news_hint">Titulares leídos en voz alta, uno a uno o todos seguidos; «Abrir la noticia» muestra el artículo completo.</string>
     <string name="tile_news_source">Fuente</string>
     <string name="tile_news_other">Otra dirección</string>
     <string name="tile_news_url">Dirección del feed RSS</string>
@@ -559,6 +559,7 @@
     <string name="phone_app_icons">Iconos de apps de un color</string>
     <string name="phone_app_icons_detail">Del color de la casilla, como los símbolos. Solo en las apps que lo permiten (Android 13 o posterior): las demás se quedan igual.</string>
     <string name="action_remove">Quitar</string>
+    <string name="pin_how_back">Para volver aquí: 5 toques rápidos en el reloj o en un espacio vacío de la pantalla de inicio.</string>
     <string name="color_blue">Azul</string>
     <string name="color_green">Verde</string>
     <string name="color_purple">Morado</string>

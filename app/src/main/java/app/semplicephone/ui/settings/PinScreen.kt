@@ -129,6 +129,9 @@ fun PinScreen(store: PinStore, mode: PinMode, onSuccess: () -> Unit, onCancel: (
         Spacer(Modifier.height(16.dp))
         Text(title, fontSize = TextSize.Title, fontWeight = FontWeight.Bold, color = Palette.Ink)
         Text(subtitle, fontSize = TextSize.Body, color = Palette.Mute, textAlign = TextAlign.Center)
+        // Scegliendo il PIN si impara anche come tornare qui (non c'è un'icona «Impostazioni» in Home).
+        if (mode == PinMode.CREATE && firstEntry == null && message == null && lockMs <= 0)
+            Text(stringResource(R.string.pin_how_back), fontSize = TextSize.Body, color = Palette.Ink, textAlign = TextAlign.Center)
 
         val digitsDesc = stringResource(R.string.pin_digits_entered, digits.length)
         val deleteDesc = stringResource(R.string.pin_delete)

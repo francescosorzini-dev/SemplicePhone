@@ -99,7 +99,8 @@ Changes are signed: the phone only accepts those from its own portal.
   with a list of what changed; it flags missing permissions.
 - **Version history**, copy a configuration from one phone to another.
 
-Settings can also be changed on the phone: tap the clock 5 times and enter the PIN.
+Settings can also be changed on the phone: 5 quick taps (within 3 seconds) on the clock or on an empty spot
+of the Home screen, then the PIN.
 
 ## Download and install
 
@@ -114,7 +115,7 @@ Settings can also be changed on the phone: tap the clock 5 times and enter the P
 3. Open SemplicePhone and make it the Home app.
 4. For unread messages and badges on Android 13+: Settings › Apps › SemplicePhone › ⋮ menu ›
    *Allow restricted settings*, then grant notification access.
-5. Tap the clock **5 times**, choose a PIN, set up tiles, SOS numbers and reminders, then **Save**.
+5. Tap **5 times quickly** on the clock or on an empty spot of the Home screen (also between tiles), choose a PIN, set up tiles, SOS numbers and reminders, then **Save**.
 
 If Android says *"For your security, this setting is currently unavailable"*, open App info › ⋮ ›
 *Allow restricted settings*, or run `adb shell appops set app.semplicephone ACCESS_RESTRICTED_SETTINGS allow`.

@@ -166,7 +166,7 @@
     <string name="tile_shortcut">Verknüpfung</string>
     <string name="tile_choose">Auswählen…</string>
     <string name="tile_shortcut_hint">Verknüpfungen sind direkte Aktionen von Apps (z. B. ein WhatsApp-Chat, ein Ziel in Maps).</string>
-    <string name="tile_clock_hint">Zeigt Uhrzeit und Datum. 5 schnelle Tipper öffnen die Einstellungen.</string>
+    <string name="tile_clock_hint">Zeigt Uhrzeit und Datum; gedrückt halten liest sie vor. 5 schnelle Tipper auf die Uhr (oder eine freie Stelle des Startbildschirms) öffnen die Einstellungen.</string>
     <string name="tile_sos_hint">Nummern und Haltedauer werden im Bereich SOS eingestellt.</string>
     <string name="tile_label">Text auf der Kachel</string>
     <string name="tile_icon">Symbol</string>
@@ -336,7 +336,7 @@
     <string name="charge_text">Der Akku ist bei %1$d%%. Vor dem Schlafengehen das Ladegerät anschließen.</string>
     <string name="notice_ok">OK</string>
     <string name="phone_hold">Kacheln durch Halten öffnen</string>
-    <string name="phone_hold_detail">Gegen versehentliches Tippen (Zittern): eine Kachel öffnet sich nur nach kurzem Halten; kurzes Tippen sagt den Namen.</string>
+    <string name="phone_hold_detail">Gegen versehentliches Tippen (Zittern): eine Kachel öffnet sich nur nach kurzem Halten; kurzes Tippen sagt den Namen und erinnert unten ans Gedrückthalten.</string>
     <string name="phone_theme">Darstellung</string>
     <string name="phone_theme_normal">Normal</string>
     <string name="phone_theme_contrast">Hoher Kontrast</string>
@@ -425,7 +425,7 @@
     <string name="music_folders">Musikordner</string>
     <string name="music_folders_hint">Zum Beispiel Music oder Download: Audiodateien der Ordner und Unterordner werden nach Namen abgespielt.</string>
     <string name="music_no_songs">Keine Lieder: wähle beim Bearbeiten der Kachel einen Musikordner.</string>
-    <string name="tile_news_hint">Schlagzeilen werden einzeln vorgelesen.</string>
+    <string name="tile_news_hint">Schlagzeilen werden einzeln oder nacheinander vorgelesen; „Artikel öffnen“ zeigt den ganzen Artikel.</string>
     <string name="tile_news_source">Quelle</string>
     <string name="tile_news_other">Andere Adresse</string>
     <string name="tile_news_url">RSS-Feed-Adresse</string>
@@ -559,6 +559,7 @@
     <string name="phone_app_icons">App-Symbole einfarbig</string>
     <string name="phone_app_icons_detail">In der Farbe der Kachel, wie die Symbole. Nur bei Apps, die das anbieten (ab Android 13): die anderen bleiben wie sie sind.</string>
     <string name="action_remove">Entfernen</string>
+    <string name="pin_how_back">Um hierher zurückzukommen: 5 schnelle Tipper auf die Uhr oder auf eine freie Stelle des Startbildschirms.</string>
     <string name="color_blue">Blau</string>
     <string name="color_green">Grün</string>
     <string name="color_purple">Violett</string>

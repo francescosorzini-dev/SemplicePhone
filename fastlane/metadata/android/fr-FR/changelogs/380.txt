@@ -1,0 +1,3 @@
+- Explications corrigées : les paramètres s'ouvrent par 5 touches rapides sur l'horloge ou sur un espace vide de l'accueil
+- En choisissant le code PIN, le téléphone indique comment revenir aux paramètres
+- Textes revus (actualités, appui long, rappels, stock)

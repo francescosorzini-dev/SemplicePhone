@@ -166,7 +166,7 @@
     <string name="tile_shortcut">Raccourci</string>
     <string name="tile_choose">Choisir…</string>
     <string name="tile_shortcut_hint">Les raccourcis sont des actions directes des applis (ex. une discussion WhatsApp, une destination dans Maps).</string>
-    <string name="tile_clock_hint">Affiche l\'heure et la date. 5 touches rapides ouvrent les paramètres.</string>
+    <string name="tile_clock_hint">Affiche l\'heure et la date ; un appui long les lit à voix haute. 5 touches rapides sur l\'horloge (ou sur un espace vide de l\'accueil) ouvrent les paramètres.</string>
     <string name="tile_sos_hint">Les numéros et la durée d\'appui se règlent dans la section SOS.</string>
     <string name="tile_label">Texte sur la tuile</string>
     <string name="tile_icon">Icône</string>
@@ -336,7 +336,7 @@
     <string name="charge_text">La batterie est à %1$d %%. Branchez le chargeur avant d\'aller dormir.</string>
     <string name="notice_ok">OK</string>
     <string name="phone_hold">Ouvrir les tuiles en maintenant</string>
-    <string name="phone_hold_detail">Contre les appuis involontaires (tremblements) : une tuile ne s\'ouvre qu\'en la maintenant un instant ; un appui bref dit son nom.</string>
+    <string name="phone_hold_detail">Contre les appuis involontaires (tremblements) : une tuile ne s\'ouvre qu\'en la maintenant un instant ; un appui bref dit son nom et rappelle en bas de maintenir.</string>
     <string name="phone_theme">Apparence</string>
     <string name="phone_theme_normal">Normal</string>
     <string name="phone_theme_contrast">Contraste élevé</string>
@@ -425,7 +425,7 @@
     <string name="music_folders">Dossiers de musique</string>
     <string name="music_folders_hint">Par exemple Music ou Download : les fichiers audio des dossiers et sous-dossiers sont joués par ordre de nom.</string>
     <string name="music_no_songs">Aucune chanson : choisis un dossier de musique en modifiant la tuile.</string>
-    <string name="tile_news_hint">Titres de l\'actualité lus à voix haute, un à la fois.</string>
+    <string name="tile_news_hint">Titres de l\'actualité lus à voix haute, un à la fois ou tous à la suite ; « Ouvrir l\'article » affiche l\'article complet.</string>
     <string name="tile_news_source">Source</string>
     <string name="tile_news_other">Autre adresse</string>
     <string name="tile_news_url">Adresse du flux RSS</string>
@@ -559,6 +559,7 @@
     <string name="phone_app_icons">Icônes d\'apps unies</string>
     <string name="phone_app_icons_detail">Dans la couleur de la case, comme les symboles. Seulement pour les apps qui le prévoient (Android 13 et plus) : les autres restent comme avant.</string>
     <string name="action_remove">Retirer</string>
+    <string name="pin_how_back">Pour revenir ici : 5 touches rapides sur l\'horloge ou sur un espace vide de l\'écran d\'accueil.</string>
     <string name="color_blue">Bleu</string>
     <string name="color_green">Vert</string>
     <string name="color_purple">Violet</string>
