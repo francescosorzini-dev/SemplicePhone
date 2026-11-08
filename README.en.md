@@ -58,6 +58,10 @@ and a web page where the family sets everything up from afar. Free, no ads, free
   battery is low, it reminds aloud to put it on charge.
 - **Against accidental touches**: tiles can be set to open only when held. High-contrast theme, or
   dark in the evening.
+- **One way to use everything.** Every large screen has its title with symbol at the top and CLOSE
+  at the bottom; colours have a meaning (red only for SOS, green for "yes", orange for "careful");
+  purpose-drawn symbols instead of emoji, the same on the phone and in the portal. Optionally,
+  single-colour app icons in the tile colour.
 - **Backup** of the settings on the phone, exportable to a file and importable on a new phone, even
   without the portal.
 - **Android's own SOS**: on many phones pressing the power button 5 times calls emergency services

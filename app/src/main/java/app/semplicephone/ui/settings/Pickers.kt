@@ -113,24 +113,26 @@ fun <T> OptionPicker(label: String, options: List<T>, selected: T, text: (T) -> 
     }
     if (open) {
         AlertDialog(
+            containerColor = Palette.Ground, shape = Ui.ShapeBig,
             onDismissRequest = { open = false },
             title = { Text(label) },
             text = {
                 LazyColumn(Modifier.heightIn(max = 420.dp)) {
                     items(options) { o ->
-                        Text(
-                            text(o),
-                            fontSize = TextSize.Body,
-                            fontWeight = if (o == selected) FontWeight.Bold else FontWeight.Normal,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { onSelect(o); open = false }
-                                .padding(vertical = 14.dp),
-                        )
+                        Row(
+                            Modifier.fillMaxWidth().clickable { onSelect(o); open = false }.padding(vertical = 14.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                text(o), fontSize = TextSize.Body, color = Palette.Ink, modifier = Modifier.weight(1f),
+                                fontWeight = if (o == selected) FontWeight.Bold else FontWeight.Normal,
+                            )
+                            if (o == selected) Icon(Symbols.get("check"), null, Modifier.size(24.dp), tint = Palette.Ok)
+                        }
                     }
                 }
             },
-            confirmButton = { TextButton(onClick = { open = false }) { Text(stringResource(R.string.action_close)) } },
+            confirmButton = { TextButton(onClick = { open = false }) { Text(stringResource(R.string.action_close), fontSize = TextSize.Body, color = Palette.Ink, fontWeight = FontWeight.Bold) } },
         )
     }
 }
@@ -193,6 +195,7 @@ fun AppPickerDialog(apps: List<AppEntry>, launcher: TileLauncher, onPick: (AppEn
     val shown = remember(query, apps) { apps.filter { AppCatalog.matches(query, it.label) } }
     val iconPx = with(LocalDensity.current) { 40.dp.roundToPx() }
     AlertDialog(
+        containerColor = Palette.Ground, shape = Ui.ShapeBig,
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.pick_app)) },
         text = {
@@ -236,6 +239,7 @@ fun ShortcutPickerDialog(launcher: TileLauncher, onDismiss: () -> Unit, onPick: 
     val canUse = remember { app.semplicephone.launch.ShortcutPins.canUse(context) }
     val iconPx = with(LocalDensity.current) { 36.dp.roundToPx() }
     AlertDialog(
+        containerColor = Palette.Ground, shape = Ui.ShapeBig,
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.pick_shortcut)) },
         text = {

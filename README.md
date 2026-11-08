@@ -60,6 +60,10 @@ e una pagina web da cui la famiglia sistema tutto da lontano. Gratis, senza pubb
   batteria è bassa, ricorda a voce di metterlo in carica.
 - **Contro i tocchi involontari**: i riquadri si possono aprire solo tenendoli premuti. Temi ad
   alto contrasto o scuro la sera.
+- **Un solo modo di usare tutto.** Ogni schermata grande ha il titolo con il suo simbolo in alto e
+  CHIUDI in basso; i colori hanno un significato (rosso solo per l'SOS, verde per «sì», arancio per
+  «attenzione»); simboli disegnati apposta al posto delle emoji, uguali sul telefono e nel portale.
+  A scelta, icone delle app a tinta unita nel colore del riquadro.
 - **Copia di sicurezza** delle impostazioni sul telefono, da esportare in un file e reimportare
   su un telefono nuovo, anche senza portale.
 - **SOS di Android**: su molti telefoni premere 5 volte il tasto di accensione chiama i soccorsi
@@ -295,6 +299,7 @@ validazione.
 | M15 – modelli pronti, album con cartelle e video, videomessaggi | ✅ |
 | M16 – rifinitura di portale ed editor (schede, simboli, cambio tipo, colori) | ✅ |
 | M17 – Telegram, strumenti, anti-truffa, cadute, sicurezza, risposte vocali | ✅ |
+| M18 – stile unico (simboli, colori, misure, schermate grandi, conferme) su telefono e portale | ✅ |
 
 ### Limiti noti
 

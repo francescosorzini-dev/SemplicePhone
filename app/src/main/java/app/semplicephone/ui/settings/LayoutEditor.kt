@@ -241,6 +241,7 @@ fun LayoutEditor(
 
     if (showAbout) {
         AlertDialog(
+            containerColor = Palette.Ground, shape = Ui.ShapeBig,
             onDismissRequest = { showAbout = false },
             title = { Text("SemplicePhone ${app.semplicephone.BuildConfig.VERSION_NAME}") },
             text = {
