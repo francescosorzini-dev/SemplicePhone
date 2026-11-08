@@ -235,7 +235,7 @@ object CallMe {
     /** Manda la richiesta: SMS diretto dove si può, sempre anche un avviso nel portale. True se è partito l'SMS. */
     fun send(context: Context, tile: Tile): Boolean {
         val text = context.getString(R.string.callme_sms)
-        RemoteEvents.enqueue(context, "call_me", context.getString(R.string.callme_event, tile.label.ifBlank { tile.target }), mapOf("number" to tile.target))
+        RemoteEvents.enqueue(context, "call_me", app.semplicephone.remote.Res("callme_event", R.string.callme_event), tile.label.ifBlank { tile.target }, extra = mapOf("number" to tile.target))
         if (!BuildConfig.SEND_SMS || !granted(context, Manifest.permission.SEND_SMS) || tile.target.isBlank()) return false
         return runCatching { context.getSystemService(SmsManager::class.java).sendTextMessage(tile.target, null, text, null, null); true }
             .onFailure { Log.w("CallMe", "SMS non inviato", it) }.getOrDefault(false)

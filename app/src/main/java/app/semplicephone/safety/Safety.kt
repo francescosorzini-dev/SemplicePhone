@@ -20,6 +20,7 @@ import app.semplicephone.model.Reminder
 import app.semplicephone.model.TileType
 import app.semplicephone.remote.Notice
 import app.semplicephone.remote.RemoteEvents
+import app.semplicephone.remote.Res
 import app.semplicephone.reminders.ReminderTime
 import app.semplicephone.sos.LocationFetcher
 import java.time.LocalDate
@@ -79,7 +80,7 @@ object Safety {
         (present - known).forEach { pkg ->
             val name = REMOTE_APPS.getValue(pkg)
             Notice.show(context, context.getString(R.string.safety_remote_title), context.getString(R.string.safety_remote_text, name), "alert")
-            RemoteEvents.enqueue(context, "remote_app", context.getString(R.string.safety_remote_event, name), mapOf("pkg" to pkg))
+            RemoteEvents.enqueue(context, "remote_app", Res("safety_remote_event", R.string.safety_remote_event), name, extra = mapOf("pkg" to pkg))
         }
     }
 
@@ -98,8 +99,7 @@ object Safety {
         val before = p.getString("sim", null)
         p.edit().putString("sim", now).apply()
         if (before == null || before == now || now.isBlank()) return
-        val text = context.getString(if (absent) R.string.safety_sim_removed else R.string.safety_sim_changed)
-        RemoteEvents.enqueue(context, "sim_changed", text)
+        RemoteEvents.enqueue(context, "sim_changed", if (absent) Res("safety_sim_removed", R.string.safety_sim_removed) else Res("safety_sim_changed", R.string.safety_sim_changed))
     }
 
     // ------------------------------------------------------------ 6. telefono non usato
@@ -109,7 +109,7 @@ object Safety {
         val p = prefs(context)
         val wasAlerted = p.getBoolean("inactiveAlerted", false)
         p.edit().putLong("lastUse", System.currentTimeMillis()).putBoolean("inactiveAlerted", false).apply()
-        if (wasAlerted) RemoteEvents.enqueue(context, "active_again", context.getString(R.string.safety_active_again))
+        if (wasAlerted) RemoteEvents.enqueue(context, "active_again", Res("safety_active_again", R.string.safety_active_again))
     }
 
     fun inactivity(context: Context, cfg: LauncherConfig) {
@@ -123,7 +123,7 @@ object Safety {
         val idle = System.currentTimeMillis() - last
         if (idle < hours * 3_600_000L) return
         p.edit().putBoolean("inactiveAlerted", true).apply()
-        RemoteEvents.enqueue(context, "inactive", context.getString(R.string.safety_inactive_event, idle / 3_600_000L))
+        RemoteEvents.enqueue(context, "inactive", Res("safety_inactive_event", R.string.safety_inactive_event), idle / 3_600_000L)
     }
 
     // ------------------------------------------------------------ 13. volume delle chiamate
@@ -168,7 +168,7 @@ object Safety {
             val w = Weather.current(context, target) ?: return
             val hot = w.max >= cfg.phone.heatThreshold
             p.edit().putString("heatDay", today).putBoolean("heatHot", hot).putInt("heatMax", w.max).putLong("heatLast", 0).apply()
-            if (hot) RemoteEvents.enqueue(context, "heat", context.getString(R.string.safety_heat_event, w.max))
+            if (hot) RemoteEvents.enqueue(context, "heat", Res("safety_heat_event", R.string.safety_heat_event), w.max)
         }
         if (!p.getBoolean("heatHot", false)) return
         val hour = LocalTime.now().hour
@@ -193,8 +193,8 @@ object Safety {
         pr.edit().putBoolean("zoneOutside", outside).apply()
         RemoteEvents.enqueue(
             context, if (outside) "zone_left" else "zone_back",
-            context.getString(if (outside) R.string.safety_zone_left else R.string.safety_zone_back, d[0].toInt()),
-            mapOf("lat" to loc.latitude, "lon" to loc.longitude),
+            if (outside) Res("safety_zone_left", R.string.safety_zone_left) else Res("safety_zone_back", R.string.safety_zone_back), d[0].toInt(),
+            extra = mapOf("lat" to loc.latitude, "lon" to loc.longitude),
         )
     }
 
@@ -249,6 +249,6 @@ object Safety {
         if (left > r.lowAt || p.getBoolean(warned, false)) return
         p.edit().putBoolean(warned, true).apply()
         Notice.show(context, context.getString(R.string.stock_title), context.getString(R.string.stock_text, r.title, left), "pill")
-        RemoteEvents.enqueue(context, "pills_low", context.getString(R.string.stock_event, r.title, left), mapOf("reminder" to r.id, "left" to left))
+        RemoteEvents.enqueue(context, "pills_low", Res("stock_event", R.string.stock_event), r.title, left, extra = mapOf("reminder" to r.id, "left" to left))
     }
 }

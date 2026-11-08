@@ -85,7 +85,7 @@ object PhoneGuard {
         if (d.sendAlert) {
             val text = context.getString(R.string.battery_sms, level)
             if (cfg.sos.numbers.isNotEmpty()) SosSms.send(context, cfg.sos.numbers, text)
-            RemoteEvents.enqueue(context, "battery", text, mapOf("level" to level))
+            RemoteEvents.enqueue(context, "battery", app.semplicephone.remote.Res("battery_sms", R.string.battery_sms), level, extra = mapOf("level" to level))
         }
     }
 

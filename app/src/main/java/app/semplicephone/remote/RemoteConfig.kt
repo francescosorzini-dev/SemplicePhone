@@ -183,7 +183,7 @@ class RemoteClient(private val context: Context) {
         val fetcher = app.semplicephone.sos.LocationFetcher(context)
         val loc = fetcher.current(20_000) ?: fetcher.lastKnown()
         val text = app.semplicephone.sos.SosSms.locationText(context, loc)
-        RemoteEvents.enqueue(context, "location", text, mapOf("lat" to loc?.latitude, "lon" to loc?.longitude, "acc" to loc?.accuracy))
+        RemoteEvents.enqueue(context, "location", text, mapOf("lat" to loc?.latitude, "lon" to loc?.longitude, "acc" to loc?.accuracy, "fixAt" to loc?.time))
     }
 
     /** Scarica e mostra il messaggio della famiglia; false se la firma non è valida. */
@@ -232,9 +232,9 @@ class RemoteClient(private val context: Context) {
         conn.getHeaderField("X-Ring")?.takeIf { it.isNotBlank() && it != settings.lastRing }?.let { id ->
             settings.lastRing = id
             val stoppedAfter = FindPhone.ring(context)
-            val text = if (stoppedAfter != null) context.getString(R.string.find_event_stopped, stoppedAfter)
-                else context.getString(R.string.find_event_rang, FindPhone.RING_SECONDS)
-            RemoteEvents.enqueue(context, "ring_done", text, mapOf("ring" to id, "stoppedAfter" to stoppedAfter))
+            val extra = mapOf<String, Any?>("ring" to id, "stoppedAfter" to stoppedAfter)
+            if (stoppedAfter != null) RemoteEvents.enqueue(context, "ring_done", Res("find_event_stopped", R.string.find_event_stopped), stoppedAfter, extra = extra)
+            else RemoteEvents.enqueue(context, "ring_done", Res("find_event_rang", R.string.find_event_rang), FindPhone.RING_SECONDS, extra = extra)
         }
         if (code == 304) return r(R.string.remote_r_up_to_date, settings.lastSeq, ok = true)
         if (code == 404) return r(R.string.remote_r_not_found, settings.deviceId)
@@ -365,6 +365,7 @@ class RemoteClient(private val context: Context) {
         val body = JSONObject()
             .put("device", settings.deviceId)
             .put("appVersion", BuildConfig.VERSION_NAME)
+            .put("lang", RemoteEvents.appLang(context))
             .put("seq", settings.lastSeq)
             .put("battery", level)
             .put("charging", charging)

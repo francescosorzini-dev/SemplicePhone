@@ -85,7 +85,7 @@ fun SosScreen(
             val sent = withContext(Dispatchers.IO) { SosSms.send(context, cfg.numbers, smsText) }
             app.semplicephone.remote.RemoteEvents.enqueue(
                 context, "sos", smsText,
-                mapOf("smsSent" to sent, "lat" to location?.latitude, "lon" to location?.longitude),
+                mapOf("smsSent" to sent, "lat" to location?.latitude, "lon" to location?.longitude, "acc" to location?.accuracy, "fixAt" to location?.time, "msg" to cfg.message.trim()),
             )
             cfg.numbers.firstOrNull()?.let { launcher.call(it) }
             if (sent > 0) {

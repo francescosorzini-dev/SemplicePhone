@@ -64,7 +64,7 @@ class CallGuard : CallRedirectionService() {
         if (reason != null) {
             cancelCall()
             Notice.show(this, getString(R.string.call_out_blocked_title), getString(reason, number), "alert")
-            RemoteEvents.enqueue(this, "call_out_blocked", getString(R.string.call_out_blocked_event, number), mapOf("number" to number))
+            RemoteEvents.enqueue(this, "call_out_blocked", app.semplicephone.remote.Res("call_out_blocked_event", R.string.call_out_blocked_event), number, extra = mapOf("number" to number))
             return
         }
         placeCallUnmodified()
@@ -95,7 +95,7 @@ class LongCallWorker(context: Context, params: WorkerParameters) : Worker(contex
             val number = inputData.getString("number").orEmpty()
             RemoteEvents.enqueue(
                 applicationContext, "long_call",
-                applicationContext.getString(R.string.long_call_event, number, inputData.getInt("minutes", 0)), mapOf("number" to number),
+                app.semplicephone.remote.Res("long_call_event", R.string.long_call_event), number, inputData.getInt("minutes", 0), extra = mapOf("number" to number),
             )
         }
         return Result.success()

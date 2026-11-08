@@ -1,0 +1,2 @@
+- Avvisi alla famiglia (email, Telegram, portale) tutti nella lingua del telefono, non più metà in un'altra lingua
+- Nel portale, per ogni telefono, si può scegliere un'altra lingua degli avvisi

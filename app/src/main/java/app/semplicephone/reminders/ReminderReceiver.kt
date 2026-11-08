@@ -39,9 +39,9 @@ class ReminderReceiver : BroadcastReceiver() {
         } else {
             ReminderLog.append(context, id, "non_confermato")
             app.semplicephone.remote.RemoteEvents.enqueue(
-                context, "reminder_missed",
-                context.getString(R.string.reminder_missed_event, r.time, r.title + if (r.detail.isNotBlank()) " (${r.detail})" else ""),
-                mapOf("reminder" to r.id),
+                context, "reminder_missed", app.semplicephone.remote.Res("reminder_missed_event", R.string.reminder_missed_event),
+                r.time, r.title + if (r.detail.isNotBlank()) " (${r.detail})" else "",
+                extra = mapOf("reminder" to r.id),
             )
         }
         show(context, r)

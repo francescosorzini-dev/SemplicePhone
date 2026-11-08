@@ -95,7 +95,7 @@ object Badges {
             .map { m -> if (guard && ScamRules.suspicious(m.sender, m.text) { contacts.isInContacts(it) }) m.copy(suspicious = true) else m }
         // Nuovo messaggio sospetto: la famiglia lo sa (solo mittente, non il testo).
         _messages.value.filter { it.suspicious && it.key !in before }.forEach { m ->
-            app.semplicephone.remote.RemoteEvents.enqueue(context, "scam_message", context.getString(app.semplicephone.R.string.scam_event, m.sender, m.app))
+            app.semplicephone.remote.RemoteEvents.enqueue(context, "scam_message", app.semplicephone.remote.Res("scam_event", app.semplicephone.R.string.scam_event), m.sender, m.app)
         }
     }
 

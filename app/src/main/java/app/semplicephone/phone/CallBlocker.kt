@@ -47,8 +47,8 @@ class CallBlocker : CallScreeningService() {
                     .setSkipCallLog(false)
                     .build(),
             )
-            val who = number.ifBlank { getString(R.string.call_hidden_number) }
-            RemoteEvents.enqueue(this, "call_blocked", getString(R.string.call_blocked_event, who), mapOf("number" to number))
+            val who: Any = if (number.isBlank()) app.semplicephone.remote.Res("call_hidden_number", R.string.call_hidden_number) else number
+            RemoteEvents.enqueue(this, "call_blocked", app.semplicephone.remote.Res("call_blocked_event", R.string.call_blocked_event), who, extra = mapOf("number" to number))
             return
         }
         // Notte tranquilla: la chiamata arriva ma senza squillo, tranne per i numeri SOS.

@@ -149,6 +149,33 @@ function t(string $k, ...$a): string {
 }
 function th(string $k, ...$a): string { return h(t($k, ...$a)); }
 function ev_title(string $type): string { return in_array($type, EVENT_TYPES, true) ? t('ev_' . $type) : $type; }
+/**
+ * Testo di un avviso nella lingua del portale. I telefoni dalla 0.17.2 mandano «key» (nome della
+ * stringa dell'app, qui «evt_<key>») e «args»; un argomento {"key": …} è a sua volta da tradurre.
+ * SOS e posizione si ricompongono dai dati. Telefoni più vecchi: il testo così come è arrivato.
+ */
+function ev_text(array $ev): string {
+    $tr = fn(string $k) => lang_table($GLOBALS['LANG'] ?? 'en')[$k] ?? lang_table('en')[$k] ?? null;
+    $args = array_map(fn($a) => is_array($a) ? (isset($a['key']) && is_string($a['key']) ? t('evt_' . $a['key']) : '') : (string)$a, array_values((array)($ev['args'] ?? [])));
+    if (isset($ev['pkey']) && is_string($ev['pkey'])) return t($ev['pkey'], ...$args);
+    if (isset($ev['key']) && is_string($ev['key']) && $tr('evt_' . $ev['key']) !== null) return t('evt_' . $ev['key'], ...$args);
+    $type = (string)($ev['type'] ?? '');
+    if (($type === 'location' || $type === 'sos') && array_key_exists('fixAt', $ev)) {
+        $lat = $ev['lat'] ?? null; $lon = $ev['lon'] ?? null;
+        if (!is_numeric($lat) || !is_numeric($lon)) $loc = t('evt_sms_no_location');
+        else {
+            $time = is_numeric($ev['fixAt']) ? date('H:i', intdiv((int)$ev['fixAt'], 1000)) : '';
+            $loc = t('evt_sms_location', sprintf('https://maps.google.com/?q=%.6f,%.6f', (float)$lat, (float)$lon))
+                . (is_numeric($ev['acc'] ?? null) ? t('evt_sms_location_acc', (int)$ev['acc'], $time) : t('evt_sms_location_time', $time));
+        }
+        if ($type === 'location') return $loc;
+        // Il messaggio predefinito («Ho bisogno di aiuto.») in qualunque lingua → nella lingua del portale.
+        $msg = trim((string)($ev['msg'] ?? ''));
+        foreach (langs() as $l) if ($msg !== '' && $msg === (lang_table($l)['evt_default_sos_message'] ?? null)) { $msg = t('evt_default_sos_message'); break; }
+        return "SOS - $msg\n$loc";
+    }
+    return (string)($ev['text'] ?? '');
+}
 /** Lingua del pannello: ?lang=, poi cookie, poi lingua del browser, altrimenti inglese. */
 function pick_lang(): string {
     $q = $_GET['lang'] ?? null;
@@ -182,6 +209,26 @@ function http_post(string $url, array $fields): array {
 }
 
 /** Invia un avviso su tutti i canali configurati. Restituisce l'esito per canale. */
+/**
+ * Lingua degli avvisi di un telefono: quella scelta nel portale per quel telefono, altrimenti la
+ * lingua dell'app sul telefono (dal rapporto), altrimenti quella del portale.
+ */
+function alert_lang(?string $id, ?array $meta = null): string {
+    $m = $meta ?? ($id ? read_json(dev_path($id, 'meta.json'), []) : []);
+    foreach ([$m['alertLang'] ?? '', $m['lang'] ?? '', settings()['lang'] ?? ''] as $l) if (is_string($l) && in_array($l, langs(), true)) return $l;
+    return 'en';
+}
+/** Esegue [$f] con i testi nella lingua [$l] (t() legge $GLOBALS['LANG']). */
+function in_lang(string $l, callable $f) {
+    $old = $GLOBALS['LANG'] ?? 'en';
+    $GLOBALS['LANG'] = $l;
+    try { return $f(); } finally { $GLOBALS['LANG'] = $old; }
+}
+/** Avviso di un telefono: [$make] restituisce [titolo, testo], composti nella lingua degli avvisi di quel telefono. */
+function device_alert(string $id, callable $make, ?array $meta = null): array {
+    return in_lang(alert_lang($id, $meta), function () use ($make, $id) { [$title, $text] = $make(); return send_alert($title, $text, $id); });
+}
+
 function send_alert(string $title, string $text, ?string $deviceId = null): array {
     $s = settings();
     $who = $deviceId ? device_name($deviceId) : 'SemplicePhone';
@@ -230,12 +277,12 @@ function run_checks(bool $force = false): void {
         if (!empty($s['notify']['offline']) && $seen && empty($m['offlineAlerted']) && empty($m['ignoreOffline']) && time() - $seen >= $limit) {
             $m['offlineAlerted'] = true;
             write_atomic(dev_path($id, 'meta.json'), json_encode($m));
-            $text = t('offline_text', intdiv(time() - $seen, 3600));
+            $hours = intdiv(time() - $seen, 3600);
             // Anche tra gli avvisi del telefono, così compare nel riepilogo e nello storico.
-            append_jsonl(DATA . "/events/$id.jsonl", ['type' => 'offline', 'at' => time() * 1000, 'text' => $text, 'receivedAt' => time(), 'server' => true]);
-            send_alert(ev_title('offline'), $text, $id);
+            append_jsonl(DATA . "/events/$id.jsonl", ['type' => 'offline', 'at' => time() * 1000, 'text' => t('offline_text', $hours), 'pkey' => 'offline_text', 'args' => [$hours], 'receivedAt' => time(), 'server' => true]);
+            device_alert($id, fn() => [ev_title('offline'), t('offline_text', $hours)]);
         }
-        if ($sendWeekly && $seen) send_alert(t('weekly_title'), implode("\n", weekly_lines($id)), $id);
+        if ($sendWeekly && $seen) device_alert($id, fn() => [t('weekly_title'), implode("\n", weekly_lines($id))]);
         calendar_sync($id);
     }
 }
@@ -555,9 +602,9 @@ if (isset($_GET['device'])) {
         // Si tengono le ultime 30 risposte.
         $all = glob("$dir/*.m4a") ?: []; sort($all);
         foreach (array_slice($all, 0, max(0, count($all) - 30)) as $old) @unlink($old);
-        $ev = ['type' => 'voice_reply', 'text' => t('voice_reply_text'), 'at' => (int)(microtime(true) * 1000), 'receivedAt' => time(), 'file' => $name];
+        $ev = ['type' => 'voice_reply', 'text' => t('voice_reply_text'), 'pkey' => 'voice_reply_text', 'at' => (int)(microtime(true) * 1000), 'receivedAt' => time(), 'file' => $name];
         append_jsonl(DATA . "/events/$id.jsonl", $ev);
-        if (!empty(settings()['notify']['voice_reply'])) send_alert(ev_title('voice_reply'), t('voice_reply_text'), $id);
+        if (!empty(settings()['notify']['voice_reply'])) device_alert($id, fn() => [ev_title('voice_reply'), t('voice_reply_text')]);
         http_response_code(204);
         exit;
     }
@@ -588,6 +635,8 @@ if (isset($_GET['device'])) {
         $r['receivedAt'] = time();
         append_jsonl(DATA . "/reports/$id.jsonl", $r);
         foreach (['battery', 'charging', 'appVersion', 'lastResult', 'badgesAccess', 'edition'] as $k) $meta[$k] = $r[$k] ?? null;
+        // Lingua dell'app sul telefono: predefinita per gli avvisi di questo telefono.
+        if (isset($r['lang']) && in_array($r['lang'], langs(), true)) $meta['lang'] = $r['lang'];
         $meta['access'] = isset($r['access']) && is_array($r['access'])
             ? array_map('boolval', array_intersect_key($r['access'], array_flip(['overlay', 'callLog', 'screening', 'contacts']))) : null;
         $meta['appliedSeq'] = $r['seq'] ?? null;
@@ -615,7 +664,7 @@ if (isset($_GET['device'])) {
                 publish($id, $r['config'], null, ['source' => 'phone', 'changes' => $changes]);
             }
         }
-        if ($backOnline) send_alert(ev_title('online'), t('back_online_text'), $id);
+        if ($backOnline) device_alert($id, fn() => [ev_title('online'), t('back_online_text')]);
         // Il telefono rimanda l'elenco app solo se cambia: se qui manca (portale nuovo, telefono
         // rimosso e ricollegato…) glielo si chiede esplicitamente.
         echo json_encode(['ok' => true, 'needApps' => !is_file(dev_path($id, 'apps.json')), 'needMedia' => $needMedia]);
@@ -633,23 +682,24 @@ if (isset($_GET['device'])) {
             if (in_array($key, $seenKeys, true)) continue; // reinvio dopo una risposta persa
             $seenKeys[] = $key;
             $ev['receivedAt'] = time();
+            if (isset($ev['lang']) && in_array($ev['lang'], langs(), true)) $meta['lang'] = $ev['lang'];
             append_jsonl(DATA . "/events/$id.jsonl", $ev);
             if ($type === 'location') unset($meta['locateRequest']);
             if ($type === 'ring_done') unset($meta['ringRequest']);
             if ($type === 'message_read' && isset($meta['message']) && (string)($ev['message'] ?? '') === (string)$meta['message']['id']) $meta['message']['readAt'] = time();
             if (in_array($type, EVENT_TYPES, true) && !empty($s['notify'][$type])) {
-                send_alert(ev_title($type), mb_substr((string)($ev['text'] ?? ''), 0, 600), $id);
+                device_alert($id, fn() => [ev_title($type), mb_substr(ev_text($ev), 0, 600)], $meta);
             }
         }
         $meta['eventKeys'] = array_slice($seenKeys, -100);
         write_atomic(dev_path($id, 'meta.json'), json_encode($meta));
-        if ($backOnline) send_alert(ev_title('online'), t('back_online_text'), $id);
+        if ($backOnline) device_alert($id, fn() => [ev_title('online'), t('back_online_text')]);
         http_response_code(204);
         exit;
     }
 
     write_atomic(dev_path($id, 'meta.json'), json_encode($meta));
-    if ($backOnline) send_alert(ev_title('online'), t('back_online_text'), $id);
+    if ($backOnline) device_alert($id, fn() => [ev_title('online'), t('back_online_text')]);
     run_checks();
     // «Dov'è?»: richiesta valida per un'ora, il telefono risponde con un evento «location».
     if (time() - (int)($meta['locateRequest'] ?? 0) < 3600) header('X-Locate: 1');
@@ -941,6 +991,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             write_atomic(dev_path($id, 'meta.json'), json_encode($meta));
             calendar_sync($id, true);
             header('Location: ?edit=' . urlencode($id) . '#calendar'); exit;
+        } elseif ($act === 'alertlang') {
+            $meta = read_json(dev_path($id, 'meta.json'), []);
+            $l = (string)($_POST['alertLang'] ?? '');
+            $meta['alertLang'] = in_array($l, langs(), true) ? $l : '';
+            write_atomic(dev_path($id, 'meta.json'), json_encode($meta));
+            header('Location: ?edit=' . urlencode($id) . '#alertlang'); exit;
         } elseif ($act === 'ignore') {
             $meta = read_json(dev_path($id, 'meta.json'), []);
             $meta['ignoreOffline'] = empty($meta['ignoreOffline']);
@@ -962,7 +1018,8 @@ $view = $logged ? ($edit ? 'device' : (isset($_GET['avvisi']) ? 'alerts' : 'list
 if ($logged) {
     // Indirizzo del pannello per i link negli avvisi.
     $s = settings();
-    if ($s['panelUrl'] !== base_url() || $s['lang'] !== $LANG) { $s['panelUrl'] = base_url(); $s['lang'] = $LANG; save_settings($s); }
+    // La lingua di chi guarda non cambia più quella degli avvisi (scelta per telefono, vedi alert_lang()).
+    if ($s['panelUrl'] !== base_url()) { $s['panelUrl'] = base_url(); save_settings($s); }
     run_checks();
 }
 ?><!doctype html>
@@ -1255,7 +1312,7 @@ details summary{cursor:pointer;font-weight:600}
     <?php if ($lastLoc): $la = $lastLoc['lat'] ?? null; $lo = $lastLoc['lon'] ?? null; ?>
       <p><b><?= th('locate_last', date('d/m H:i', (int)(($lastLoc['at'] ?? 0) / 1000))) ?></b>
       <?php if ($la !== null && $lo !== null): ?> · <a href="https://www.openstreetmap.org/?mlat=<?= (float)$la ?>&amp;mlon=<?= (float)$lo ?>#map=17/<?= (float)$la ?>/<?= (float)$lo ?>" target="_blank" rel="noopener"><?= th('locate_map') ?></a><?php endif; ?></p>
-      <p class="hint"><?= h($lastLoc['text'] ?? '') ?></p>
+      <p class="hint"><?= h(ev_text($lastLoc)) ?></p>
     <?php else: ?><p class="hint"><?= th('locate_none') ?></p><?php endif; ?>
     <?php if ($pending): ?><p class="msg warn"><?= th('locate_pending') ?></p><?php endif; ?>
     <form method="post"><input type="hidden" name="csrf" value="<?= h($csrf) ?>"><input type="hidden" name="act" value="locate"><input type="hidden" name="id" value="<?= h($edit) ?>">
@@ -1354,7 +1411,7 @@ details summary{cursor:pointer;font-weight:600}
   <div class="card">
   <?php if (!$urgent): ?><p class="hint"><?= th('no_alerts_received') ?></p><?php else: ?>
     <table><tr><th><?= th('col_when') ?></th><th><?= th('col_what') ?></th></tr>
-    <?php foreach ($urgent as $ev): ?><tr><td><?= h(date('d/m H:i', (int)(($ev['at'] ?? 0) / 1000))) ?></td><td><b><?= h(ev_title((string)($ev['type'] ?? ''))) ?></b><br><span class="hint"><?= h($ev['text'] ?? '') ?></span></td></tr><?php endforeach; ?>
+    <?php foreach ($urgent as $ev): ?><tr><td><?= h(date('d/m H:i', (int)(($ev['at'] ?? 0) / 1000))) ?></td><td><b><?= h(ev_title((string)($ev['type'] ?? ''))) ?></b><br><span class="hint"><?= nl2br(h(ev_text($ev))) ?></span></td></tr><?php endforeach; ?>
     </table>
   <?php endif; ?>
   </div>
@@ -1412,6 +1469,15 @@ details summary{cursor:pointer;font-weight:600}
       <label style="font-weight:400"><input type="checkbox" name="calendarEve" <?= !empty($meta['calendarEve']) ? 'checked' : '' ?>> <?= th('cal_eve') ?></label>
       <p><button><?= th('cal_save') ?></button></p></form>
     <?php if (!empty($meta['calendarUrl'])): ?><p class="hint"><?= !empty($meta['calendarError']) ? '<span class="pill bad">' . th('cal_error') . '</span>' : th('cal_status', (int)($meta['calendarCount'] ?? 0), ago(isset($meta['calendarAt']) ? (int)$meta['calendarAt'] : null)) ?></p><?php endif; ?>
+  </details>
+  <details class="card" id="alertlang"><summary>🌐 <?= th('alert_lang_title') ?></summary>
+    <p class="hint"><?= th('alert_lang_hint') ?></p>
+    <form method="post"><input type="hidden" name="csrf" value="<?= h($csrf) ?>"><input type="hidden" name="act" value="alertlang"><input type="hidden" name="id" value="<?= h($edit) ?>">
+      <?php $al = (string)($meta['alertLang'] ?? ''); $pl = (string)($meta['lang'] ?? ''); ?>
+      <div class="row"><div><label for="alertlangsel"><?= th('alert_lang_title') ?></label><select id="alertlangsel" name="alertLang">
+        <option value="" <?= $al === '' ? 'selected' : '' ?>><?= in_array($pl, langs(), true) ? th('alert_lang_phone', lang_table($pl)['lang_name'] ?? $pl) : th('alert_lang_phone_unknown') ?></option>
+        <?php foreach (langs() as $l): ?><option value="<?= $l ?>" <?= $al === $l ? 'selected' : '' ?>><?= h(lang_table($l)['lang_name'] ?? $l) ?></option><?php endforeach; ?></select></div></div>
+      <p><button><?= th('alert_lang_save') ?></button></p></form>
   </details>
   <details class="card"><summary>🔄 <?= th('reinstalled') ?></summary>
     <p><?= th('reinstalled_text') ?></p>

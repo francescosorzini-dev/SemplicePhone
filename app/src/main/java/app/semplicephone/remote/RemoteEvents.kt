@@ -21,7 +21,29 @@ import java.util.concurrent.TimeUnit
  * Eventi urgenti verso il portale (SOS, batteria scarica, promemoria non confermato), che li
  * inoltra subito via email/Telegram. Coda su file + WorkManager: se manca la rete partono appena torna.
  */
+/**
+ * Testo dell'app da mandare al portale: [key] è il nome della stringa, uguale nelle lingue del portale
+ * («evt_<key>»), così chi legge lo vede nella lingua del portale e non in quella del telefono.
+ */
+class Res(val key: String, val id: Int)
+
 object RemoteEvents {
+
+    /**
+     * Evento con testo tradotto: sul telefono si compone nella lingua attuale (per i portali vecchi e
+     * come ripiego); in più si mandano «key» e «args», che il portale traduce nella sua lingua.
+     * Un argomento [Res] è a sua volta un testo da tradurre (es. «numero nascosto»).
+     */
+    /** Lingua in cui l'app parla (quelle dell'app; le altre ripiegano sull'inglese): predefinita per gli avvisi. */
+    fun appLang(context: Context): String =
+        context.resources.configuration.locales[0].language.takeIf { it in setOf("it", "de", "fr", "es") } ?: "en"
+
+    fun enqueue(context: Context, type: String, res: Res, vararg args: Any?, extra: Map<String, Any?> = emptyMap()) {
+        val local = args.map { if (it is Res) context.getString(it.id) else it }
+        val text = context.getString(res.id, *local.toTypedArray())
+        val json = JSONArray(args.map { if (it is Res) JSONObject().put("key", it.key) else it ?: JSONObject.NULL })
+        enqueue(context, type, text, extra + mapOf("key" to res.key, "args" to json))
+    }
 
     private val lock = Any()
     private const val WORK = "remote-events"
@@ -31,7 +53,7 @@ object RemoteEvents {
 
     fun enqueue(context: Context, type: String, text: String, extra: Map<String, Any?> = emptyMap()) {
         if (!RemoteSettings(context).enabled) return
-        val o = JSONObject().put("type", type).put("text", text).put("at", System.currentTimeMillis())
+        val o = JSONObject().put("type", type).put("text", text).put("at", System.currentTimeMillis()).put("lang", appLang(context))
         extra.forEach { (k, v) -> o.put(k, v) }
         synchronized(lock) {
             val f = queue(context)

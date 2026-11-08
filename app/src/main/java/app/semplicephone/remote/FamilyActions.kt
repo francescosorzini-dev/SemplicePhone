@@ -194,7 +194,7 @@ object FamilyMessages {
         videoFile(context, m)?.delete()
         current.value = null
         context.getSystemService(NotificationManager::class.java).cancel(NOTIFICATION_ID)
-        RemoteEvents.enqueue(context, "message_read", context.getString(if (m.video.isNotBlank()) R.string.message_seen_event else R.string.message_read_event, m.text.take(80)), mapOf("message" to m.id))
+        RemoteEvents.enqueue(context, "message_read", if (m.video.isNotBlank()) Res("message_seen_event", R.string.message_seen_event) else Res("message_read_event", R.string.message_read_event), m.text.take(80), extra = mapOf("message" to m.id))
     }
 }
 

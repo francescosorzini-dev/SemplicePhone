@@ -1,0 +1,2 @@
+- Alertes à la famille (e-mail, Telegram, portail) entièrement dans la langue du téléphone, plus à moitié dans une autre
+- Dans le portail, chaque téléphone peut avoir une autre langue d'alertes

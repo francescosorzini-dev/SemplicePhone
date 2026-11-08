@@ -202,7 +202,7 @@ class FallActivity : ComponentActivity() {
 
     private fun help(auto: Boolean) {
         stopAlarm()
-        RemoteEvents.enqueue(this, "fall", getString(if (auto) R.string.fall_event_auto else R.string.fall_event_help))
+        RemoteEvents.enqueue(this, "fall", if (auto) app.semplicephone.remote.Res("fall_event_auto", R.string.fall_event_auto) else app.semplicephone.remote.Res("fall_event_help", R.string.fall_event_help))
         startActivity(Intent(this, MainActivity::class.java).putExtra(MainActivity.EXTRA_SOS, true).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP))
         finishAndRemoveTask()
     }

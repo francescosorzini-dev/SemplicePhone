@@ -1,0 +1,2 @@
+- Avisos a la familia (correo, Telegram, portal) todos en el idioma del teléfono, ya no mitad en otro
+- En el portal, cada teléfono puede tener otro idioma de avisos

@@ -15,8 +15,8 @@ android {
         targetSdk = 36 // obbligatorio su Google Play dal 31/8/2026
         // Versione scritta qui (non calcolata in CI): F-Droid la legge da questo file e ricompila
         // lo stesso APK. A ogni release: versionName = tag senza «v», versionCode +10.
-        versionCode = 350
-        versionName = "0.17.1"
+        versionCode = 360
+        versionName = "0.17.2"
 
         // Valori predefiniti per la config remota (vuoti = da inserire nel telefono),
         // sovrascrivibili da gradle.properties o -P per build dedicate.
