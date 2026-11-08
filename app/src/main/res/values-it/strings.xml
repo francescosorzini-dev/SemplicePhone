@@ -558,6 +558,7 @@
     <string name="preset_bed">A letto</string>
     <string name="phone_app_icons">Icone delle app a tinta unita</string>
     <string name="phone_app_icons_detail">Nel colore del riquadro, come i simboli. Solo per le app che lo prevedono (Android 13 e successivi): le altre restano com\'erano.</string>
+    <string name="action_remove">Rimuovi</string>
     <string name="color_blue">Blu</string>
     <string name="color_green">Verde</string>
     <string name="color_purple">Viola</string>

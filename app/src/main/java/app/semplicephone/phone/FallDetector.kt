@@ -1,5 +1,6 @@
 package app.semplicephone.phone
 
+import androidx.compose.foundation.layout.safeDrawing
 import app.semplicephone.ui.Ui
 import app.semplicephone.ui.TextSize
 import app.semplicephone.ui.Palette

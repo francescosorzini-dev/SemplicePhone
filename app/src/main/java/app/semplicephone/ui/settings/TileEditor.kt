@@ -1,5 +1,6 @@
 package app.semplicephone.ui.settings
 
+import androidx.compose.foundation.layout.size
 import app.semplicephone.ui.Ui
 import app.semplicephone.ui.TextSize
 import kotlinx.coroutines.launch

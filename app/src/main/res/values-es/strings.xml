@@ -558,6 +558,7 @@
     <string name="preset_bed">A la cama</string>
     <string name="phone_app_icons">Iconos de apps de un color</string>
     <string name="phone_app_icons_detail">Del color de la casilla, como los símbolos. Solo en las apps que lo permiten (Android 13 o posterior): las demás se quedan igual.</string>
+    <string name="action_remove">Quitar</string>
     <string name="color_blue">Azul</string>
     <string name="color_green">Verde</string>
     <string name="color_purple">Morado</string>

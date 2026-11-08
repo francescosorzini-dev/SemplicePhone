@@ -558,6 +558,7 @@
     <string name="preset_bed">Schlafenszeit</string>
     <string name="phone_app_icons">App-Symbole einfarbig</string>
     <string name="phone_app_icons_detail">In der Farbe der Kachel, wie die Symbole. Nur bei Apps, die das anbieten (ab Android 13): die anderen bleiben wie sie sind.</string>
+    <string name="action_remove">Entfernen</string>
     <string name="color_blue">Blau</string>
     <string name="color_green">Grün</string>
     <string name="color_purple">Violett</string>
