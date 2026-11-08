@@ -1,0 +1,3 @@
+- Sturz: Empfindlichkeit einstellbar (Niedrig, Mittel, Hoch); Niedrig vermeidet Alarme im Auto. Standard: Mittel
+- TalkBack liest auch den Namen von Kacheln ohne Text
+- Automatische Tests mit Konfigurationen früherer Versionen

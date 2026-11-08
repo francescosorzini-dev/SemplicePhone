@@ -1,0 +1,3 @@
+- Caída: sensibilidad ajustable (Baja, Media, Alta); Baja evita avisos en el coche. Por defecto: Media
+- TalkBack lee también el nombre de las casillas sin texto
+- Pruebas automáticas con configuraciones de versiones anteriores

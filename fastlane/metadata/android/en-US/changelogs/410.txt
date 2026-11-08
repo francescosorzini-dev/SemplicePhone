@@ -1,0 +1,3 @@
+- Fall: adjustable sensitivity (Low, Medium, High); Low avoids alarms in the car. Default: Medium
+- TalkBack reads the name of tiles without text too
+- Automatic tests with configurations from past versions

@@ -1,0 +1,3 @@
+- Caduta: sensibilità regolabile (Bassa, Media, Alta); Bassa evita gli allarmi in auto. Predefinita: Media
+- TalkBack legge il nome anche dei riquadri senza scritta
+- Prove automatiche con le configurazioni delle versioni passate

@@ -49,7 +49,7 @@ e una pagina web da cui la famiglia sistema tutto da lontano. Gratis, senza pubb
 - **Contro le truffe**: avviso se viene installata un'app di controllo remoto (AnyDesk, TeamViewer…),
   messaggi con link da sconosciuti segnalati e non apribili, blocco delle chiamate a pagamento ed estere,
   avviso alla famiglia sulle chiamate lunghe con sconosciuti.
-- **Sicurezza**: rilevamento cadute con «Stai bene?», avvisi per SIM tolta e telefono non usato,
+- **Sicurezza**: rilevamento cadute con «Stai bene?» e sensibilità regolabile, avvisi per SIM tolta e telefono non usato,
   caldo estremo, zona sicura (edizione completa), scheda per i soccorsi nella schermata SOS.
 - **Comodità**: risposte vocali ai messaggi della famiglia, scorta delle pastiglie, buongiorno parlato,
   volume delle chiamate alto, testo grande in tutte le app.

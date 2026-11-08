@@ -47,7 +47,7 @@ and a web page where the family sets everything up from afar. Free, no ads, free
   family member, music from the phone's folders, news read aloud.
 - **Against scams**: alert when a remote-control app is installed (AnyDesk, TeamViewer…), links from
   strangers flagged and not openable, premium and foreign calls blocked, alert on long calls with strangers.
-- **Safety**: fall detection with "Are you OK?", alerts for SIM removed and phone unused, extreme heat,
+- **Safety**: fall detection with "Are you OK?" and adjustable sensitivity, alerts for SIM removed and phone unused, extreme heat,
   safe zone (Full edition), rescuers' card on the SOS screen.
 - **Comfort**: voice replies to family messages, pill stock, spoken good morning, loud calls, large text
   in all apps.
