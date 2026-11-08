@@ -83,9 +83,9 @@ fun ProtectionScreen(protection: Protection, onBack: () -> Unit) {
                         })
                     }
                 }
-                error?.let { Text(it, color = Palette.Sos, fontSize = TextSize.Small) }
+                error?.let { Text(it, color = Palette.Warn, fontSize = TextSize.Small) }
                 OutlinedButton(onClick = { confirmRelease = true }, modifier = Modifier.fillMaxWidth().heightIn(min = Ui.HeightSettings)) {
-                    Text(stringResource(R.string.protection_release), color = Palette.Sos)
+                    Text(stringResource(R.string.protection_release), color = Palette.Warn)
                 }
             }
         }

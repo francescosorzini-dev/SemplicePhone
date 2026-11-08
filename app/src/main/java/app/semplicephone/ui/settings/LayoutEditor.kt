@@ -164,7 +164,7 @@ fun LayoutEditor(
                     },
                     enabled = draft.pages.size > 1,
                     modifier = Modifier.weight(1f).fillMaxHeight().heightIn(min = Ui.HeightSettings),
-                ) { Text(stringResource(R.string.layout_delete_page), color = if (draft.pages.size > 1) Palette.Sos else Color.Unspecified) }
+                ) { Text(stringResource(R.string.layout_delete_page), color = if (draft.pages.size > 1) Palette.Warn else Color.Unspecified) }
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
@@ -186,16 +186,16 @@ fun LayoutEditor(
 
             if (problems.isNotEmpty()) {
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text(stringResource(R.string.layout_problems), color = Palette.Sos, fontWeight = FontWeight.Bold, fontSize = TextSize.Body)
-                    problems.forEach { Text("• $it", color = Palette.Sos, fontSize = TextSize.Small) }
+                    Text(stringResource(R.string.layout_problems), color = Palette.Warn, fontWeight = FontWeight.Bold, fontSize = TextSize.Body)
+                    problems.forEach { Text("• $it", color = Palette.Warn, fontSize = TextSize.Small) }
                 }
             }
-            if (noSos) Text(stringResource(R.string.layout_no_sos), color = Palette.Sos, fontWeight = FontWeight.Bold, fontSize = TextSize.Body)
+            if (noSos) Text(stringResource(R.string.layout_no_sos), color = Palette.Warn, fontWeight = FontWeight.Bold, fontSize = TextSize.Body)
             if (!noSos && draft.sos.numbers.isEmpty()) {
                 Text(stringResource(R.string.layout_sos_no_numbers),
-                    color = Palette.Sos, fontWeight = FontWeight.Bold, fontSize = TextSize.Body)
+                    color = Palette.Warn, fontWeight = FontWeight.Bold, fontSize = TextSize.Body)
             }
-            if (error != null) Text(stringResource(R.string.layout_save_failed, error), color = Palette.Sos, fontSize = TextSize.Small)
+            if (error != null) Text(stringResource(R.string.layout_save_failed, error), color = Palette.Warn, fontSize = TextSize.Small)
 
             if (missingPermissions.isNotEmpty()) {
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -341,7 +341,7 @@ private fun GridPreview(page: Page, onTile: (Tile) -> Unit, onEmpty: (Int, Int) 
                     }
                     .clip(Ui.ShapeSmall)
                     .background(bg)
-                    .border(if (inGrid) 1.dp else 3.dp, if (inGrid) Palette.Ink else Palette.Sos, Ui.ShapeSmall)
+                    .border(if (inGrid) 1.dp else 3.dp, if (inGrid) Palette.Ink else Palette.Warn, Ui.ShapeSmall)
                     .clickable { onTile(t) }
                     .padding(6.dp),
                 contentAlignment = Alignment.Center,

@@ -98,7 +98,7 @@ fun SinglePhotoField(ref: String, onChange: (String) -> Unit, onExternalStart: (
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 MediaThumb(ref, 96.dp)
                 OutlinedButton(onClick = { onChange("") }, modifier = Modifier.heightIn(min = Ui.HeightSettings)) {
-                    Text(stringResource(R.string.media_remove), color = Palette.Sos)
+                    Text(stringResource(R.string.media_remove), color = Palette.Warn)
                 }
             }
         }

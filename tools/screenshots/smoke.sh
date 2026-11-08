@@ -326,7 +326,7 @@ adb shell input keyevent KEYCODE_BACK; sleep 1; home
 python3 tap.py "Notizie" >/dev/null; shot v17_5_news 10
 adb shell input keyevent KEYCODE_BACK; sleep 1; home
 python3 tap.py "Mi chiami?" >/dev/null || python3 tap.py "Anna" >/dev/null; shot v17_6_callme 2
-python3 tap.py "NO" >/dev/null || true; home
+adb shell input keyevent KEYCODE_BACK; sleep 1; home
 # Musica: cartella scelta col selettore di Android
 adb shell "run-as $P sh -c 'rm -f shared_prefs/pin.xml'"
 python3 tap.py --times 5 --regex '^\d\d:\d\d$' >/dev/null; sleep 1
@@ -338,7 +338,7 @@ python3 tap.py --regex "^(sdk_gphone|Android SDK|Pixel|SDK)" >/dev/null || true;
 python3 tap.py "Musica" >/dev/null || true; sleep 2
 python3 tap.py --regex "(?i)^(usa questa cartella|use this folder)$" >/dev/null || true; sleep 2
 python3 tap.py --regex "(?i)^(consenti|allow)$" >/dev/null || true; sleep 2
-python3 tap.py "Salva" >/dev/null || true; sleep 1; python3 tap.py "Salva" >/dev/null || true; sleep 2
+python3 tap.py "Fatto" >/dev/null || true; sleep 1; python3 tap.py "Salva" >/dev/null || true; sleep 2
 home; sleep 2
 python3 tap.py "Musica" >/dev/null; sleep 4; shot v17_7_music 1
 python3 tap.py "ASCOLTA" >/dev/null || true; shot v17_8_music_play 4
@@ -346,4 +346,60 @@ adb shell dumpsys activity services $P | grep -E "RadioService|isForeground" | h
 python3 tap.py "FERMA" >/dev/null || true
 adb logcat -d | grep -E "FATAL|AndroidRuntime: Process|Caused by" -A6 | head -60 > "$OUT/v17_errors.txt" || true
 adb logcat -d -s Safety:* Magnifier:* News:* Torch:* | tail -20 >> "$OUT/v17_errors.txt" || true
+home
+
+# ---- 0.18.0: stile unificato in tre lingue (testi lunghi: tedesco e francese), CHIUDI unico, simboli,
+# conferme grandi, fascia degli avvisi, schermate vuote
+cat > /tmp/c18.json <<'J'
+{"version":1,"pages":[{"cols":2,"rows":6,"tiles":[
+ {"id":"clock","col":0,"row":0,"w":2,"h":1,"type":"clock","color":"#FFFFFF"},
+ {"id":"lente","col":0,"row":1,"type":"magnifier","label":"","color":"#FFD54F"},
+ {"id":"dove","col":1,"row":1,"type":"where","label":"","color":"#1A1A1A"},
+ {"id":"news","col":0,"row":2,"type":"news","label":"","target":"https://example.invalid/feed.xml","color":"#1A1A1A"},
+ {"id":"radio","col":1,"row":2,"type":"radio","label":"","color":"#FFA726"},
+ {"id":"chiamami","col":0,"row":3,"type":"call_me","label":"Anna","target":"+393331234567","color":"#1B7A34"},
+ {"id":"cerca","col":1,"row":3,"type":"search","label":"","color":"#1A1A1A"},
+ {"id":"pill","col":0,"row":4,"type":"call","target":"3331234567","label":"Luca","color":"#1F4FA8","icon":{"kind":"symbol","ref":"pill"}},
+ {"id":"key","col":1,"row":4,"type":"call","target":"3337654321","label":"Badante","color":"#6A1B9A","icon":{"kind":"symbol","ref":"key"}},
+ {"id":"sos","col":0,"row":5,"w":2,"h":1,"type":"sos","label":"SOS","color":"#C62828"}]}],
+ "sos":{"numbers":["+393331234567"]},
+ "emergency":{"name":"Maria Rossi","medications":"Cardioaspirina","allergies":"Penicillina"},
+ "reminders":[{"id":"r1","time":"08:00","title":"Pastiglia della pressione","icon":"pill","detail":"Una compressa dopo colazione"}],
+ "phone":{"holdToOpen":true,"morningBrief":false}}
+J
+adb push /tmp/c18.json /data/local/tmp/c18.json >/dev/null
+for L in it de fr; do
+  adb shell cmd locale set-app-locales $P --locales $L
+  adb shell am force-stop $P
+  adb shell "run-as $P sh -c 'cp /data/local/tmp/c18.json files/config.json; rm -f shared_prefs/pin.xml'"
+  home; shot "v18_${L}_1_home" 4
+  adb shell am start -W -n $P/.phone.FallActivity >/dev/null; shot "v18_${L}_3_fall" 3
+  python3 tap.py --regex "(?i)^(STO BENE|MIR GEHT|ÇA VA|I'M OK)" >/dev/null || adb shell input keyevent BACK; sleep 1
+  adb shell am start -W -n $P/.reminders.ReminderActivity --es id r1 >/dev/null; shot "v18_${L}_4_reminder" 3
+  adb shell input keyevent BACK; sleep 1
+  echo '{"device":"*","id":7,"text":"Domenica pranzo da noi alle 13.","from":"Anna","at":1}' > /tmp/m18.json
+  adb push /tmp/m18.json /data/local/tmp/m18.json >/dev/null
+  adb shell "run-as $P sh -c 'cp /data/local/tmp/m18.json files/family_message.json'"
+  adb shell am start -W -n $P/.remote.MessageActivity >/dev/null; shot "v18_${L}_5_message" 3
+  adb shell input keyevent BACK; sleep 1; home
+  # Pressione lunga (tenere premuto è acceso) sui riquadri degli strumenti
+  for t in "lente:^(Lente|Lupe|Loupe)$" "dove:^(Dove sono\?|Wo bin ich\?|Où suis-je \?)$" "news:^(Notizie|Nachrichten|Actualités)$" \
+           "radio:^Radio$" "chiamami:^Anna$" "cerca:^(Cerca app|Apps suchen|Chercher une appli)$"; do
+    python3 tap.py --long 1600 --regex "${t#*:}" >/dev/null || true; shot "v18_${L}_6_${t%%:*}" 5
+    adb shell input keyevent BACK; sleep 1; home; sleep 1
+  done
+  # Tocco breve con «tenere premuto»: fascia grande in basso invece del toast
+  python3 tap.py "Luca" >/dev/null || true; shot "v18_${L}_2_hint" 1
+  # Impostazioni: telefono (icone a tinta unita), promemoria (modelli), riquadro (simboli), conferma eliminazione
+  python3 tap.py --times 5 --regex '^\d\d:\d\d$' >/dev/null; sleep 1
+  for round in 1 2; do for d in 1 2 3 4; do python3 tap.py "$d" >/dev/null; done; python3 tap.py --regex "^(Conferma|Bestätigen|Confirmer)$" >/dev/null; sleep 1; done
+  shot "v18_${L}_7_settings" 2
+  python3 tap.py Badante >/dev/null; sleep 2
+  python3 tap.py --scroll --regex "^(Simbolo|Symbol|Symbole)$" >/dev/null || true; shot "v18_${L}_8_symbols" 2
+  python3 tap.py --scroll --regex "^(Elimina riquadro|Kachel löschen|Supprimer la tuile)$" >/dev/null || true; shot "v18_${L}_9_confirm" 2
+  adb shell input keyevent BACK; sleep 1; adb shell input keyevent BACK; sleep 1
+  home; adb shell input keyevent BACK
+done
+adb shell cmd locale set-app-locales $P --locales it
+adb logcat -d | grep -E "FATAL|AndroidRuntime: Process|Caused by" -A6 | head -60 > "$OUT/v18_errors.txt" || true
 home

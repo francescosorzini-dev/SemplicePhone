@@ -767,7 +767,7 @@ private fun MessagesTile(tile: Tile, sos: SosConfig, launcher: TileLauncher, mod
                     Modifier.fillMaxWidth().height(rowHeight)
                         .clip(Ui.ShapeSmall)
                         .background(if (m.suspicious) Palette.WarnSoft else Color.White)
-                        .border(if (m.suspicious) 4.dp else 2.dp, if (m.suspicious) Palette.Sos else Palette.Ink, Ui.ShapeSmall)
+                        .border(if (m.suspicious) 4.dp else 2.dp, if (m.suspicious) Palette.Warn else Palette.Ink, Ui.ShapeSmall)
                         .combinedClickable(
                             role = Role.Button,
                             onClickLabel = spoken,

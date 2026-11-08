@@ -238,7 +238,7 @@ private fun ReminderForm(
             }
             if (!isNew) {
                 OutlinedButton(onClick = onDelete, modifier = Modifier.fillMaxWidth().heightIn(min = Ui.HeightSettings)) {
-                    Text(stringResource(R.string.reminder_delete), color = Palette.Sos, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.reminder_delete), color = Palette.Warn, fontWeight = FontWeight.Bold)
                 }
             }
         }

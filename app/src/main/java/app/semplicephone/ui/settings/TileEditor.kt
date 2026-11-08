@@ -162,7 +162,7 @@ fun TileEditor(
                         R.string.conflict_overlap, conflict.other.label.ifBlank { typeLabel(context, conflict.other.type) },
                     )
                 },
-                color = Palette.Sos, fontSize = TextSize.Body, fontWeight = FontWeight.Bold)
+                color = Palette.Warn, fontSize = TextSize.Body, fontWeight = FontWeight.Bold)
 
             OptionPicker(stringResource(R.string.tile_action), TypeLabels.keys.toList(), t.type, { typeLabel(context, it) }) { type ->
                 // Il valore del tipo precedente non vale per il nuovo (es. «@dialer» per una videochiamata).
@@ -210,13 +210,13 @@ fun TileEditor(
                         Hint(stringResource(R.string.tile_wa_hint))
                         // Controllo subito: senza la riga «Videochiamata» di WhatsApp in rubrica si aprirebbe solo la chat.
                         val waReady = remember(t.target) { t.target.filter(Char::isDigit).length < 6 || launcher.contacts.whatsAppVideoIntent(t.target) != null }
-                        if (!waReady) Text(stringResource(R.string.tile_wa_not_found), fontSize = TextSize.Small, color = Palette.Sos)
+                        if (!waReady) Text(stringResource(R.string.tile_wa_not_found), fontSize = TextSize.Small, color = Palette.Warn)
                     }
                     if (t.type == TileType.CALL_ME) Hint(stringResource(R.string.tile_call_me_hint))
                     if (t.type == TileType.TG_VIDEO) {
                         Hint(stringResource(R.string.tile_tg_hint))
                         val tgReady = remember(t.target) { t.target.filter(Char::isDigit).length < 6 || launcher.contacts.telegramVideoIntent(t.target) != null }
-                        if (!tgReady) Text(stringResource(R.string.tile_tg_not_found), fontSize = TextSize.Small, color = Palette.Sos)
+                        if (!tgReady) Text(stringResource(R.string.tile_tg_not_found), fontSize = TextSize.Small, color = Palette.Warn)
                     }
                     if (t.type == TileType.SMS) Field(stringResource(R.string.tile_sms_text), t.body) { t = t.copy(body = it) }
                 }
@@ -285,7 +285,7 @@ fun TileEditor(
                             label = { Text(stringResource(R.string.tile_radio_url)) }, singleLine = true, modifier = Modifier.fillMaxWidth(),
                         )
                         androidx.compose.material3.TextButton(onClick = { t = t.copy(stations = t.stations.filterIndexed { j, _ -> j != i }) }) {
-                            Text(stringResource(R.string.tile_radio_remove), color = Palette.Sos)
+                            Text(stringResource(R.string.tile_radio_remove), color = Palette.Warn)
                         }
                     }
                     androidx.compose.material3.OutlinedButton(
@@ -343,7 +343,7 @@ fun TileEditor(
                         ) { Text(stringResource(R.string.tile_page_n, n + 1)) }
                     }
                 }
-                noRoom?.let { Text(stringResource(R.string.tile_move_no_room, it + 1), color = Palette.Sos, fontSize = TextSize.Small) }
+                noRoom?.let { Text(stringResource(R.string.tile_move_no_room, it + 1), color = Palette.Warn, fontSize = TextSize.Small) }
             }
 
             SectionLabel(stringResource(R.string.tile_color))
@@ -364,7 +364,7 @@ fun TileEditor(
                     onClick = { confirmDelete = true },
                     modifier = Modifier.fillMaxWidth().heightIn(min = Ui.HeightSettings),
                     shape = Ui.ShapeSmall,
-                ) { Text(stringResource(R.string.tile_delete), color = Palette.Sos, fontSize = TextSize.Body, fontWeight = FontWeight.Bold) }
+                ) { Text(stringResource(R.string.tile_delete), color = Palette.Warn, fontSize = TextSize.Body, fontWeight = FontWeight.Bold) }
             }
         }
     }

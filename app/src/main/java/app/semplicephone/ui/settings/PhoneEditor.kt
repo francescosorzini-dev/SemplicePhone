@@ -107,13 +107,13 @@ fun PhoneEditor(
                 if (it) { requestContacts(); requestScreening() }
             }
             if ((p.blockUnknown || p.autoAnswer || p.announceCaller || p.nightQuiet) && !screening) {
-                Text(stringResource(R.string.phone_block_needs_role), fontSize = TextSize.Small, color = Palette.Sos)
+                Text(stringResource(R.string.phone_block_needs_role), fontSize = TextSize.Small, color = Palette.Warn)
                 androidx.compose.material3.OutlinedButton(onClick = ::requestScreening, modifier = Modifier.fillMaxWidth().heightIn(min = Ui.HeightSettings)) {
                     Text(stringResource(R.string.phone_block_grant))
                 }
             }
             if (p.blockUnknown && !contacts) {
-                Text(stringResource(R.string.phone_block_needs_contacts), fontSize = TextSize.Small, color = Palette.Sos)
+                Text(stringResource(R.string.phone_block_needs_contacts), fontSize = TextSize.Small, color = Palette.Warn)
                 androidx.compose.material3.OutlinedButton(onClick = ::requestContacts, modifier = Modifier.fillMaxWidth().heightIn(min = Ui.HeightSettings)) {
                     Text(stringResource(R.string.phone_block_contacts_grant))
                 }
@@ -125,7 +125,7 @@ fun PhoneEditor(
             }
             if (p.autoAnswer) {
                 Stepper(stringResource(R.string.phone_auto_answer_after), (p.autoAnswerSeconds / 5).coerceIn(1, 6), 1..6, { p = p.copy(autoAnswerSeconds = it * 5) }, format = { "${it * 5} s" })
-                if (!hasSosNumbers) Text(stringResource(R.string.phone_auto_answer_no_sos), fontSize = TextSize.Small, color = Palette.Sos)
+                if (!hasSosNumbers) Text(stringResource(R.string.phone_auto_answer_no_sos), fontSize = TextSize.Small, color = Palette.Warn)
             }
             Toggle(stringResource(R.string.phone_night), stringResource(R.string.phone_night_detail), p.nightQuiet) {
                 p = p.copy(nightQuiet = it)
@@ -166,7 +166,7 @@ fun PhoneEditor(
                 if (it) requestOverlay()
             }
             if (p.homeButton && !overlay) {
-                Text(stringResource(R.string.phone_home_needs_overlay), fontSize = TextSize.Small, color = Palette.Sos)
+                Text(stringResource(R.string.phone_home_needs_overlay), fontSize = TextSize.Small, color = Palette.Warn)
                 androidx.compose.material3.OutlinedButton(onClick = ::requestOverlay, modifier = Modifier.fillMaxWidth().heightIn(min = Ui.HeightSettings)) {
                     Text(stringResource(R.string.phone_home_grant))
                 }

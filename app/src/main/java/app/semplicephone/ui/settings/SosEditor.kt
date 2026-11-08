@@ -71,7 +71,7 @@ fun SosEditor(
                     )
                     if (numbers.size > 1) {
                         TextButton(onClick = { numbers = numbers.filterIndexed { j, _ -> j != i } }, modifier = Modifier.heightIn(min = Ui.HeightSettings)) {
-                            Text(stringResource(R.string.sos_editor_remove), color = Palette.Sos)
+                            Text(stringResource(R.string.sos_editor_remove), color = Palette.Warn)
                         }
                     }
                 }
