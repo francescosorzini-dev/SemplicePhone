@@ -66,7 +66,14 @@ import app.semplicephone.R
 import app.semplicephone.model.Tile
 import app.semplicephone.remote.RemoteEvents
 import app.semplicephone.sos.LocationFetcher
+import app.semplicephone.ui.BigButton
+import app.semplicephone.ui.BigOutlined
+import app.semplicephone.ui.BigScreen
+import app.semplicephone.ui.CloseButton
+import app.semplicephone.ui.EmptyState
 import app.semplicephone.ui.Palette
+import app.semplicephone.ui.TextSize
+import app.semplicephone.ui.Tone
 import app.semplicephone.ui.Symbols
 import app.semplicephone.ui.Voice
 import kotlinx.coroutines.Dispatchers
@@ -75,33 +82,6 @@ import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.Locale
-
-private val ToolBg = Color(0xFFF6F4EF)
-
-@Composable
-private fun ToolFrame(title: String, onClose: () -> Unit, content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit) {
-    Column(
-        Modifier.fillMaxSize().background(ToolBg).windowInsetsPadding(WindowInsets.safeDrawing).padding(20.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            TextButton(onClick = onClose, modifier = Modifier.heightIn(min = 56.dp)) {
-                Text(stringResource(R.string.search_back), fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Palette.Ink)
-            }
-            Text(title, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Palette.Ink, modifier = Modifier.weight(1f), textAlign = TextAlign.End)
-        }
-        content()
-    }
-}
-
-@Composable
-private fun BigButton(text: String, color: Color, modifier: Modifier = Modifier.fillMaxWidth(), onClick: () -> Unit) {
-    Button(
-        onClick = onClick, colors = ButtonDefaults.buttonColors(containerColor = color),
-        shape = RoundedCornerShape(24.dp), modifier = modifier.heightIn(min = 96.dp),
-    ) { Text(text, fontSize = 28.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center) }
-}
 
 private fun granted(context: Context, p: String) = ContextCompat.checkSelfPermission(context, p) == PackageManager.PERMISSION_GRANTED
 
@@ -127,7 +107,7 @@ fun MagnifierScreen(onClose: () -> Unit) {
 
     Column(Modifier.fillMaxSize().background(Color.Black).windowInsetsPadding(WindowInsets.safeDrawing).padding(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
-            if (!allowed) Text(stringResource(R.string.magnifier_no_camera), color = Color.White, fontSize = 24.sp, textAlign = TextAlign.Center)
+            if (!allowed) EmptyState("magnifier", stringResource(R.string.magnifier_no_camera), color = Color.White)
             else {
                 AndroidView(
                     factory = { ctx ->
@@ -152,18 +132,18 @@ fun MagnifierScreen(onClose: () -> Unit) {
             }
         }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            BigButton("−", Color(0xFF1F4FA8), Modifier.weight(1f)) { zoom = (zoom - 0.15f).coerceIn(0f, 1f); camera?.cameraControl?.setLinearZoom(zoom) }
-            BigButton("+", Color(0xFF1F4FA8), Modifier.weight(1f)) { zoom = (zoom + 0.15f).coerceIn(0f, 1f); camera?.cameraControl?.setLinearZoom(zoom) }
-            BigButton(stringResource(if (light) R.string.magnifier_light_off else R.string.magnifier_light_on), Color(0xFFFFA726), Modifier.weight(1.4f)) {
+            BigButton("", Tone.Accent, Modifier.weight(1f), symbol = "minus") { zoom = (zoom - 0.15f).coerceIn(0f, 1f); camera?.cameraControl?.setLinearZoom(zoom) }
+            BigButton("", Tone.Accent, Modifier.weight(1f), symbol = "plus") { zoom = (zoom + 0.15f).coerceIn(0f, 1f); camera?.cameraControl?.setLinearZoom(zoom) }
+            BigButton(stringResource(if (light) R.string.magnifier_light_off else R.string.magnifier_light_on), Tone.Amber, Modifier.weight(1.4f), textSize = TextSize.Label) {
                 light = !light; camera?.cameraControl?.enableTorch(light)
             }
         }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            BigButton(stringResource(if (frozen == null) R.string.magnifier_freeze else R.string.magnifier_live), Color(0xFF1B7A34), Modifier.weight(1.4f)) {
+            BigButton(stringResource(if (frozen == null) R.string.magnifier_freeze else R.string.magnifier_live), Tone.Ok, Modifier.weight(1.4f), textSize = TextSize.Label) {
                 frozen = if (frozen == null) view?.bitmap else null
             }
-            BigButton(stringResource(R.string.video_close), Color(0xFFC62828), Modifier.weight(1f)) { onClose() }
         }
+        CloseButton(onClose, onDark = true)
     }
 }
 
@@ -217,14 +197,12 @@ fun WhereAmIScreen(sosNumbers: List<String>, nameOf: (String) -> String, onCall:
         }
         Voice.speak(context, text!!)
     }
-    ToolFrame(stringResource(R.string.label_where), onClose) {
+    BigScreen(stringResource(R.string.label_where), "pin", onClose) {
         Icon(Symbols.get("pin"), null, Modifier.size(96.dp), tint = Palette.Ink)
-        Text(text ?: stringResource(R.string.where_searching), fontSize = 30.sp, lineHeight = 38.sp, fontWeight = FontWeight.Bold, color = Palette.Ink, textAlign = TextAlign.Center)
-        if (text != null) OutlinedButton(onClick = { Voice.speak(context, text!!) }, modifier = Modifier.fillMaxWidth().heightIn(min = 72.dp), shape = RoundedCornerShape(20.dp)) {
-            Text(stringResource(R.string.where_repeat), fontSize = 22.sp, color = Palette.Ink)
-        }
+        Text(text ?: stringResource(R.string.where_searching), fontSize = TextSize.Title, lineHeight = 36.sp, fontWeight = FontWeight.Bold, color = Palette.Ink, textAlign = TextAlign.Center)
+        if (text != null) BigOutlined(stringResource(R.string.where_repeat), symbol = "speaker") { Voice.speak(context, text!!) }
         sosNumbers.firstOrNull()?.let { n ->
-            BigButton(stringResource(R.string.where_call, nameOf(n)), Color(0xFF1B7A34)) { onCall(n) }
+            BigButton(stringResource(R.string.where_call, nameOf(n)), Tone.Ok, symbol = "phone") { onCall(n) }
         }
     }
 }
@@ -248,22 +226,21 @@ fun CallMeScreen(tile: Tile, onSmsComposer: (String, String) -> Unit, onClose: (
     val context = LocalContext.current
     var sent by remember { mutableStateOf(false) }
     val name = tile.label.ifBlank { tile.target }
-    ToolFrame(stringResource(R.string.label_call_me), onClose) {
-        Icon(Symbols.get("callme"), null, Modifier.size(96.dp), tint = Palette.Ink)
+    BigScreen(stringResource(R.string.label_call_me), "callme", onClose) {
+        Icon(Symbols.get(if (sent) "check" else "callme"), null, Modifier.size(96.dp), tint = Palette.Ink)
         Text(
             stringResource(if (sent) R.string.callme_sent else R.string.callme_ask, name),
-            fontSize = 30.sp, lineHeight = 38.sp, fontWeight = FontWeight.Bold, color = Palette.Ink, textAlign = TextAlign.Center,
+            fontSize = TextSize.Title, lineHeight = 36.sp, fontWeight = FontWeight.Bold, color = Palette.Ink, textAlign = TextAlign.Center,
         )
         if (!sent) {
-            BigButton(stringResource(R.string.callme_yes), Color(0xFF1B7A34)) {
+            BigButton(stringResource(R.string.callme_yes), Tone.Ok, symbol = "phone") {
                 val sms = CallMe.send(context, tile)
                 sent = true
                 Voice.speak(context, context.getString(R.string.callme_sent, name))
                 // Senza invio automatico (es. versione Play) si apre il messaggio già scritto.
                 if (!sms && tile.target.isNotBlank()) onSmsComposer(tile.target, context.getString(R.string.callme_sms))
             }
-            BigButton(stringResource(R.string.callme_no), Color(0xFF6A6A6A)) { onClose() }
-        } else BigButton(stringResource(R.string.video_close), Color(0xFF1F4FA8)) { onClose() }
+        }
     }
 }
 
@@ -337,32 +314,27 @@ fun NewsScreen(tile: Tile, onOpen: (String) -> Unit, onClose: () -> Unit) {
         Voice.speak(context, list[i].title) { if (reading) read(i + 1) }
     }
     DisposableEffect(Unit) { onDispose { reading = false; Voice.speak(context, " ") } }
-    ToolFrame(tile.label.ifBlank { stringResource(R.string.label_news) }, onClose) {
+    BigScreen(tile.label.ifBlank { stringResource(R.string.label_news) }, "news", onClose) {
         val list = items
         when {
-            list == null -> Text(stringResource(R.string.news_loading), fontSize = 26.sp, color = Palette.Ink)
-            list.isEmpty() -> Text(stringResource(R.string.news_none), fontSize = 26.sp, color = Palette.Ink, textAlign = TextAlign.Center)
+            list == null -> Text(stringResource(R.string.news_loading), fontSize = TextSize.Title, color = Palette.Ink)
+            list.isEmpty() -> EmptyState("news", stringResource(R.string.news_none))
             else -> {
-                Text("${index + 1} / ${list.size}", fontSize = 18.sp, color = Color(0xFF555555))
+                Text("${index + 1} / ${list.size}", fontSize = TextSize.Body, color = Palette.Mute)
                 Box(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()), contentAlignment = Alignment.Center) {
-                    Text(list[index].title, fontSize = 32.sp, lineHeight = 40.sp, fontWeight = FontWeight.Bold, color = Palette.Ink, textAlign = TextAlign.Center)
+                    Text(list[index].title, fontSize = TextSize.Big, lineHeight = 44.sp, fontWeight = FontWeight.Bold, color = Palette.Ink, textAlign = TextAlign.Center)
                 }
                 // Pagina completa della notizia nel browser (con il pulsante Casa per tornare).
-                if (list[index].link.startsWith("http")) OutlinedButton(
-                    onClick = { reading = false; Voice.speak(context, " "); onOpen(list[index].link) },
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 72.dp), shape = RoundedCornerShape(20.dp),
-                ) { Text(stringResource(R.string.news_open), fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Palette.Ink) }
-                BigButton(stringResource(if (reading) R.string.news_stop else R.string.news_read_all), if (reading) Color(0xFFC62828) else Color(0xFF1B7A34)) {
+                if (list[index].link.startsWith("http")) BigOutlined(stringResource(R.string.news_open), symbol = "web") {
+                    reading = false; Voice.speak(context, " "); onOpen(list[index].link)
+                }
+                BigButton(stringResource(if (reading) R.string.news_stop else R.string.news_read_all), if (reading) Tone.Warn else Tone.Ok, symbol = "speaker") {
                     reading = !reading
                     if (reading) read(index) else Voice.speak(context, " ")
                 }
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    OutlinedButton(onClick = { reading = false; read((index - 1).coerceAtLeast(0)) }, modifier = Modifier.weight(1f).heightIn(min = 80.dp), shape = RoundedCornerShape(20.dp)) {
-                        Text("‹ " + stringResource(R.string.radio_prev), fontSize = 22.sp, color = Palette.Ink)
-                    }
-                    OutlinedButton(onClick = { reading = false; read((index + 1).coerceAtMost(list.lastIndex)) }, modifier = Modifier.weight(1f).heightIn(min = 80.dp), shape = RoundedCornerShape(20.dp)) {
-                        Text(stringResource(R.string.radio_next) + " ›", fontSize = 22.sp, color = Palette.Ink)
-                    }
+                    BigOutlined("‹ " + stringResource(R.string.radio_prev), Modifier.weight(1f)) { reading = false; read((index - 1).coerceAtLeast(0)) }
+                    BigOutlined(stringResource(R.string.radio_next) + " ›", Modifier.weight(1f)) { reading = false; read((index + 1).coerceAtMost(list.lastIndex)) }
                 }
             }
         }

@@ -16,7 +16,7 @@ di emergenza: il pulsante SOS contatta i numeri impostati, non il 112.
 
 | Componente | Licenza |
 |---|---|
-| Atkinson Hyperlegible (Braille Institute of America) | SIL Open Font License 1.1 — `app/src/main/assets/licenses/AtkinsonHyperlegible-OFL.txt` |
+| Atkinson Hyperlegible (Braille Institute of America), nell'app e nel portale (file TTF originali, non modificati) | SIL Open Font License 1.1 — `app/src/main/assets/licenses/AtkinsonHyperlegible-OFL.txt` |
 | AndroidX, Jetpack Compose, WorkManager | Apache License 2.0 |
 | Kotlin, kotlinx.serialization, kotlinx.coroutines | Apache License 2.0 |
 | Bouncy Castle (bcprov) | Bouncy Castle License (MIT) |

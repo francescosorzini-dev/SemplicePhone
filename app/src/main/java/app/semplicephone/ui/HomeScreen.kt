@@ -101,6 +101,7 @@ fun HomeScreen(
         contrast = config.phone.theme == "contrast",
         night = config.phone.theme == "night" && (hour >= 21 || hour < 7),
         holdToOpen = config.phone.holdToOpen,
+        monoIcons = config.phone.appIcons == "mono",
     )
     androidx.compose.runtime.CompositionLocalProvider(LocalTileLook provides look) {
     Column(
@@ -126,6 +127,8 @@ fun HomeScreen(
         }
 
         if (pages.size > 1) PageDots(pages.size, pagerState.currentPage)
+        // Avvisi brevi («tieni premuto», app non disponibile): fascia grande e letta a voce.
+        Hint.Host()
     }
     }
     if (bedside) BedsideClock { bedside = false; lastTouch = android.os.SystemClock.elapsedRealtime() }
@@ -158,7 +161,7 @@ private fun BedsideClock(onDismiss: () -> Unit) {
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(now.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm")), color = Color(0xFFB8B8B8), fontSize = 120.sp, fontWeight = FontWeight.Bold)
-            Text(date, color = Color(0xFF8A8A8A), fontSize = 34.sp, fontWeight = FontWeight.Bold)
+            Text(date, color = Palette.Mute, fontSize = TextSize.Big, fontWeight = FontWeight.Bold)
         }
     }
 }
@@ -219,17 +222,20 @@ private fun BatteryBanner(level: Int) {
     Box(
         Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(14.dp))
-            .background(Color(0xFFA84300))
+            .clip(Ui.ShapeSmall)
+            .background(Palette.Warn)
             .padding(16.dp)
             .semantics(mergeDescendants = true) {},
     ) {
-        Text(
-            stringResource(R.string.home_battery_low, level),
-            color = Color.White,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            androidx.compose.material3.Icon(Symbols.get("battery"), null, Modifier.size(32.dp).padding(end = 8.dp), tint = Color.White)
+            Text(
+                stringResource(R.string.home_battery_low, level),
+                color = Color.White,
+                fontSize = TextSize.Label,
+                fontWeight = FontWeight.Bold,
+            )
+        }
     }
 }
 
@@ -238,19 +244,22 @@ private fun MessageBanner(m: app.semplicephone.remote.FamilyMessage, onClick: ()
     Box(
         Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(14.dp))
-            .background(Color(0xFF1F4FA8))
+            .clip(Ui.ShapeSmall)
+            .background(Palette.Accent)
             .clickable(onClick = onClick)
             .padding(16.dp),
     ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+        androidx.compose.material3.Icon(Symbols.get("message"), null, Modifier.size(32.dp).padding(end = 8.dp), tint = Color.White)
         Text(
             (if (m.from.isNotBlank()) stringResource(R.string.message_from, m.from) else stringResource(R.string.message_title)) +
                 ": " + m.text.take(60) + (if (m.text.length > 60) "…" else "") + "\n" + stringResource(R.string.message_tap),
             color = Color.White,
-            fontSize = 20.sp,
+            fontSize = TextSize.Label,
             fontWeight = FontWeight.Bold,
             maxLines = 3,
         )
+        }
     }
 }
 
@@ -259,7 +268,7 @@ private fun SetHomeBanner(onClick: () -> Unit) {
     Box(
         Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(14.dp))
+            .clip(Ui.ShapeSmall)
             .background(Palette.Ink)
             .clickable(onClick = onClick)
             .padding(16.dp),
@@ -267,7 +276,7 @@ private fun SetHomeBanner(onClick: () -> Unit) {
         Text(
             stringResource(R.string.home_set_default),
             color = Color.White,
-            fontSize = 18.sp,
+            fontSize = TextSize.Body,
             fontWeight = FontWeight.Bold,
         )
     }
@@ -294,8 +303,8 @@ private fun ConnectivityBanner() {
     // Si dice una volta per ogni volta che succede (e dopo 15 s, per non confondere un attimo senza rete).
     androidx.compose.runtime.LaunchedEffect(state) { kotlinx.coroutines.delay(15_000); app.semplicephone.ui.Voice.speak(context, text) }
     Row(
-        Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp).clip(RoundedCornerShape(16.dp)).background(Color(0xFFFFE0B2))
-            .border(3.dp, Palette.Sos, RoundedCornerShape(16.dp))
+        Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp).clip(Ui.ShapeSmall).background(Palette.WarnSoft)
+            .border(3.dp, Palette.Warn, Ui.ShapeSmall)
             .clickable {
                 val action = if (state == 1) android.provider.Settings.ACTION_AIRPLANE_MODE_SETTINGS else android.provider.Settings.Panel.ACTION_INTERNET_CONNECTIVITY
                 runCatching { context.startActivity(android.content.Intent(action).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)) }
@@ -303,7 +312,8 @@ private fun ConnectivityBanner() {
             .padding(14.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(text, color = Palette.Ink, fontSize = 20.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-        Text(androidx.compose.ui.res.stringResource(R.string.conn_fix), color = Palette.Sos, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+        androidx.compose.material3.Icon(Symbols.get("web"), null, Modifier.size(32.dp).padding(end = 8.dp), tint = Palette.Warn)
+        Text(text, color = Palette.Ink, fontSize = TextSize.Label, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+        Text(androidx.compose.ui.res.stringResource(R.string.conn_fix), color = Palette.Warn, fontSize = TextSize.Label, fontWeight = FontWeight.Bold)
     }
 }

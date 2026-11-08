@@ -130,7 +130,7 @@ class TileLauncher(
     /** Tocco breve con «tieni premuto per aprire»: dice il nome e ricorda come si apre. */
     fun holdHint(tile: Tile) {
         speakLabel(tile)
-        android.widget.Toast.makeText(context, R.string.hold_hint, android.widget.Toast.LENGTH_SHORT).show()
+        app.semplicephone.ui.Hint.show(context, context.getString(R.string.hold_hint), speak = false)
     }
 
     /** Apre la conversazione del messaggio (azione della sua notifica); in mancanza, l'app che l'ha mandato. */
@@ -265,7 +265,7 @@ class TileLauncher(
 
     private fun notAvailable(tile: Tile) = toast(context.getString(R.string.launch_unavailable, tile.label.ifBlank { context.getString(R.string.label_feature) }))
 
-    private fun toast(msg: String) = Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+    private fun toast(msg: String) = app.semplicephone.ui.Hint.show(context, msg)
 
     companion object {
         private const val TAG = "TileLauncher"

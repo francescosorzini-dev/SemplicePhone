@@ -292,7 +292,7 @@
     <string name="message_title">Message from your family</string>
     <string name="message_from">Message from %1$s</string>
     <string name="message_ok">GOT IT</string>
-    <string name="message_read_again">🔊 Read again</string>
+    <string name="message_read_again">Read again</string>
     <string name="message_tap">Tap to read it</string>
     <string name="message_read_event">Message read: \"%1$s\"</string>
     <string name="voice_incoming">%1$s is calling</string>
@@ -480,7 +480,7 @@
     <string name="scam_label">Warning, possible scam</string>
     <string name="scam_warning">Warning: this message comes from a stranger and contains a link. It may be a scam: don\'t open it and ask a family member.</string>
     <string name="scam_event">Suspicious message with link from %1$s (%2$s)</string>
-    <string name="voice_reply_hold">🎤 HOLD AND REPLY</string>
+    <string name="voice_reply_hold">HOLD AND REPLY</string>
     <string name="voice_reply_recording">Speak… release to send</string>
     <string name="voice_reply_sent">Reply sent</string>
     <string name="voice_reply_short">Too short: hold while you speak</string>
@@ -549,7 +549,16 @@
     <string name="reminder_per_dose">Per dose</string>
     <string name="reminder_low_at">Warn when left</string>
     <string name="fall_reason">The phone felt a hard knock, like a fall. If you are OK, tap I\'M OK.</string>
-    <string name="news_open">📰 OPEN THE ARTICLE</string>
+    <string name="news_open">OPEN THE ARTICLE</string>
+    <string name="action_close_big">CLOSE</string>
+    <string name="search_clear">Clear</string>
+    <string name="preset_measure">Take temperature</string>
+    <string name="preset_insulin">Insulin</string>
+    <string name="preset_trash">Rubbish out</string>
+    <string name="preset_plants">Water the plants</string>
+    <string name="preset_bed">Bedtime</string>
+    <string name="phone_app_icons">Single-colour app icons</string>
+    <string name="phone_app_icons_detail">In the tile colour, like the symbols. Only for apps that provide it (Android 13 and later): the others stay as they are.</string>
     <string name="color_blue">Blue</string>
     <string name="color_green">Green</string>
     <string name="color_purple">Purple</string>

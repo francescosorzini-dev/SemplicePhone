@@ -1,5 +1,8 @@
 package app.semplicephone
 
+import app.semplicephone.ui.Ui
+import app.semplicephone.ui.TextSize
+import app.semplicephone.ui.Palette
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.ui.res.stringResource
 import android.app.role.RoleManager
@@ -212,22 +215,22 @@ class MainActivity : ComponentActivity() {
                                         Permissions.missingSpecial(this@MainActivity, d).any { it.key == "badges" })
                             },
                             extraSections = {
-                                OutlinedButton(onClick = { screen = Screen.Templates(false) }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
+                                OutlinedButton(onClick = { screen = Screen.Templates(false) }, modifier = Modifier.fillMaxWidth().heightIn(min = Ui.HeightSettings)) {
                                     Text(stringResource(R.string.tpl_title))
                                 }
-                                OutlinedButton(onClick = { screen = Screen.Phone }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
+                                OutlinedButton(onClick = { screen = Screen.Phone }, modifier = Modifier.fillMaxWidth().heightIn(min = Ui.HeightSettings)) {
                                     Text(stringResource(R.string.layout_phone_settings))
                                 }
-                                OutlinedButton(onClick = { screen = Screen.Reminders }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
+                                OutlinedButton(onClick = { screen = Screen.Reminders }, modifier = Modifier.fillMaxWidth().heightIn(min = Ui.HeightSettings)) {
                                     Text(stringResource(R.string.layout_reminders, d.reminders.size))
                                 }
-                                OutlinedButton(onClick = { screen = Screen.Remote }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
+                                OutlinedButton(onClick = { screen = Screen.Remote }, modifier = Modifier.fillMaxWidth().heightIn(min = Ui.HeightSettings)) {
                                     Text(stringResource(R.string.layout_remote))
                                 }
-                                OutlinedButton(onClick = { screen = Screen.Protection }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
+                                OutlinedButton(onClick = { screen = Screen.Protection }, modifier = Modifier.fillMaxWidth().heightIn(min = Ui.HeightSettings)) {
                                     Text(stringResource(R.string.layout_protection))
                                 }
-                                OutlinedButton(onClick = { screen = Screen.Backup }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
+                                OutlinedButton(onClick = { screen = Screen.Backup }, modifier = Modifier.fillMaxWidth().heightIn(min = Ui.HeightSettings)) {
                                     Text(stringResource(R.string.backup_title))
                                 }
                                 if (android.os.Build.VERSION.SDK_INT >= 33) {
@@ -241,9 +244,9 @@ class MainActivity : ComponentActivity() {
                                                 )
                                             }
                                         },
-                                        modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
+                                        modifier = Modifier.fillMaxWidth().heightIn(min = Ui.HeightSettings),
                                     ) { Text(stringResource(R.string.layout_language)) }
-                                    Text(stringResource(R.string.language_hint), fontSize = 14.sp, color = androidx.compose.ui.graphics.Color(0xFF4A4A4A))
+                                    Text(stringResource(R.string.language_hint), fontSize = TextSize.Small, color = Palette.Mute)
                                 }
                             },
                         )

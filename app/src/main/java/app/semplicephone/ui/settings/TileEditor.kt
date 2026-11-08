@@ -1,5 +1,7 @@
 package app.semplicephone.ui.settings
 
+import app.semplicephone.ui.Ui
+import app.semplicephone.ui.TextSize
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.heightIn
@@ -31,6 +33,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -139,8 +142,8 @@ fun TileEditor(
         )
     }
 
-    Column(Modifier.fillMaxSize().background(Color(0xFFECE9E2)).windowInsetsPadding(WindowInsets.safeDrawing)) {
-        EditorHeader(stringResource(if (isNew) R.string.tile_new else R.string.tile_edit), onCancel, stringResource(R.string.action_save), enabled = conflict == null) { onSave(t) }
+    Column(Modifier.fillMaxSize().background(Palette.Soft).windowInsetsPadding(WindowInsets.safeDrawing)) {
+        EditorHeader(stringResource(if (isNew) R.string.tile_new else R.string.tile_edit), onCancel, enabled = conflict == null) { onSave(t) }
 
         Column(
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 8.dp),
@@ -158,7 +161,7 @@ fun TileEditor(
                         R.string.conflict_overlap, conflict.other.label.ifBlank { typeLabel(context, conflict.other.type) },
                     )
                 },
-                color = Palette.Sos, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                color = Palette.Sos, fontSize = TextSize.Body, fontWeight = FontWeight.Bold)
 
             OptionPicker(stringResource(R.string.tile_action), TypeLabels.keys.toList(), t.type, { typeLabel(context, it) }) { type ->
                 // Il valore del tipo precedente non vale per il nuovo (es. «@dialer» per una videochiamata).
@@ -178,8 +181,8 @@ fun TileEditor(
                 TileType.APP -> {
                     SectionLabel(stringResource(R.string.tile_app))
                     val current = apps.firstOrNull { it.target == t.target }?.label ?: t.target.ifBlank { stringResource(R.string.icon_none) }
-                    OutlinedButton(onClick = { pickApp = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp), shape = RoundedCornerShape(10.dp)) {
-                        Text(current, fontSize = 17.sp, color = Palette.Ink)
+                    OutlinedButton(onClick = { pickApp = true }, modifier = Modifier.fillMaxWidth().heightIn(min = Ui.HeightSettings), shape = Ui.ShapeSmall) {
+                        Text(current, fontSize = TextSize.Body, color = Palette.Ink)
                     }
                     val openLabels = mapOf(
                         app.semplicephone.model.OPEN_DEFAULT to R.string.open_default,
@@ -198,29 +201,29 @@ fun TileEditor(
                             onExternalStart()
                             pickContact.launch(Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI))
                         },
-                        modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
-                        shape = RoundedCornerShape(10.dp),
-                    ) { Text(stringResource(R.string.tile_pick_contact), fontSize = 17.sp, color = Palette.Ink) }
+                        modifier = Modifier.fillMaxWidth().heightIn(min = Ui.HeightSettings),
+                        shape = Ui.ShapeSmall,
+                    ) { Text(stringResource(R.string.tile_pick_contact), fontSize = TextSize.Body, color = Palette.Ink) }
                     Field(stringResource(R.string.tile_number), t.target, KeyboardType.Phone) { t = t.copy(target = it.filter { c -> c.isDigit() || c == '+' }) }
                     if (t.type == TileType.WA_VIDEO) {
                         Hint(stringResource(R.string.tile_wa_hint))
                         // Controllo subito: senza la riga «Videochiamata» di WhatsApp in rubrica si aprirebbe solo la chat.
                         val waReady = remember(t.target) { t.target.filter(Char::isDigit).length < 6 || launcher.contacts.whatsAppVideoIntent(t.target) != null }
-                        if (!waReady) Text(stringResource(R.string.tile_wa_not_found), fontSize = 15.sp, color = Palette.Sos)
+                        if (!waReady) Text(stringResource(R.string.tile_wa_not_found), fontSize = TextSize.Small, color = Palette.Sos)
                     }
                     if (t.type == TileType.CALL_ME) Hint(stringResource(R.string.tile_call_me_hint))
                     if (t.type == TileType.TG_VIDEO) {
                         Hint(stringResource(R.string.tile_tg_hint))
                         val tgReady = remember(t.target) { t.target.filter(Char::isDigit).length < 6 || launcher.contacts.telegramVideoIntent(t.target) != null }
-                        if (!tgReady) Text(stringResource(R.string.tile_tg_not_found), fontSize = 15.sp, color = Palette.Sos)
+                        if (!tgReady) Text(stringResource(R.string.tile_tg_not_found), fontSize = TextSize.Small, color = Palette.Sos)
                     }
                     if (t.type == TileType.SMS) Field(stringResource(R.string.tile_sms_text), t.body) { t = t.copy(body = it) }
                 }
                 TileType.URL -> Field(stringResource(R.string.tile_url), t.target, KeyboardType.Uri) { t = t.copy(target = it.trim()) }
                 TileType.SHORTCUT -> {
                     SectionLabel(stringResource(R.string.tile_shortcut))
-                    OutlinedButton(onClick = { pickShortcut = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp), shape = RoundedCornerShape(10.dp)) {
-                        Text(t.target.ifBlank { stringResource(R.string.tile_choose) }.substringAfter('/').take(40), fontSize = 17.sp, color = Palette.Ink)
+                    OutlinedButton(onClick = { pickShortcut = true }, modifier = Modifier.fillMaxWidth().heightIn(min = Ui.HeightSettings), shape = Ui.ShapeSmall) {
+                        Text(t.target.ifBlank { stringResource(R.string.tile_choose) }.substringAfter('/').take(40), fontSize = TextSize.Body, color = Palette.Ink)
                     }
                     Hint(stringResource(R.string.tile_shortcut_hint))
                 }
@@ -241,7 +244,7 @@ fun TileEditor(
                                 TextButton(
                                     onClick = { t = t.copy(photos = t.photos - ref) },
                                     modifier = Modifier.align(Alignment.TopEnd),
-                                ) { Text("✕", color = Palette.Sos, fontSize = 18.sp, fontWeight = FontWeight.Bold) }
+                                ) { Icon(Symbols.get("close"), stringResource(R.string.action_remove), Modifier.size(24.dp), tint = Palette.Warn) }
                             }
                         }
                     }
@@ -286,7 +289,7 @@ fun TileEditor(
                     }
                     androidx.compose.material3.OutlinedButton(
                         onClick = { t = t.copy(stations = t.stations + app.semplicephone.model.Station()) },
-                        modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
+                        modifier = Modifier.fillMaxWidth().heightIn(min = Ui.HeightSettings),
                     ) { Text(stringResource(R.string.tile_radio_add)) }
                 }
                 TileType.MESSAGES -> Hint(stringResource(if (app.semplicephone.BuildConfig.NOTIFICATIONS) R.string.tile_messages_hint else R.string.tile_messages_hint_basic))
@@ -335,11 +338,11 @@ fun TileEditor(
                     (0 until pageCount).filter { it != pageIndex }.take(4).forEach { n ->
                         androidx.compose.material3.OutlinedButton(
                             onClick = { if (!onMove(t, n)) noRoom = n },
-                            modifier = Modifier.weight(1f).heightIn(min = 52.dp),
+                            modifier = Modifier.weight(1f).heightIn(min = Ui.HeightSettings),
                         ) { Text(stringResource(R.string.tile_page_n, n + 1)) }
                     }
                 }
-                noRoom?.let { Text(stringResource(R.string.tile_move_no_room, it + 1), color = Palette.Sos, fontSize = 15.sp) }
+                noRoom?.let { Text(stringResource(R.string.tile_move_no_room, it + 1), color = Palette.Sos, fontSize = TextSize.Small) }
             }
 
             SectionLabel(stringResource(R.string.tile_color))
@@ -358,9 +361,9 @@ fun TileEditor(
             if (!isNew) {
                 OutlinedButton(
                     onClick = { confirmDelete = true },
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
-                    shape = RoundedCornerShape(12.dp),
-                ) { Text(stringResource(R.string.tile_delete), color = Palette.Sos, fontSize = 17.sp, fontWeight = FontWeight.Bold) }
+                    modifier = Modifier.fillMaxWidth().heightIn(min = Ui.HeightSettings),
+                    shape = Ui.ShapeSmall,
+                ) { Text(stringResource(R.string.tile_delete), color = Palette.Sos, fontSize = TextSize.Body, fontWeight = FontWeight.Bold) }
             }
         }
     }
@@ -384,17 +387,12 @@ fun TileEditor(
 
     if (confirmDelete) {
         val lastSos = t.type == TileType.SOS && sosCountElsewhere == 0
-        AlertDialog(
-            onDismissRequest = { confirmDelete = false },
-            title = { Text(stringResource(if (lastSos) R.string.tile_delete_last_sos else R.string.tile_delete_confirm)) },
-            text = {
-                Text(
-                    if (lastSos) stringResource(R.string.tile_delete_last_sos_text)
-                    else stringResource(R.string.tile_delete_text, t.label.ifBlank { typeLabel(context, t.type) }),
-                )
-            },
-            confirmButton = { TextButton(onClick = { confirmDelete = false; onDelete() }) { Text(stringResource(R.string.action_delete), color = Palette.Sos) } },
-            dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text(stringResource(R.string.action_cancel)) } },
+        app.semplicephone.ui.ConfirmDialog(
+            title = stringResource(if (lastSos) R.string.tile_delete_last_sos else R.string.tile_delete_confirm),
+            text = if (lastSos) stringResource(R.string.tile_delete_last_sos_text)
+                else stringResource(R.string.tile_delete_text, t.label.ifBlank { typeLabel(context, t.type) }),
+            confirm = stringResource(R.string.action_delete), tone = app.semplicephone.ui.Tone.Warn,
+            onConfirm = { confirmDelete = false; onDelete() }, onDismiss = { confirmDelete = false },
         )
     }
 }
@@ -460,21 +458,27 @@ fun defaultLabel(context: Context, type: TileType): String = when (type) {
     TileType.SOS -> "SOS"
 }
 
+/**
+ * Intestazione di tutte le pagine delle impostazioni: «‹ Indietro» (non salva) a sinistra, titolo,
+ * «Fatto» (conferma) a destra. Solo la pagina principale usa «Salva», che scrive davvero sul telefono.
+ */
 @Composable
-fun EditorHeader(title: String, onBack: () -> Unit, action: String, enabled: Boolean = true, onAction: () -> Unit) {
+fun EditorHeader(title: String, onBack: () -> Unit, action: String = stringResource(R.string.action_done), enabled: Boolean = true, onAction: () -> Unit) {
     Row(
         Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        TextButton(onClick = onBack, modifier = Modifier.heightIn(min = 48.dp)) { Text(stringResource(R.string.action_back), fontSize = 17.sp, color = Palette.Ink) }
-        Text(title, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Palette.Ink, modifier = Modifier.weight(1f).padding(start = 4.dp))
+        TextButton(onClick = onBack, modifier = Modifier.heightIn(min = app.semplicephone.ui.Ui.HeightSettings)) {
+            Text(stringResource(R.string.action_back), fontSize = app.semplicephone.ui.TextSize.Body, color = Palette.Ink)
+        }
+        app.semplicephone.ui.FitText(title, Palette.Ink, app.semplicephone.ui.TextSize.Label, Modifier.weight(1f).padding(start = 4.dp), align = androidx.compose.ui.text.style.TextAlign.Start)
         Button(
             onClick = onAction,
             enabled = enabled,
             colors = ButtonDefaults.buttonColors(containerColor = Palette.Ink),
-            shape = RoundedCornerShape(12.dp),
-            modifier = Modifier.heightIn(min = 48.dp),
-        ) { Text(action, fontSize = 17.sp, fontWeight = FontWeight.Bold) }
+            shape = app.semplicephone.ui.Ui.ShapeSmall,
+            modifier = Modifier.heightIn(min = app.semplicephone.ui.Ui.HeightSettings),
+        ) { Text(action, fontSize = app.semplicephone.ui.TextSize.Body, fontWeight = FontWeight.Bold) }
     }
 }
 
@@ -492,7 +496,7 @@ private fun Field(label: String, value: String, keyboard: KeyboardType = Keyboar
 
 @Composable
 private fun Hint(text: String) {
-    Text(text, fontSize = 15.sp, color = Color(0xFF4A4A4A))
+    Text(text, fontSize = TextSize.Small, color = Palette.Mute)
 }
 
 /** Ricerca della località per il meteo (Open-Meteo), con la scelta tra i risultati. */
@@ -516,13 +520,13 @@ private fun WeatherPlaceField(target: String, label: String, onPick: (app.sempli
                 }
             },
             enabled = query.isNotBlank() && !busy,
-            modifier = Modifier.heightIn(min = 52.dp),
+            modifier = Modifier.heightIn(min = Ui.HeightSettings),
         ) { Text(stringResource(if (busy) R.string.loading else R.string.search)) }
     }
     results?.let { list ->
         if (list.isEmpty()) Hint(stringResource(R.string.weather_no_results))
         list.forEach { p ->
-            OutlinedButton(onClick = { onPick(p); results = null }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
+            OutlinedButton(onClick = { onPick(p); results = null }, modifier = Modifier.fillMaxWidth().heightIn(min = Ui.HeightSettings)) {
                 Text(if (p.area.isNotBlank()) "${p.name} (${p.area})" else p.name, color = Palette.Ink)
             }
         }
@@ -546,17 +550,18 @@ private fun AlbumFolders(folders: List<String>, onExternalStart: () -> Unit, tit
     Hint(stringResource(hint))
     folders.forEach { f ->
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Icon(Symbols.get("folder"), null, Modifier.size(26.dp).padding(end = 6.dp), tint = Palette.Ink)
             Text(
-                "📁 " + (if (f in readable) app.semplicephone.data.Album.folderName(context, f) else stringResource(R.string.album_folder_other_phone)),
-                fontSize = 18.sp, color = Palette.Ink, modifier = Modifier.weight(1f),
+                if (f in readable) app.semplicephone.data.Album.folderName(context, f) else stringResource(R.string.album_folder_other_phone),
+                fontSize = TextSize.Body, color = Palette.Ink, modifier = Modifier.weight(1f),
             )
             TextButton(onClick = { app.semplicephone.data.Album.release(context, f); onChange(folders - f) }) {
-                Text("✕", color = Palette.Sos, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                Icon(Symbols.get("close"), stringResource(R.string.action_remove), Modifier.size(26.dp), tint = Palette.Warn)
             }
         }
     }
     OutlinedButton(
         onClick = { onExternalStart(); runCatching { pick.launch(null) } },
-        modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
+        modifier = Modifier.fillMaxWidth().heightIn(min = Ui.HeightSettings),
     ) { Text(stringResource(R.string.album_add_folder)) }
 }

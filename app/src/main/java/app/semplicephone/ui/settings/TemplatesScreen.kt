@@ -1,5 +1,7 @@
 package app.semplicephone.ui.settings
 
+import app.semplicephone.ui.Ui
+import app.semplicephone.ui.TextSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -39,33 +41,30 @@ import app.semplicephone.ui.Palette
 fun TemplatesScreen(firstTime: Boolean, onPick: (Template) -> Unit, onSkip: () -> Unit) {
     var asking by remember { mutableStateOf<Template?>(null) }
     Column(
-        Modifier.fillMaxSize().background(Color(0xFFF6F4EF)).windowInsetsPadding(WindowInsets.safeDrawing)
+        Modifier.fillMaxSize().background(Palette.Ground).windowInsetsPadding(WindowInsets.safeDrawing)
             .verticalScroll(rememberScrollState()).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Text(stringResource(R.string.tpl_title), fontSize = 26.sp, fontWeight = FontWeight.Bold, color = Palette.Ink)
-        Text(stringResource(R.string.tpl_lead), fontSize = 16.sp, color = Color(0xFF4A4A4A))
+        Text(stringResource(R.string.tpl_title), fontSize = TextSize.Title, fontWeight = FontWeight.Bold, color = Palette.Ink)
+        Text(stringResource(R.string.tpl_lead), fontSize = TextSize.Body, color = Palette.Mute)
         Template.entries.forEach { t ->
             Column(
-                Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(Color.White)
+                Modifier.fillMaxWidth().clip(Ui.ShapeSmall).background(Color.White)
                     .clickable { if (firstTime) onPick(t) else asking = t }.padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
-                Text(stringResource(t.title), fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Palette.Ink)
-                Text(stringResource(t.description), fontSize = 16.sp, color = Color(0xFF333333))
+                Text(stringResource(t.title), fontSize = TextSize.Label, fontWeight = FontWeight.Bold, color = Palette.Ink)
+                Text(stringResource(t.description), fontSize = TextSize.Body, color = Palette.Mute)
             }
         }
-        OutlinedButton(onClick = onSkip, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-            Text(stringResource(if (firstTime) R.string.tpl_skip_first else R.string.tpl_back), fontSize = 18.sp)
+        OutlinedButton(onClick = onSkip, modifier = Modifier.fillMaxWidth().heightIn(min = Ui.HeightSettings)) {
+            Text(stringResource(if (firstTime) R.string.tpl_skip_first else R.string.tpl_back), fontSize = TextSize.Body)
         }
     }
     asking?.let { t ->
-        AlertDialog(
-            onDismissRequest = { asking = null },
-            title = { Text(stringResource(t.title)) },
-            text = { Text(stringResource(R.string.tpl_confirm)) },
-            confirmButton = { TextButton(onClick = { asking = null; onPick(t) }) { Text(stringResource(R.string.tpl_apply)) } },
-            dismissButton = { TextButton(onClick = { asking = null }) { Text(stringResource(R.string.tpl_back)) } },
+        app.semplicephone.ui.ConfirmDialog(
+            title = stringResource(t.title), text = stringResource(R.string.tpl_confirm), confirm = stringResource(R.string.tpl_apply),
+            dismiss = stringResource(R.string.tpl_back), onConfirm = { asking = null; onPick(t) }, onDismiss = { asking = null },
         )
     }
 }

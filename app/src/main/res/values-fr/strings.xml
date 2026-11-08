@@ -291,7 +291,7 @@
     <string name="message_title">Message de la famille</string>
     <string name="message_from">Message de %1$s</string>
     <string name="message_ok">J\'AI LU</string>
-    <string name="message_read_again">🔊 Relire</string>
+    <string name="message_read_again">Relire</string>
     <string name="message_tap">Touchez pour le lire</string>
     <string name="message_read_event">Message lu : « %1$s »</string>
     <string name="voice_incoming">%1$s appelle</string>
@@ -479,7 +479,7 @@
     <string name="scam_label">Attention, arnaque possible</string>
     <string name="scam_warning">Attention : ce message vient d\'un inconnu et contient un lien. C\'est peut-être une arnaque : ne l\'ouvre pas et demande à un proche.</string>
     <string name="scam_event">Message suspect avec lien de %1$s (%2$s)</string>
-    <string name="voice_reply_hold">🎤 MAINTIENS ET RÉPONDS</string>
+    <string name="voice_reply_hold">MAINTIENS ET RÉPONDS</string>
     <string name="voice_reply_recording">Parle… relâche pour envoyer</string>
     <string name="voice_reply_sent">Réponse envoyée</string>
     <string name="voice_reply_short">Trop court : maintiens pendant que tu parles</string>
@@ -548,7 +548,16 @@
     <string name="reminder_per_dose">Par prise</string>
     <string name="reminder_low_at">Alerter quand il en reste</string>
     <string name="fall_reason">Le téléphone a senti un choc fort, comme une chute. Si ça va, touche ÇA VA.</string>
-    <string name="news_open">📰 OUVRIR L\'ARTICLE</string>
+    <string name="news_open">OUVRIR L\'ARTICLE</string>
+    <string name="action_close_big">FERMER</string>
+    <string name="search_clear">Effacer</string>
+    <string name="preset_measure">Prendre la température</string>
+    <string name="preset_insulin">Insuline</string>
+    <string name="preset_trash">Sortir les poubelles</string>
+    <string name="preset_plants">Arroser les plantes</string>
+    <string name="preset_bed">Au lit</string>
+    <string name="phone_app_icons">Icônes d\'apps unies</string>
+    <string name="phone_app_icons_detail">Dans la couleur de la case, comme les symboles. Seulement pour les apps qui le prévoient (Android 13 et plus) : les autres restent comme avant.</string>
     <string name="color_blue">Bleu</string>
     <string name="color_green">Vert</string>
     <string name="color_purple">Violet</string>

@@ -291,7 +291,7 @@
     <string name="message_title">Messaggio dalla famiglia</string>
     <string name="message_from">Messaggio da %1$s</string>
     <string name="message_ok">HO LETTO</string>
-    <string name="message_read_again">🔊 Leggi di nuovo</string>
+    <string name="message_read_again">Leggi di nuovo</string>
     <string name="message_tap">Tocca per leggerlo</string>
     <string name="message_read_event">Messaggio letto: «%1$s»</string>
     <string name="voice_incoming">Chiama %1$s</string>
@@ -479,7 +479,7 @@
     <string name="scam_label">Attenzione, possibile truffa</string>
     <string name="scam_warning">Attenzione: questo messaggio arriva da uno sconosciuto e contiene un link. Potrebbe essere una truffa: non aprirlo e chiedi a un familiare.</string>
     <string name="scam_event">Messaggio sospetto con link da %1$s (%2$s)</string>
-    <string name="voice_reply_hold">🎤 TIENI PREMUTO E RISPONDI</string>
+    <string name="voice_reply_hold">TIENI PREMUTO E RISPONDI</string>
     <string name="voice_reply_recording">Parla… lascia per mandare</string>
     <string name="voice_reply_sent">Risposta mandata</string>
     <string name="voice_reply_short">Troppo breve: tieni premuto mentre parli</string>
@@ -548,7 +548,16 @@
     <string name="reminder_per_dose">Per volta</string>
     <string name="reminder_low_at">Avvisa quando ne restano</string>
     <string name="fall_reason">Il telefono ha sentito un colpo forte, come una caduta. Se stai bene, tocca STO BENE.</string>
-    <string name="news_open">📰 APRI LA NOTIZIA</string>
+    <string name="news_open">APRI LA NOTIZIA</string>
+    <string name="action_close_big">CHIUDI</string>
+    <string name="search_clear">Cancella</string>
+    <string name="preset_measure">Misurare la febbre</string>
+    <string name="preset_insulin">Insulina</string>
+    <string name="preset_trash">Spazzatura</string>
+    <string name="preset_plants">Annaffiare le piante</string>
+    <string name="preset_bed">A letto</string>
+    <string name="phone_app_icons">Icone delle app a tinta unita</string>
+    <string name="phone_app_icons_detail">Nel colore del riquadro, come i simboli. Solo per le app che lo prevedono (Android 13 e successivi): le altre restano com\'erano.</string>
     <string name="color_blue">Blu</string>
     <string name="color_green">Verde</string>
     <string name="color_purple">Viola</string>

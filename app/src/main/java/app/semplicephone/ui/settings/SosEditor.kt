@@ -1,5 +1,7 @@
 package app.semplicephone.ui.settings
 
+import app.semplicephone.ui.Ui
+import app.semplicephone.ui.TextSize
 import androidx.compose.foundation.layout.heightIn
 import app.semplicephone.R
 import androidx.compose.ui.res.stringResource
@@ -46,7 +48,7 @@ fun SosEditor(
     var hold by remember { mutableStateOf(initial.holdSeconds) }
     val clean = numbers.map { it.trim() }.filter { it.isNotEmpty() }
 
-    Column(Modifier.fillMaxSize().background(Color(0xFFECE9E2)).windowInsetsPadding(WindowInsets.safeDrawing)) {
+    Column(Modifier.fillMaxSize().background(Palette.Soft).windowInsetsPadding(WindowInsets.safeDrawing)) {
         EditorHeader("SOS", onCancel, stringResource(R.string.action_done), enabled = clean.isNotEmpty()) { onSave(initial.copy(numbers = clean, holdSeconds = hold), e) }
         Column(
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 8.dp),
@@ -54,9 +56,9 @@ fun SosEditor(
         ) {
             Text(
                 stringResource(if (app.semplicephone.BuildConfig.SEND_SMS) R.string.sos_editor_sms else R.string.sos_editor_compose),
-                fontSize = 15.sp, color = Color(0xFF4A4A4A),
+                fontSize = TextSize.Small, color = Palette.Mute,
             )
-            Text(stringResource(R.string.sos_editor_112), fontSize = 15.sp, color = Color(0xFF4A4A4A))
+            Text(stringResource(R.string.sos_editor_112), fontSize = TextSize.Small, color = Palette.Mute)
             numbers.forEachIndexed { i, n ->
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     OutlinedTextField(
@@ -68,19 +70,19 @@ fun SosEditor(
                         modifier = Modifier.weight(1f),
                     )
                     if (numbers.size > 1) {
-                        TextButton(onClick = { numbers = numbers.filterIndexed { j, _ -> j != i } }, modifier = Modifier.heightIn(min = 48.dp)) {
+                        TextButton(onClick = { numbers = numbers.filterIndexed { j, _ -> j != i } }, modifier = Modifier.heightIn(min = Ui.HeightSettings)) {
                             Text(stringResource(R.string.sos_editor_remove), color = Palette.Sos)
                         }
                     }
                 }
             }
-            OutlinedButton(onClick = { numbers = numbers + "" }, enabled = numbers.size < 5, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
+            OutlinedButton(onClick = { numbers = numbers + "" }, enabled = numbers.size < 5, modifier = Modifier.fillMaxWidth().heightIn(min = Ui.HeightSettings)) {
                 Text(stringResource(R.string.sos_editor_add))
             }
             Stepper(stringResource(R.string.sos_editor_hold), hold, 1..10, { hold = it })
             // Scheda per i soccorritori: compare nella schermata SOS dopo l'invio.
-            Text(stringResource(R.string.emergency_title), fontSize = 20.sp, color = Palette.Ink)
-            Text(stringResource(R.string.emergency_editor_hint), fontSize = 15.sp, color = Color(0xFF4A4A4A))
+            Text(stringResource(R.string.emergency_title), fontSize = TextSize.Label, color = Palette.Ink)
+            Text(stringResource(R.string.emergency_editor_hint), fontSize = TextSize.Small, color = Palette.Mute)
             listOf<Triple<Int, String, (String) -> Unit>>(
                 Triple(R.string.emergency_name, e.name) { v -> e = e.copy(name = v) },
                 Triple(R.string.emergency_birth, e.birth) { v -> e = e.copy(birth = v) },

@@ -86,7 +86,7 @@ class ReminderReceiver : BroadcastReceiver() {
                 PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
             )
             val n = NotificationCompat.Builder(context, ReminderScheduler.CHANNEL)
-                .setSmallIcon(R.drawable.ic_launcher_foreground)
+                .setSmallIcon(app.semplicephone.ui.SymbolDrawables.get(r.icon.takeIf { it in app.semplicephone.ui.Symbols.names } ?: "pill"))
                 .setContentTitle(r.title)
                 .setContentText(r.detail.ifBlank { context.getString(R.string.reminder_at, r.time) })
                 .setCategory(NotificationCompat.CATEGORY_ALARM)

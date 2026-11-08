@@ -1,5 +1,7 @@
 package app.semplicephone.ui.settings
 
+import app.semplicephone.ui.Ui
+import app.semplicephone.ui.TextSize
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -64,30 +66,30 @@ fun BackupScreen(current: LauncherConfig, onLoad: (LauncherConfig) -> Unit, onBa
     }
 
     Column(Modifier.fillMaxSize()) {
-        EditorHeader(stringResource(R.string.backup_title), onBack, stringResource(R.string.backup_close), onAction = onBack)
+        EditorHeader(stringResource(R.string.backup_title), onBack, onAction = onBack)
         Column(
             Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(stringResource(R.string.backup_intro), fontSize = 15.sp, color = Palette.Ink)
+            Text(stringResource(R.string.backup_intro), fontSize = TextSize.Small, color = Palette.Ink)
             OutlinedButton(
                 onClick = { onExternalStart(); export.launch("SemplicePhone-${java.time.LocalDate.now()}.zip") },
-                modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-            ) { Text(stringResource(R.string.backup_export), fontSize = 18.sp) }
+                modifier = Modifier.fillMaxWidth().heightIn(min = Ui.HeightSettings),
+            ) { Text(stringResource(R.string.backup_export), fontSize = TextSize.Body) }
             OutlinedButton(
                 onClick = { onExternalStart(); import.launch(arrayOf("application/zip", "application/octet-stream")) },
-                modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-            ) { Text(stringResource(R.string.backup_import), fontSize = 18.sp) }
-            msg?.let { Text(it, fontSize = 16.sp, color = Palette.Ink) }
+                modifier = Modifier.fillMaxWidth().heightIn(min = Ui.HeightSettings),
+            ) { Text(stringResource(R.string.backup_import), fontSize = TextSize.Body) }
+            msg?.let { Text(it, fontSize = TextSize.Body, color = Palette.Ink) }
 
             SectionLabel(stringResource(R.string.backup_saved))
-            if (copies.isEmpty()) Text(stringResource(R.string.backup_none), fontSize = 15.sp, color = Palette.Ink)
+            if (copies.isEmpty()) Text(stringResource(R.string.backup_none), fontSize = TextSize.Small, color = Palette.Ink)
             copies.forEach { (at, file) ->
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text(fmt.format(Instant.ofEpochMilli(at)), fontSize = 17.sp, color = Palette.Ink, modifier = Modifier.weight(1f))
+                    Text(fmt.format(Instant.ofEpochMilli(at)), fontSize = TextSize.Body, color = Palette.Ink, modifier = Modifier.weight(1f))
                     OutlinedButton(
                         onClick = { Backup.load(file)?.let(onLoad) ?: run { msg = failed } },
-                        modifier = Modifier.heightIn(min = 52.dp),
+                        modifier = Modifier.heightIn(min = Ui.HeightSettings),
                     ) { Text(stringResource(R.string.backup_restore)) }
                 }
             }

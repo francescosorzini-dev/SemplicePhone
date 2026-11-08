@@ -1,5 +1,7 @@
 package app.semplicephone.ui.settings
 
+import app.semplicephone.ui.Ui
+import app.semplicephone.ui.TextSize
 import app.semplicephone.ui.Symbols
 import androidx.compose.material3.Icon
 import androidx.compose.foundation.horizontalScroll
@@ -78,7 +80,7 @@ fun RemindersEditor(
         return
     }
 
-    Column(Modifier.fillMaxSize().background(Color(0xFFECE9E2)).windowInsetsPadding(WindowInsets.safeDrawing)) {
+    Column(Modifier.fillMaxSize().background(Palette.Soft).windowInsetsPadding(WindowInsets.safeDrawing)) {
         EditorHeader(stringResource(R.string.reminders_title), onCancel, stringResource(R.string.action_done)) { onSave(list.sortedBy { it.time }) }
         Column(
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 8.dp),
@@ -96,31 +98,31 @@ fun RemindersEditor(
                     app.semplicephone.launch.Permissions.openSystemPage(context, Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT, Uri.parse("package:${context.packageName}")))
                 }
             }
-            if (list.isEmpty()) Text(stringResource(R.string.reminders_none), fontSize = 16.sp, color = Color(0xFF4A4A4A))
+            if (list.isEmpty()) Text(stringResource(R.string.reminders_none), fontSize = TextSize.Body, color = Palette.Mute)
             list.sortedBy { it.time }.forEach { r ->
                 Row(
                     Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
+                        .clip(Ui.ShapeSmall)
                         .background(Color.White)
                         .clickable { editing = r }
                         .padding(14.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Icon(Symbols.get(r.icon.takeIf { it in Symbols.names } ?: "pill"), null, Modifier.size(30.dp).padding(end = 6.dp), tint = Palette.Ink)
-                    Text(r.time, fontSize = 26.sp, fontWeight = FontWeight.Bold, color = if (r.enabled) Palette.Ink else Color(0xFF8A8A8A))
+                    Text(r.time, fontSize = TextSize.Title, fontWeight = FontWeight.Bold, color = if (r.enabled) Palette.Ink else Palette.Mute)
                     Column(Modifier.weight(1f).padding(start = 14.dp)) {
-                        Text(r.title, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                        Text(r.title, fontSize = TextSize.Body, fontWeight = FontWeight.Bold)
                         Text(
                             listOfNotNull(r.detail.takeIf { it.isNotBlank() }, if (r.date.isNotBlank()) r.date else daysSummary(r.days), if (!r.enabled) stringResource(R.string.reminder_disabled) else null).joinToString(" · "),
-                            fontSize = 14.sp, color = Color(0xFF4A4A4A),
+                            fontSize = TextSize.Small, color = Palette.Mute,
                         )
                     }
                 }
             }
             OutlinedButton(
                 onClick = { editing = Reminder(id = "r" + System.currentTimeMillis().toString(36), time = "08:00", title = context.getString(R.string.default_reminder_title)) },
-                modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
+                modifier = Modifier.fillMaxWidth().heightIn(min = Ui.HeightSettings),
             ) { Text(stringResource(R.string.reminders_add)) }
         }
     }
@@ -136,8 +138,8 @@ private fun ReminderForm(
     val t = ReminderTime.parse(r.time) ?: java.time.LocalTime.of(8, 0)
     fun setTime(h: Int, m: Int) { r = r.copy(time = "%02d:%02d".format(h, m)) }
 
-    Column(Modifier.fillMaxSize().background(Color(0xFFECE9E2)).windowInsetsPadding(WindowInsets.safeDrawing)) {
-        EditorHeader(stringResource(if (isNew) R.string.reminder_new else R.string.reminders_title), onCancel, stringResource(R.string.action_ok), enabled = r.title.isNotBlank()) { onDone(r) }
+    Column(Modifier.fillMaxSize().background(Palette.Soft).windowInsetsPadding(WindowInsets.safeDrawing)) {
+        EditorHeader(stringResource(if (isNew) R.string.reminder_new else R.string.reminders_title), onCancel, enabled = r.title.isNotBlank()) { onDone(r) }
         Column(
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -152,7 +154,7 @@ private fun ReminderForm(
                     val text = stringResource(label)
                     OutlinedButton(
                         onClick = { r = r.copy(title = text, icon = icon) },
-                        modifier = Modifier.heightIn(min = 48.dp),
+                        modifier = Modifier.heightIn(min = Ui.HeightSettings),
                     ) {
                         Icon(Symbols.get(icon), null, Modifier.size(22.dp), tint = Palette.Ink)
                         Text(" $text", color = Palette.Ink)
@@ -178,11 +180,11 @@ private fun ReminderForm(
                             r = r.copy(date = java.time.LocalDate.of(y, m + 1, day).toString())
                         }, d.year, d.monthValue - 1, d.dayOfMonth).show()
                     },
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
+                    modifier = Modifier.fillMaxWidth().heightIn(min = Ui.HeightSettings),
                 ) {
                     Text(
                         d.format(java.time.format.DateTimeFormatter.ofLocalizedDate(java.time.format.FormatStyle.FULL).withLocale(locale)),
-                        fontSize = 17.sp, color = Palette.Ink,
+                        fontSize = TextSize.Body, color = Palette.Ink,
                     )
                 }
             }
@@ -196,9 +198,9 @@ private fun ReminderForm(
                     Box(
                         Modifier
                             .size(44.dp)
-                            .clip(RoundedCornerShape(10.dp))
+                            .clip(Ui.ShapeSmall)
                             .background(if (on) Palette.Ink else Color.White)
-                            .border(2.dp, Palette.Ink, RoundedCornerShape(10.dp))
+                            .border(2.dp, Palette.Ink, Ui.ShapeSmall)
                             .clickable {
                                 val current = if (r.days.isEmpty()) (1..7).toSet() else r.days.toSet()
                                 val next = if (day in current) current - day else current + day
@@ -206,16 +208,16 @@ private fun ReminderForm(
                             }
                             .semantics { contentDescription = dayName; this.selected = on },
                         contentAlignment = Alignment.Center,
-                    ) { Text(label, color = if (on) Color.White else Palette.Ink, fontWeight = FontWeight.Bold, fontSize = 17.sp) }
+                    ) { Text(label, color = if (on) Color.White else Palette.Ink, fontWeight = FontWeight.Bold, fontSize = TextSize.Body) }
                 }
             }
-            if (r.date.isBlank()) Text(daysSummary(r.days), fontSize = 15.sp, color = Color(0xFF4A4A4A))
+            if (r.date.isBlank()) Text(daysSummary(r.days), fontSize = TextSize.Small, color = Palette.Mute)
             OutlinedTextField(r.title, { r = r.copy(title = it) }, label = { Text(stringResource(R.string.reminder_title)) }, modifier = Modifier.fillMaxWidth())
             OutlinedTextField(r.detail, { r = r.copy(detail = it) }, label = { Text(stringResource(R.string.reminder_detail)) }, modifier = Modifier.fillMaxWidth())
             SectionLabel(stringResource(R.string.tile_icon))
             SymbolGrid(r.icon) { r = r.copy(icon = it) }
             SectionLabel(stringResource(R.string.reminder_photo))
-            Text(stringResource(R.string.reminder_photo_hint), fontSize = 14.sp, color = Color(0xFF4A4A4A))
+            Text(stringResource(R.string.reminder_photo_hint), fontSize = TextSize.Small, color = Palette.Mute)
             SinglePhotoField(r.photo, { r = r.copy(photo = it) }, onExternalStart)
             Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
                 Stepper(stringResource(R.string.reminder_snooze), r.snoozeMinutes, 5..60, { r = r.copy(snoozeMinutes = it) })
@@ -231,11 +233,11 @@ private fun ReminderForm(
                 Stepper(stringResource(R.string.reminder_low_at), r.lowAt, 1..30, { r = r.copy(lowAt = it) })
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(stringResource(R.string.reminder_active), fontSize = 17.sp, modifier = Modifier.weight(1f))
+                Text(stringResource(R.string.reminder_active), fontSize = TextSize.Body, modifier = Modifier.weight(1f))
                 Switch(checked = r.enabled, onCheckedChange = { r = r.copy(enabled = it) })
             }
             if (!isNew) {
-                OutlinedButton(onClick = onDelete, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
+                OutlinedButton(onClick = onDelete, modifier = Modifier.fillMaxWidth().heightIn(min = Ui.HeightSettings)) {
                     Text(stringResource(R.string.reminder_delete), color = Palette.Sos, fontWeight = FontWeight.Bold)
                 }
             }
@@ -246,11 +248,11 @@ private fun ReminderForm(
 @Composable
 private fun Warning(text: String, onFix: () -> Unit) {
     Column(
-        Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Color(0xFFFFE0B2)).padding(12.dp),
+        Modifier.fillMaxWidth().clip(Ui.ShapeSmall).background(Palette.WarnSoft).padding(12.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Text(text, fontSize = 15.sp, color = Palette.Ink)
-        OutlinedButton(onClick = onFix, modifier = Modifier.heightIn(min = 48.dp)) { Text(stringResource(R.string.action_open_settings)) }
+        Text(text, fontSize = TextSize.Small, color = Palette.Ink)
+        OutlinedButton(onClick = onFix, modifier = Modifier.heightIn(min = Ui.HeightSettings)) { Text(stringResource(R.string.action_open_settings)) }
     }
 }
 
@@ -270,4 +272,9 @@ private val ReminderPresets = listOf(
     "walk" to R.string.preset_walk,
     "water" to R.string.preset_water,
     "food" to R.string.preset_meal,
+    "thermometer" to R.string.preset_measure,
+    "syringe" to R.string.preset_insulin,
+    "trash" to R.string.preset_trash,
+    "plant" to R.string.preset_plants,
+    "moon" to R.string.preset_bed,
 )

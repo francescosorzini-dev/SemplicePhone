@@ -1,5 +1,7 @@
 package app.semplicephone.ui.settings
 
+import app.semplicephone.ui.Ui
+import app.semplicephone.ui.TextSize
 import app.semplicephone.R
 import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.Image
@@ -64,7 +66,7 @@ val TilePalette = listOf(
 
 @Composable
 fun SectionLabel(text: String) {
-    Text(text, fontSize = 17.sp, fontWeight = FontWeight.Bold, color = Palette.Ink)
+    Text(text, fontSize = TextSize.Body, fontWeight = FontWeight.Bold, color = Palette.Ink)
 }
 
 @Composable
@@ -79,21 +81,21 @@ fun Stepper(
     val less = stringResource(R.string.stepper_less, label)
     val more = stringResource(R.string.stepper_more, label)
     Column(modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(label, fontSize = 15.sp, color = Palette.Ink)
+        Text(label, fontSize = TextSize.Small, color = Palette.Ink)
         Row(verticalAlignment = Alignment.CenterVertically) {
             OutlinedButton(
                 onClick = { onChange(value - 1) },
                 enabled = value > range.first,
                 modifier = Modifier.size(48.dp).semantics { contentDescription = less },
                 contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp),
-            ) { Text("−", fontSize = 22.sp) }
-            Text(format(value), fontSize = 20.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 12.dp))
+            ) { Icon(Symbols.get("minus"), null, Modifier.size(24.dp)) }
+            Text(format(value), fontSize = TextSize.Label, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 12.dp))
             OutlinedButton(
                 onClick = { onChange(value + 1) },
                 enabled = value < range.last,
                 modifier = Modifier.size(48.dp).semantics { contentDescription = more },
                 contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp),
-            ) { Text("+", fontSize = 22.sp) }
+            ) { Icon(Symbols.get("plus"), null, Modifier.size(24.dp)) }
         }
     }
 }
@@ -104,9 +106,9 @@ fun <T> OptionPicker(label: String, options: List<T>, selected: T, text: (T) -> 
     var open by remember { mutableStateOf(false) }
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         SectionLabel(label)
-        OutlinedButton(onClick = { open = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp), shape = RoundedCornerShape(10.dp)) {
-            Text(text(selected), fontSize = 17.sp, color = Palette.Ink, modifier = Modifier.weight(1f))
-            Text("▾", fontSize = 17.sp, color = Palette.Ink)
+        OutlinedButton(onClick = { open = true }, modifier = Modifier.fillMaxWidth().heightIn(min = Ui.HeightSettings), shape = Ui.ShapeSmall) {
+            Text(text(selected), fontSize = TextSize.Body, color = Palette.Ink, modifier = Modifier.weight(1f))
+            Icon(Symbols.get("chevron"), null, Modifier.size(24.dp), tint = Palette.Ink)
         }
     }
     if (open) {
@@ -118,7 +120,7 @@ fun <T> OptionPicker(label: String, options: List<T>, selected: T, text: (T) -> 
                     items(options) { o ->
                         Text(
                             text(o),
-                            fontSize = 18.sp,
+                            fontSize = TextSize.Body,
                             fontWeight = if (o == selected) FontWeight.Bold else FontWeight.Normal,
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -159,16 +161,16 @@ fun ColorSwatches(selected: String, onSelect: (String) -> Unit) {
 @Composable
 fun SymbolGrid(selected: String, onSelect: (String) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Symbols.names.toList().chunked(5).forEach { row ->
+        Symbols.pickable.chunked(5).forEach { row ->
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 row.forEach { name ->
                     val isSel = name == selected
                     Box(
                         Modifier
                             .size(52.dp)
-                            .clip(RoundedCornerShape(10.dp))
+                            .clip(Ui.ShapeSmall)
                             .background(if (isSel) Palette.Ink else androidx.compose.ui.graphics.Color.White)
-                            .border(2.dp, Palette.Ink, RoundedCornerShape(10.dp))
+                            .border(2.dp, Palette.Ink, Ui.ShapeSmall)
                             .clickable { onSelect(name) }
                             .semantics { contentDescription = name; this.selected = isSel },
                         contentAlignment = Alignment.Center,
@@ -213,7 +215,7 @@ fun AppPickerDialog(apps: List<AppEntry>, launcher: TileLauncher, onPick: (AppEn
                         ) {
                             if (icon != null) Image(icon, null, Modifier.size(40.dp)) else Spacer(Modifier.size(40.dp))
                             Spacer(Modifier.size(12.dp))
-                            Text(app.label, fontSize = 17.sp)
+                            Text(app.label, fontSize = TextSize.Body)
                         }
                     }
                 }
@@ -252,8 +254,8 @@ fun ShortcutPickerDialog(launcher: TileLauncher, onDismiss: () -> Unit, onPick: 
                                     if (icon != null) Image(icon, null, Modifier.size(36.dp)) else Spacer(Modifier.size(36.dp))
                                     Spacer(Modifier.size(12.dp))
                                     Column {
-                                        Text(sc.label, fontSize = 17.sp)
-                                        Text(sc.appLabel, fontSize = 14.sp, color = androidx.compose.ui.graphics.Color(0xFF4A4A4A))
+                                        Text(sc.label, fontSize = TextSize.Body)
+                                        Text(sc.appLabel, fontSize = TextSize.Small, color = Palette.Mute)
                                     }
                                 }
                             }

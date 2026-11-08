@@ -1,5 +1,7 @@
 package app.semplicephone.ui.settings
 
+import app.semplicephone.ui.Ui
+import app.semplicephone.ui.TextSize
 import androidx.compose.foundation.layout.heightIn
 import app.semplicephone.R
 import androidx.compose.ui.res.stringResource
@@ -74,7 +76,7 @@ fun RemoteScreen(onBack: () -> Unit) {
         RemoteClient.schedule(context)
     }
 
-    Column(Modifier.fillMaxSize().background(Color(0xFFECE9E2)).windowInsetsPadding(WindowInsets.safeDrawing)) {
+    Column(Modifier.fillMaxSize().background(Palette.Soft).windowInsetsPadding(WindowInsets.safeDrawing)) {
         EditorHeader(stringResource(R.string.layout_remote), { persist(); onBack() }, stringResource(R.string.action_done)) { persist(); onBack() }
         Column(
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 8.dp),
@@ -82,10 +84,10 @@ fun RemoteScreen(onBack: () -> Unit) {
         ) {
             Text(
                 stringResource(R.string.remote_intro),
-                fontSize = 15.sp, color = Color(0xFF4A4A4A),
+                fontSize = TextSize.Small, color = Palette.Mute,
             )
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(stringResource(R.string.remote_enable), fontSize = 17.sp, modifier = Modifier.weight(1f))
+                Text(stringResource(R.string.remote_enable), fontSize = TextSize.Body, modifier = Modifier.weight(1f))
                 Switch(checked = enabled, onCheckedChange = { enabled = it })
             }
             var allowLocate by remember { mutableStateOf(settings.allowLocate) }
@@ -94,8 +96,8 @@ fun RemoteScreen(onBack: () -> Unit) {
             ) { }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f).padding(end = 12.dp)) {
-                    Text(stringResource(R.string.remote_allow_locate), fontSize = 17.sp)
-                    Text(stringResource(R.string.remote_allow_locate_detail), fontSize = 14.sp, color = Color(0xFF4A4A4A))
+                    Text(stringResource(R.string.remote_allow_locate), fontSize = TextSize.Body)
+                    Text(stringResource(R.string.remote_allow_locate_detail), fontSize = TextSize.Small, color = Palette.Mute)
                 }
                 Switch(checked = allowLocate, onCheckedChange = {
                     allowLocate = it
@@ -108,7 +110,7 @@ fun RemoteScreen(onBack: () -> Unit) {
             }
             SectionLabel(stringResource(R.string.remote_device_id))
             SelectionContainer {
-                Text(settings.deviceId, fontFamily = FontFamily.Monospace, fontSize = 22.sp, fontWeight = FontWeight.Bold,
+                Text(settings.deviceId, fontFamily = FontFamily.Monospace, fontSize = TextSize.Label, fontWeight = FontWeight.Bold,
                     modifier = Modifier.fillMaxWidth().background(Color.White).padding(12.dp))
             }
             OutlinedTextField(
@@ -132,24 +134,24 @@ fun RemoteScreen(onBack: () -> Unit) {
                     }
                 },
                 enabled = !busy && enabled,
-                modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
+                modifier = Modifier.fillMaxWidth().heightIn(min = Ui.HeightSettings),
             ) { Text(stringResource(if (busy) R.string.remote_checking else R.string.remote_sync_now)) }
             if (lastCheck > 0) {
                 Text(
                     stringResource(R.string.remote_last_check, DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(Date(lastCheck))),
-                    fontSize = 15.sp,
+                    fontSize = TextSize.Small,
                 )
             }
             if (status.isNotBlank()) {
-                Text(status, fontSize = 16.sp, fontWeight = FontWeight.Bold,
-                    color = if (statusOk) Color(0xFF1B6E34) else Palette.Ink)
+                Text(status, fontSize = TextSize.Body, fontWeight = FontWeight.Bold,
+                    color = if (statusOk) Palette.Ok else Palette.Ink)
             }
-            Text(stringResource(R.string.remote_applied_seq, settings.lastSeq), fontSize = 15.sp, color = Color(0xFF4A4A4A))
+            Text(stringResource(R.string.remote_applied_seq, settings.lastSeq), fontSize = TextSize.Small, color = Palette.Mute)
 
             SectionLabel(stringResource(R.string.updates_title))
-            Text(stringResource(R.string.updates_installed, BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE, BuildConfig.EDITION), fontSize = 15.sp)
+            Text(stringResource(R.string.updates_installed, BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE, BuildConfig.EDITION), fontSize = TextSize.Small)
             if (!updater.selfUpdate) {
-                Text(stringResource(R.string.updates_from_store, updater.store ?: "Google Play"), fontSize = 15.sp, color = Color(0xFF4A4A4A))
+                Text(stringResource(R.string.updates_from_store, updater.store ?: "Google Play"), fontSize = TextSize.Small, color = Palette.Mute)
             } else {
                 OutlinedTextField(updateUrl, { updateUrl = it }, label = { Text(stringResource(R.string.updates_url)) }, modifier = Modifier.fillMaxWidth())
                 OutlinedButton(
@@ -163,7 +165,7 @@ fun RemoteScreen(onBack: () -> Unit) {
                         }
                     },
                     enabled = !busy,
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
+                    modifier = Modifier.fillMaxWidth().heightIn(min = Ui.HeightSettings),
                 ) { Text(stringResource(R.string.updates_check)) }
                 available?.let { info ->
                     OutlinedButton(
@@ -176,13 +178,13 @@ fun RemoteScreen(onBack: () -> Unit) {
                             }
                         },
                         enabled = !busy,
-                        modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
+                        modifier = Modifier.fillMaxWidth().heightIn(min = Ui.HeightSettings),
                     ) { Text(stringResource(if (BuildConfig.FULL) R.string.updates_install else R.string.updates_download, info.versionName)) }
                 }
-                if (updateStatus.isNotBlank()) Text(updateStatus, fontSize = 15.sp)
+                if (updateStatus.isNotBlank()) Text(updateStatus, fontSize = TextSize.Small)
                 Text(
                     stringResource(if (BuildConfig.FULL) R.string.updates_full_note else R.string.updates_standard_note),
-                    fontSize = 14.sp, color = Color(0xFF4A4A4A),
+                    fontSize = TextSize.Small, color = Palette.Mute,
                 )
             }
         }

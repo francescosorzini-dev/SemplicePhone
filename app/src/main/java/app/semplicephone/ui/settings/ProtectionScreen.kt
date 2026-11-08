@@ -1,5 +1,7 @@
 package app.semplicephone.ui.settings
 
+import app.semplicephone.ui.Ui
+import app.semplicephone.ui.TextSize
 import androidx.compose.foundation.layout.heightIn
 import app.semplicephone.R
 import androidx.compose.ui.res.stringResource
@@ -44,7 +46,7 @@ fun ProtectionScreen(protection: Protection, onBack: () -> Unit) {
     var error by remember { mutableStateOf<String?>(null) }
     val isOwner = remember(tick) { protection.isDeviceOwner }
 
-    Column(Modifier.fillMaxSize().background(Color(0xFFECE9E2)).windowInsetsPadding(WindowInsets.safeDrawing)) {
+    Column(Modifier.fillMaxSize().background(Palette.Soft).windowInsetsPadding(WindowInsets.safeDrawing)) {
         EditorHeader(stringResource(R.string.protection_title), onBack, stringResource(R.string.action_done)) { onBack() }
         Column(
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 8.dp),
@@ -52,28 +54,28 @@ fun ProtectionScreen(protection: Protection, onBack: () -> Unit) {
         ) {
             Text(
                 stringResource(R.string.protection_always),
-                fontSize = 15.sp, color = Color(0xFF4A4A4A),
+                fontSize = TextSize.Small, color = Palette.Mute,
             )
             if (!isOwner) {
                 SectionLabel(stringResource(R.string.protection_advanced))
                 Text(
                     stringResource(R.string.protection_how),
-                    fontSize = 15.sp,
+                    fontSize = TextSize.Small,
                 )
                 SelectionContainer {
-                    Text(Protection.ADB_COMMAND, fontFamily = FontFamily.Monospace, fontSize = 14.sp,
+                    Text(Protection.ADB_COMMAND, fontFamily = FontFamily.Monospace, fontSize = TextSize.Small,
                         modifier = Modifier.fillMaxWidth().background(Color.White).padding(12.dp))
                 }
-                Text(stringResource(R.string.protection_after), fontSize = 15.sp)
-                OutlinedButton(onClick = { tick++ }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text(stringResource(R.string.protection_check_again)) }
+                Text(stringResource(R.string.protection_after), fontSize = TextSize.Small)
+                OutlinedButton(onClick = { tick++ }, modifier = Modifier.fillMaxWidth().heightIn(min = Ui.HeightSettings)) { Text(stringResource(R.string.protection_check_again)) }
             } else {
                 SectionLabel(stringResource(R.string.protection_is_owner))
                 Protection.Item.entries.forEach { item ->
                     val on = remember(tick, item) { protection.isOn(item) }
                     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
                         Column(Modifier.weight(1f)) {
-                            Text(stringResource(item.label), fontSize = 17.sp, color = Palette.Ink)
-                            if (item.detail != 0) Text(stringResource(item.detail), fontSize = 14.sp, color = Color(0xFF4A4A4A))
+                            Text(stringResource(item.label), fontSize = TextSize.Body, color = Palette.Ink)
+                            if (item.detail != 0) Text(stringResource(item.detail), fontSize = TextSize.Small, color = Palette.Mute)
                         }
                         Switch(checked = on, onCheckedChange = {
                             runCatching { protection.set(item, it) }.onFailure { e -> error = e.message }
@@ -81,8 +83,8 @@ fun ProtectionScreen(protection: Protection, onBack: () -> Unit) {
                         })
                     }
                 }
-                error?.let { Text(it, color = Palette.Sos, fontSize = 15.sp) }
-                OutlinedButton(onClick = { confirmRelease = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
+                error?.let { Text(it, color = Palette.Sos, fontSize = TextSize.Small) }
+                OutlinedButton(onClick = { confirmRelease = true }, modifier = Modifier.fillMaxWidth().heightIn(min = Ui.HeightSettings)) {
                     Text(stringResource(R.string.protection_release), color = Palette.Sos)
                 }
             }
@@ -90,18 +92,15 @@ fun ProtectionScreen(protection: Protection, onBack: () -> Unit) {
     }
 
     if (confirmRelease) {
-        AlertDialog(
-            onDismissRequest = { confirmRelease = false },
-            title = { Text(stringResource(R.string.protection_release_confirm)) },
-            text = { Text(stringResource(R.string.protection_release_text)) },
-            confirmButton = {
-                TextButton(onClick = {
-                    confirmRelease = false
-                    runCatching { protection.releaseDeviceOwner() }.onFailure { e -> error = e.message }
-                    tick++
-                }) { Text(stringResource(R.string.protection_remove), color = Palette.Sos) }
+        app.semplicephone.ui.ConfirmDialog(
+            title = stringResource(R.string.protection_release_confirm), text = stringResource(R.string.protection_release_text),
+            confirm = stringResource(R.string.protection_remove), tone = app.semplicephone.ui.Tone.Warn,
+            onConfirm = {
+                confirmRelease = false
+                runCatching { protection.releaseDeviceOwner() }.onFailure { e -> error = e.message }
+                tick++
             },
-            dismissButton = { TextButton(onClick = { confirmRelease = false }) { Text(stringResource(R.string.action_cancel)) } },
+            onDismiss = { confirmRelease = false },
         )
     }
 }

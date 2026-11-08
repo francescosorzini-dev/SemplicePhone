@@ -1,5 +1,7 @@
 package app.semplicephone.sos
 
+import app.semplicephone.ui.Ui
+import app.semplicephone.ui.TextSize
 import androidx.compose.foundation.layout.heightIn
 import app.semplicephone.R
 import androidx.compose.ui.res.stringResource
@@ -111,53 +113,43 @@ fun SosScreen(
         verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {
         Spacer(Modifier.height(24.dp))
-        Text(stringResource(R.string.sos_title), color = Color.White, fontSize = 34.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+        Text(stringResource(R.string.sos_title), color = Color.White, fontSize = TextSize.Big, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
         // Dopo l'invio, chi arriva ad aiutare trova qui farmaci, allergie e contatti.
-        if (status != null && !emergency.isEmpty) androidx.compose.material3.Button(
-            onClick = onEmergency,
-            colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Palette.Sos),
-            modifier = Modifier.fillMaxWidth().heightIn(min = 80.dp),
-        ) { Text(stringResource(R.string.emergency_open), fontSize = 24.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center) }
+        if (status != null && !emergency.isEmpty) app.semplicephone.ui.BigButton(
+            stringResource(R.string.emergency_open), app.semplicephone.ui.Tone.Light, symbol = "heart", height = app.semplicephone.ui.Ui.HeightRow,
+            textSize = app.semplicephone.ui.TextSize.Label, onClick = onEmergency,
+        )
         if (status == null) {
-            Text(stringResource(R.string.sos_starts_in), color = Color.White, fontSize = 24.sp)
+            Text(stringResource(R.string.sos_starts_in), color = Color.White, fontSize = TextSize.Label)
             Box(
                 Modifier.size(220.dp).border(10.dp, Color.White, CircleShape).semantics { liveRegion = LiveRegionMode.Assertive },
                 contentAlignment = Alignment.Center,
             ) { Text("$remaining", color = Color.White, fontSize = 130.sp, fontWeight = FontWeight.Bold) }
-            Text(stringResource(R.string.sos_calling, contactNames(first)), color = Color.White, fontSize = 22.sp, textAlign = TextAlign.Center)
+            Text(stringResource(R.string.sos_calling, contactNames(first)), color = Color.White, fontSize = TextSize.Label, textAlign = TextAlign.Center)
             if (cfg.numbers.isNotEmpty()) {
                 Text(
                     stringResource(
                         if (app.semplicephone.BuildConfig.SEND_SMS) R.string.sos_will_sms else R.string.sos_will_compose,
                         cfg.numbers.joinToString(", ") { contactNames(it) },
                     ),
-                    color = Color.White, fontSize = 20.sp, textAlign = TextAlign.Center,
+                    color = Color.White, fontSize = TextSize.Label, textAlign = TextAlign.Center,
                 )
             }
         } else {
-            Text(status!!, color = Color.White, fontSize = 26.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+            Text(status!!, color = Color.White, fontSize = TextSize.Title, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
         }
         Spacer(Modifier.weight(1f))
         manualSms?.let { text ->
-            Button(
-                onClick = { SosSms.openComposer(context, cfg.numbers, text) },
-                colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Palette.Sos),
-                shape = RoundedCornerShape(24.dp),
-                modifier = Modifier.fillMaxWidth().heightIn(min = 110.dp),
-            ) { Text(stringResource(R.string.sos_send_location), fontSize = 30.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center) }
-            androidx.compose.material3.OutlinedButton(
-                onClick = onDone,
-                shape = RoundedCornerShape(20.dp),
-                modifier = Modifier.fillMaxWidth().heightIn(min = 72.dp),
-            ) { Text(stringResource(R.string.action_close), fontSize = 24.sp, color = Color.White) }
+            app.semplicephone.ui.BigButton(stringResource(R.string.sos_send_location), app.semplicephone.ui.Tone.Light, symbol = "pin") {
+                SosSms.openComposer(context, cfg.numbers, text)
+            }
+            app.semplicephone.ui.CloseButton(onDone, onDark = true)
         }
         if (status == null) {
-            Button(
-                onClick = onDone,
-                colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Palette.Sos),
-                shape = RoundedCornerShape(24.dp),
-                modifier = Modifier.fillMaxWidth().heightIn(min = 110.dp),
-            ) { Text(stringResource(R.string.sos_cancel), fontSize = 40.sp, fontWeight = FontWeight.Bold) }
+            app.semplicephone.ui.BigButton(
+                stringResource(R.string.sos_cancel), app.semplicephone.ui.Tone.Light, symbol = "close",
+                height = app.semplicephone.ui.Ui.HeightHuge, textSize = app.semplicephone.ui.TextSize.Huge, onClick = onDone,
+            )
         }
     }
 }

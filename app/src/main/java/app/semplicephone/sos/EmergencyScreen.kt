@@ -26,6 +26,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.semplicephone.ui.BigOutlined
+import app.semplicephone.ui.BigScreen
+import app.semplicephone.ui.Palette
+import app.semplicephone.ui.TextSize
 import app.semplicephone.R
 import app.semplicephone.model.EmergencyInfo
 import app.semplicephone.ui.Voice
@@ -45,29 +49,18 @@ fun emergencyRows(context: android.content.Context, e: EmergencyInfo): List<Pair
 fun EmergencyScreen(info: EmergencyInfo, onClose: () -> Unit) {
     val context = LocalContext.current
     val rows = emergencyRows(context, info)
-    Column(
-        Modifier.fillMaxSize().background(Color.White).windowInsetsPadding(WindowInsets.safeDrawing).padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp),
-    ) {
-        Text(stringResource(R.string.emergency_title), fontSize = 30.sp, fontWeight = FontWeight.Bold, color = Color(0xFFC62828))
-        Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            if (rows.isEmpty()) Text(stringResource(R.string.emergency_empty), fontSize = 22.sp, color = Color.Black)
+    BigScreen(stringResource(R.string.emergency_title), "alert", onClose, background = Color.White) {
+        Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            if (rows.isEmpty()) Text(stringResource(R.string.emergency_empty), fontSize = TextSize.Label, color = Palette.Ink)
             rows.forEach { (k, v) ->
                 Column {
-                    Text(k, fontSize = 18.sp, color = Color(0xFF555555))
-                    Text(v, fontSize = 28.sp, lineHeight = 34.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                    Text(k, fontSize = TextSize.Body, color = Palette.Mute)
+                    Text(v, fontSize = TextSize.Title, lineHeight = 34.sp, fontWeight = FontWeight.Bold, color = Palette.Ink)
                 }
             }
         }
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            OutlinedButton(
-                onClick = { Voice.speak(context, rows.joinToString(". ") { "${it.first}: ${it.second}" }) },
-                modifier = Modifier.weight(1f).heightIn(min = 88.dp), shape = RoundedCornerShape(20.dp),
-            ) { Text(stringResource(R.string.emergency_read), fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color.Black) }
-            Button(
-                onClick = onClose, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1F4FA8)),
-                modifier = Modifier.weight(1f).heightIn(min = 88.dp), shape = RoundedCornerShape(20.dp),
-            ) { Text(stringResource(R.string.video_close), fontSize = 22.sp, fontWeight = FontWeight.Bold) }
+        BigOutlined(stringResource(R.string.emergency_read), symbol = "speaker") {
+            Voice.speak(context, rows.joinToString(". ") { "${it.first}: ${it.second}" })
         }
     }
 }

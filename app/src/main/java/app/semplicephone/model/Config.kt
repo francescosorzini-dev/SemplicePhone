@@ -75,6 +75,11 @@ data class PhoneConfig(
     val holdToOpen: Boolean = false,
     /** Tema: "normal", "contrast" (alto contrasto), "night" (scuro la sera, dalle 21 alle 7). */
     val theme: String = "normal",
+    /**
+     * Icone delle app sui riquadri: "original" (come le disegna chi fa l'app) o "mono" (a tinta unita
+     * nel colore del riquadro, solo se l'app fornisce la sua versione monocromatica, Android 13+).
+     */
+    val appIcons: String = "original",
     /** Avviso se viene installata un'app di controllo remoto (AnyDesk, TeamViewer…). */
     val remoteAppAlert: Boolean = true,
     /** Messaggi da sconosciuti con link segnalati come possibile truffa e non apribili col tocco. */

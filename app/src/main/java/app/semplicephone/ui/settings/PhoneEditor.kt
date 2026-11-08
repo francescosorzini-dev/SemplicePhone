@@ -1,5 +1,7 @@
 package app.semplicephone.ui.settings
 
+import app.semplicephone.ui.Ui
+import app.semplicephone.ui.TextSize
 import androidx.compose.foundation.layout.heightIn
 import app.semplicephone.R
 import androidx.compose.ui.res.stringResource
@@ -84,7 +86,7 @@ fun PhoneEditor(
     val never = stringResource(R.string.phone_never)
     val keyword = stringResource(R.string.sms_keyword)
 
-    Column(Modifier.fillMaxSize().background(Color(0xFFECE9E2)).windowInsetsPadding(WindowInsets.safeDrawing)) {
+    Column(Modifier.fillMaxSize().background(Palette.Soft).windowInsetsPadding(WindowInsets.safeDrawing)) {
         EditorHeader(stringResource(R.string.phone_title), onCancel, stringResource(R.string.action_done)) { onSave(p) }
         Column(
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 8.dp),
@@ -105,14 +107,14 @@ fun PhoneEditor(
                 if (it) { requestContacts(); requestScreening() }
             }
             if ((p.blockUnknown || p.autoAnswer || p.announceCaller || p.nightQuiet) && !screening) {
-                Text(stringResource(R.string.phone_block_needs_role), fontSize = 15.sp, color = Palette.Sos)
-                androidx.compose.material3.OutlinedButton(onClick = ::requestScreening, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
+                Text(stringResource(R.string.phone_block_needs_role), fontSize = TextSize.Small, color = Palette.Sos)
+                androidx.compose.material3.OutlinedButton(onClick = ::requestScreening, modifier = Modifier.fillMaxWidth().heightIn(min = Ui.HeightSettings)) {
                     Text(stringResource(R.string.phone_block_grant))
                 }
             }
             if (p.blockUnknown && !contacts) {
-                Text(stringResource(R.string.phone_block_needs_contacts), fontSize = 15.sp, color = Palette.Sos)
-                androidx.compose.material3.OutlinedButton(onClick = ::requestContacts, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
+                Text(stringResource(R.string.phone_block_needs_contacts), fontSize = TextSize.Small, color = Palette.Sos)
+                androidx.compose.material3.OutlinedButton(onClick = ::requestContacts, modifier = Modifier.fillMaxWidth().heightIn(min = Ui.HeightSettings)) {
                     Text(stringResource(R.string.phone_block_contacts_grant))
                 }
             }
@@ -123,7 +125,7 @@ fun PhoneEditor(
             }
             if (p.autoAnswer) {
                 Stepper(stringResource(R.string.phone_auto_answer_after), (p.autoAnswerSeconds / 5).coerceIn(1, 6), 1..6, { p = p.copy(autoAnswerSeconds = it * 5) }, format = { "${it * 5} s" })
-                if (!hasSosNumbers) Text(stringResource(R.string.phone_auto_answer_no_sos), fontSize = 15.sp, color = Palette.Sos)
+                if (!hasSosNumbers) Text(stringResource(R.string.phone_auto_answer_no_sos), fontSize = TextSize.Small, color = Palette.Sos)
             }
             Toggle(stringResource(R.string.phone_night), stringResource(R.string.phone_night_detail), p.nightQuiet) {
                 p = p.copy(nightQuiet = it)
@@ -156,13 +158,16 @@ fun PhoneEditor(
                 "night" to stringResource(R.string.phone_theme_night),
             )
             OptionPicker(stringResource(R.string.phone_theme), themes.keys.toList(), p.theme, { themes[it].orEmpty() }) { p = p.copy(theme = it) }
+            Toggle(stringResource(R.string.phone_app_icons), stringResource(R.string.phone_app_icons_detail), p.appIcons == "mono") {
+                p = p.copy(appIcons = if (it) "mono" else "original")
+            }
             Toggle(stringResource(R.string.phone_home_button), stringResource(R.string.phone_home_button_detail), p.homeButton) {
                 p = p.copy(homeButton = it)
                 if (it) requestOverlay()
             }
             if (p.homeButton && !overlay) {
-                Text(stringResource(R.string.phone_home_needs_overlay), fontSize = 15.sp, color = Palette.Sos)
-                androidx.compose.material3.OutlinedButton(onClick = ::requestOverlay, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
+                Text(stringResource(R.string.phone_home_needs_overlay), fontSize = TextSize.Small, color = Palette.Sos)
+                androidx.compose.material3.OutlinedButton(onClick = ::requestOverlay, modifier = Modifier.fillMaxWidth().heightIn(min = Ui.HeightSettings)) {
                     Text(stringResource(R.string.phone_home_grant))
                 }
             }
@@ -200,7 +205,7 @@ fun PhoneEditor(
             if (p.heatAlert) Stepper(stringResource(R.string.phone_heat_threshold), p.heatThreshold, 28..38, { p = p.copy(heatThreshold = it) }, format = { "$it°" })
             if (BuildConfig.FULL) Text(
                 if (p.safeZoneRadius > 0) stringResource(R.string.phone_zone_on, p.safeZoneRadius) else stringResource(R.string.phone_zone_off),
-                fontSize = 15.sp, color = Color(0xFF4A4A4A),
+                fontSize = TextSize.Small, color = Palette.Mute,
             )
 
             SectionLabel(stringResource(R.string.phone_comfort))
@@ -229,7 +234,7 @@ fun PhoneEditor(
                     hasSosNumbers -> stringResource(R.string.phone_battery_sms)
                     else -> stringResource(R.string.phone_battery_no_numbers)
                 },
-                fontSize = 15.sp, color = Color(0xFF4A4A4A),
+                fontSize = TextSize.Small, color = Palette.Mute,
             )
 
             if (BuildConfig.NOTIFICATIONS) Toggle(
@@ -250,7 +255,7 @@ fun PhoneEditor(
                         if (BuildConfig.EDITION == "play") R.string.phone_full_only_play else R.string.phone_full_only_standard,
                         keyword,
                     ),
-                    fontSize = 15.sp, color = Color(0xFF4A4A4A),
+                    fontSize = TextSize.Small, color = Palette.Mute,
                 )
             }
         }
@@ -261,8 +266,8 @@ fun PhoneEditor(
 internal fun Toggle(title: String, detail: String, checked: Boolean, onChange: (Boolean) -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.weight(1f).padding(end = 12.dp)) {
-            Text(title, fontSize = 18.sp, color = Palette.Ink)
-            Text(detail, fontSize = 14.sp, color = Color(0xFF4A4A4A))
+            Text(title, fontSize = TextSize.Body, color = Palette.Ink)
+            Text(detail, fontSize = TextSize.Small, color = Palette.Mute)
         }
         Switch(checked = checked, onCheckedChange = onChange)
     }

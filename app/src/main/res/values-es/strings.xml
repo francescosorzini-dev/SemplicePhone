@@ -291,7 +291,7 @@
     <string name="message_title">Mensaje de la familia</string>
     <string name="message_from">Mensaje de %1$s</string>
     <string name="message_ok">LEÍDO</string>
-    <string name="message_read_again">🔊 Leer otra vez</string>
+    <string name="message_read_again">Leer otra vez</string>
     <string name="message_tap">Toque para leerlo</string>
     <string name="message_read_event">Mensaje leído: «%1$s»</string>
     <string name="voice_incoming">Llama %1$s</string>
@@ -479,7 +479,7 @@
     <string name="scam_label">Atención, posible estafa</string>
     <string name="scam_warning">Atención: este mensaje viene de un desconocido y contiene un enlace. Puede ser una estafa: no lo abras y pregunta a un familiar.</string>
     <string name="scam_event">Mensaje sospechoso con enlace de %1$s (%2$s)</string>
-    <string name="voice_reply_hold">🎤 MANTÉN PULSADO Y RESPONDE</string>
+    <string name="voice_reply_hold">MANTÉN PULSADO Y RESPONDE</string>
     <string name="voice_reply_recording">Habla… suelta para enviar</string>
     <string name="voice_reply_sent">Respuesta enviada</string>
     <string name="voice_reply_short">Demasiado corto: mantén pulsado mientras hablas</string>
@@ -548,7 +548,16 @@
     <string name="reminder_per_dose">Por toma</string>
     <string name="reminder_low_at">Avisar cuando queden</string>
     <string name="fall_reason">El teléfono ha notado un golpe fuerte, como una caída. Si estás bien, toca ESTOY BIEN.</string>
-    <string name="news_open">📰 ABRIR LA NOTICIA</string>
+    <string name="news_open">ABRIR LA NOTICIA</string>
+    <string name="action_close_big">CERRAR</string>
+    <string name="search_clear">Borrar</string>
+    <string name="preset_measure">Tomar la temperatura</string>
+    <string name="preset_insulin">Insulina</string>
+    <string name="preset_trash">Sacar la basura</string>
+    <string name="preset_plants">Regar las plantas</string>
+    <string name="preset_bed">A la cama</string>
+    <string name="phone_app_icons">Iconos de apps de un color</string>
+    <string name="phone_app_icons_detail">Del color de la casilla, como los símbolos. Solo en las apps que lo permiten (Android 13 o posterior): las demás se quedan igual.</string>
     <string name="color_blue">Azul</string>
     <string name="color_green">Verde</string>
     <string name="color_purple">Morado</string>

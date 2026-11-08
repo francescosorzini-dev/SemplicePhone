@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -64,9 +66,13 @@ fun VideoPlayer(uri: Uri, closeLabel: String, onClose: () -> Unit, title: String
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        if (title.isNotBlank()) Text(title, fontSize = 28.sp, fontWeight = FontWeight.Bold, color = Color.White, textAlign = TextAlign.Center)
+        if (title.isNotBlank()) Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            androidx.compose.material3.Icon(Symbols.get("video"), null, Modifier.size(40.dp), tint = Color.White)
+            androidx.compose.foundation.layout.Spacer(Modifier.width(12.dp))
+            FitText(title, Color.White, TextSize.Title, Modifier.weight(1f), align = TextAlign.Start)
+        }
         Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
-            if (failed) Text(stringResource(R.string.video_error), fontSize = 26.sp, color = Color.White, textAlign = TextAlign.Center)
+            if (failed) EmptyState("video", stringResource(R.string.video_error), color = Color.White)
             else AndroidView(
                 factory = { ctx ->
                     VideoView(ctx).apply {
@@ -81,20 +87,13 @@ fun VideoPlayer(uri: Uri, closeLabel: String, onClose: () -> Unit, title: String
                 modifier = Modifier.fillMaxWidth(),
             )
         }
-        if (extra.isNotBlank()) Text(extra, fontSize = 26.sp, lineHeight = 32.sp, color = Color.White, textAlign = TextAlign.Center)
+        if (extra.isNotBlank()) Text(extra, fontSize = TextSize.Label, lineHeight = 30.sp, color = Color.White, textAlign = TextAlign.Center)
         footer?.invoke()
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            if (!failed) OutlinedButton(
-                onClick = { ended = false; view?.seekTo(0); view?.start() },
-                shape = RoundedCornerShape(20.dp),
-                modifier = Modifier.weight(1f).heightIn(min = 96.dp),
-            ) { Text(stringResource(R.string.video_again), fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color.White, textAlign = TextAlign.Center) }
-            Button(
-                onClick = onClose,
-                colors = ButtonDefaults.buttonColors(containerColor = if (ended || failed) Color(0xFF1B7A34) else Color(0xFFC62828)),
-                shape = RoundedCornerShape(24.dp),
-                modifier = Modifier.weight(1.6f).heightIn(min = 96.dp),
-            ) { Text(closeLabel, fontSize = 30.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center) }
+            if (!failed) BigButton(stringResource(R.string.video_again), Tone.Accent, Modifier.weight(1f), symbol = "play", textSize = TextSize.Label) {
+                ended = false; view?.seekTo(0); view?.start()
+            }
+            CloseButton(onClose, Modifier.weight(1.4f), onDark = true, label = closeLabel)
         }
     }
 }

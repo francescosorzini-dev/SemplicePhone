@@ -291,7 +291,7 @@
     <string name="message_title">Nachricht von der Familie</string>
     <string name="message_from">Nachricht von %1$s</string>
     <string name="message_ok">GELESEN</string>
-    <string name="message_read_again">🔊 Nochmal vorlesen</string>
+    <string name="message_read_again">Nochmal vorlesen</string>
     <string name="message_tap">Zum Lesen tippen</string>
     <string name="message_read_event">Nachricht gelesen: „%1$s“</string>
     <string name="voice_incoming">%1$s ruft an</string>
@@ -479,7 +479,7 @@
     <string name="scam_label">Achtung, möglicher Betrug</string>
     <string name="scam_warning">Achtung: Diese Nachricht kommt von einer unbekannten Person und enthält einen Link. Es könnte Betrug sein: nicht öffnen und Angehörige fragen.</string>
     <string name="scam_event">Verdächtige Nachricht mit Link von %1$s (%2$s)</string>
-    <string name="voice_reply_hold">🎤 GEDRÜCKT HALTEN UND ANTWORTEN</string>
+    <string name="voice_reply_hold">GEDRÜCKT HALTEN UND ANTWORTEN</string>
     <string name="voice_reply_recording">Sprich… loslassen zum Senden</string>
     <string name="voice_reply_sent">Antwort gesendet</string>
     <string name="voice_reply_short">Zu kurz: beim Sprechen gedrückt halten</string>
@@ -548,7 +548,16 @@
     <string name="reminder_per_dose">Pro Einnahme</string>
     <string name="reminder_low_at">Hinweis bei Rest von</string>
     <string name="fall_reason">Das Telefon hat einen harten Stoß bemerkt, wie bei einem Sturz. Wenn es dir gut geht, tippe auf MIR GEHT\'S GUT.</string>
-    <string name="news_open">📰 ARTIKEL ÖFFNEN</string>
+    <string name="news_open">ARTIKEL ÖFFNEN</string>
+    <string name="action_close_big">SCHLIESSEN</string>
+    <string name="search_clear">Löschen</string>
+    <string name="preset_measure">Fieber messen</string>
+    <string name="preset_insulin">Insulin</string>
+    <string name="preset_trash">Müll rausbringen</string>
+    <string name="preset_plants">Blumen gießen</string>
+    <string name="preset_bed">Schlafenszeit</string>
+    <string name="phone_app_icons">App-Symbole einfarbig</string>
+    <string name="phone_app_icons_detail">In der Farbe der Kachel, wie die Symbole. Nur bei Apps, die das anbieten (ab Android 13): die anderen bleiben wie sie sind.</string>
     <string name="color_blue">Blau</string>
     <string name="color_green">Grün</string>
     <string name="color_purple">Violett</string>

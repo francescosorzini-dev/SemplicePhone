@@ -1,5 +1,10 @@
 package app.semplicephone.remote
 
+import app.semplicephone.ui.Ui
+import app.semplicephone.ui.TextSize
+import app.semplicephone.ui.Tone
+import app.semplicephone.ui.BigOutlined
+import app.semplicephone.ui.BigButton
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -90,33 +95,27 @@ class MessageActivity : ComponentActivity() {
             LaunchedEffect(spoken) { Voice.speak(this@MessageActivity, spoken) }
             SempliceTheme {
                 Column(
-                    Modifier.fillMaxSize().background(Color(0xFFE8F1FB)).windowInsetsPadding(WindowInsets.safeDrawing).padding(24.dp),
+                    Modifier.fillMaxSize().background(Palette.InfoSoft).windowInsetsPadding(WindowInsets.safeDrawing).padding(24.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(18.dp),
                 ) {
                     Spacer(Modifier.heightIn(min = 12.dp))
                     Icon(Symbols.get(symbol), null, Modifier.size(96.dp), tint = Palette.Ink)
-                    Text(title, fontSize = 30.sp, fontWeight = FontWeight.Bold, color = Palette.Ink, textAlign = TextAlign.Center)
+                    Text(title, fontSize = TextSize.Title, fontWeight = FontWeight.Bold, color = Palette.Ink, textAlign = TextAlign.Center)
                     Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(body, fontSize = 34.sp, lineHeight = 42.sp, color = Palette.Ink, textAlign = TextAlign.Center)
+                        Text(body, fontSize = TextSize.Big, lineHeight = 44.sp, color = Palette.Ink, textAlign = TextAlign.Center)
                     }
-                    OutlinedButton(
-                        onClick = { Voice.speak(this@MessageActivity, spoken) },
-                        shape = RoundedCornerShape(20.dp),
-                        modifier = Modifier.fillMaxWidth().heightIn(min = 72.dp),
-                    ) { Text(stringResource(R.string.message_read_again), fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Palette.Ink) }
+                    BigOutlined(stringResource(R.string.message_read_again), symbol = "speaker") { Voice.speak(this@MessageActivity, spoken) }
                     // Risposta a voce alla famiglia (solo per i messaggi, non per gli avvisi del telefono).
                     if (m != null) VoiceReplyButton(m.id)
-                    Button(
-                        onClick = {
-                            if (notice != null) Notice.dismiss(this@MessageActivity)
-                            else sendBroadcast(Intent(this@MessageActivity, FamilyReceiver::class.java).setAction(FamilyMessages.ACTION_READ))
-                            finishAndRemoveTask()
-                        },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1B6E34)),
-                        shape = RoundedCornerShape(24.dp),
-                        modifier = Modifier.fillMaxWidth().heightIn(min = 120.dp),
-                    ) { Text(stringResource(if (notice != null) R.string.notice_ok else R.string.message_ok), fontSize = 40.sp, fontWeight = FontWeight.Bold) }
+                    BigButton(
+                        stringResource(if (notice != null) R.string.notice_ok else R.string.message_ok), Tone.Ok,
+                        symbol = "check", height = Ui.HeightHuge, textSize = TextSize.Huge,
+                    ) {
+                        if (notice != null) Notice.dismiss(this@MessageActivity)
+                        else sendBroadcast(Intent(this@MessageActivity, FamilyReceiver::class.java).setAction(FamilyMessages.ACTION_READ))
+                        finishAndRemoveTask()
+                    }
                 }
             }
         }

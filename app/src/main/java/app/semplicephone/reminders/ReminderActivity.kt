@@ -1,5 +1,10 @@
 package app.semplicephone.reminders
 
+import app.semplicephone.ui.Ui
+import app.semplicephone.ui.TextSize
+import app.semplicephone.ui.Tone
+import app.semplicephone.ui.BigOutlined
+import app.semplicephone.ui.BigButton
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.aspectRatio
@@ -96,7 +101,7 @@ class ReminderActivity : ComponentActivity() {
                 Column(
                     Modifier
                         .fillMaxSize()
-                        .background(Color(0xFFFFF8E1))
+                        .background(Palette.NoteSoft)
                         .windowInsetsPadding(WindowInsets.safeDrawing)
                         .padding(24.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -104,7 +109,7 @@ class ReminderActivity : ComponentActivity() {
                 ) {
                     Spacer(Modifier.height(24.dp))
                     Text(r.time, fontSize = 72.sp, fontWeight = FontWeight.Bold, color = Palette.Ink)
-                    Text(r.title, fontSize = 32.sp, fontWeight = FontWeight.Bold, color = Palette.Ink, textAlign = TextAlign.Center)
+                    Text(r.title, fontSize = TextSize.Big, fontWeight = FontWeight.Bold, color = Palette.Ink, textAlign = TextAlign.Center)
                     val photo = androidx.compose.runtime.remember(r.photo) {
                         app.semplicephone.data.Media.bitmap(this@ReminderActivity, r.photo, 900)?.asImageBitmap()
                     }
@@ -113,24 +118,20 @@ class ReminderActivity : ComponentActivity() {
                             photo, contentDescription = null,
                             contentScale = androidx.compose.ui.layout.ContentScale.Crop,
                             modifier = Modifier.fillMaxWidth().heightIn(max = 260.dp).aspectRatio(4f / 3f)
-                                .clip(RoundedCornerShape(20.dp)),
+                                .clip(Ui.ShapeBig),
                         )
                     } else {
                         Icon(Symbols.get(r.icon.takeIf { it in Symbols.names } ?: "pill"), null, Modifier.size(120.dp), tint = Palette.Ink)
                     }
-                    if (r.detail.isNotBlank()) Text(r.detail, fontSize = 26.sp, color = Palette.Ink, textAlign = TextAlign.Center)
+                    if (r.detail.isNotBlank()) Text(r.detail, fontSize = TextSize.Title, color = Palette.Ink, textAlign = TextAlign.Center)
                     Spacer(Modifier.weight(1f))
-                    Button(
-                        onClick = { ReminderReceiver.taken(this@ReminderActivity, id); answered(id) },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1B6E34)),
-                        shape = RoundedCornerShape(24.dp),
-                        modifier = Modifier.fillMaxWidth().heightIn(min = 120.dp),
-                    ) { Text(stringResource(if (r.icon == "pill") R.string.reminder_taken_big else R.string.reminder_done_big), fontSize = 44.sp, fontWeight = FontWeight.Bold) }
-                    OutlinedButton(
-                        onClick = { ReminderReceiver.snooze(this@ReminderActivity, id); answered(id) },
-                        shape = RoundedCornerShape(20.dp),
-                        modifier = Modifier.fillMaxWidth().heightIn(min = 72.dp),
-                    ) { Text(androidx.compose.ui.res.pluralStringResource(R.plurals.reminder_snooze_long, r.snoozeMinutes, r.snoozeMinutes), fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Palette.Ink) }
+                    BigButton(
+                        stringResource(if (r.icon == "pill") R.string.reminder_taken_big else R.string.reminder_done_big), Tone.Ok,
+                        symbol = "check", height = Ui.HeightHuge, textSize = TextSize.Huge,
+                    ) { ReminderReceiver.taken(this@ReminderActivity, id); answered(id) }
+                    BigOutlined(androidx.compose.ui.res.pluralStringResource(R.plurals.reminder_snooze_long, r.snoozeMinutes, r.snoozeMinutes), symbol = "clock") {
+                        ReminderReceiver.snooze(this@ReminderActivity, id); answered(id)
+                    }
                 }
             }
         }

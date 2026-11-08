@@ -37,7 +37,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.semplicephone.R
 import app.semplicephone.model.Tile
+import app.semplicephone.ui.BigButton
+import app.semplicephone.ui.BigOutlined
+import app.semplicephone.ui.BigScreen
+import app.semplicephone.ui.EmptyState
 import app.semplicephone.ui.Palette
+import app.semplicephone.ui.TextSize
+import app.semplicephone.ui.Tone
+import app.semplicephone.ui.Ui
 import app.semplicephone.ui.Symbols
 
 /**
@@ -65,22 +72,13 @@ fun RadioScreen(tile: Tile, onClose: () -> Unit, songs: List<app.semplicephone.m
         if (active || state.playing) RadioService.play(context, stations[index], playlist)
     }
 
-    Column(
-        Modifier.fillMaxSize().background(Color(0xFFF6F4EF)).windowInsetsPadding(WindowInsets.safeDrawing).padding(20.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(18.dp),
-    ) {
-        Row(Modifier.fillMaxWidth()) {
-            TextButton(onClick = onClose, modifier = Modifier.heightIn(min = 56.dp)) {
-                Text(stringResource(R.string.search_back), fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Palette.Ink)
-            }
-        }
-        Icon(Symbols.get(if (songs != null) "music" else "radio"), null, Modifier.size(110.dp), tint = Palette.Ink)
+    val music = songs != null
+    BigScreen(if (music) tile.label.ifBlank { stringResource(R.string.label_music) } else tile.label.ifBlank { stringResource(R.string.label_radio) }, if (music) "music" else "radio", onClose) {
         if (current == null) {
-            Text(stringResource(if (songs != null) R.string.music_no_songs else R.string.radio_no_stations), fontSize = 24.sp, color = Palette.Ink, textAlign = TextAlign.Center)
-            return@Column
+            EmptyState(if (music) "music" else "radio", stringResource(if (music) R.string.music_no_songs else R.string.radio_no_stations))
+            return@BigScreen
         }
-        Text(current.name.ifBlank { stringResource(R.string.label_radio) }, fontSize = 34.sp, fontWeight = FontWeight.Bold, color = Palette.Ink, textAlign = TextAlign.Center)
+        Text(current.name.ifBlank { stringResource(R.string.label_radio) }, fontSize = TextSize.Big, lineHeight = 42.sp, fontWeight = FontWeight.Bold, color = Palette.Ink, textAlign = TextAlign.Center)
         Text(
             when {
                 state.error && state.station?.url == current.url -> stringResource(R.string.radio_error)
@@ -88,31 +86,23 @@ fun RadioScreen(tile: Tile, onClose: () -> Unit, songs: List<app.semplicephone.m
                 active -> stringResource(R.string.radio_playing)
                 else -> " "
             },
-            fontSize = 20.sp, color = if (state.error) Palette.Sos else Palette.Ink, textAlign = TextAlign.Center,
+            fontSize = TextSize.Label, color = if (state.error) Palette.Warn else Palette.Ink, textAlign = TextAlign.Center,
         )
-        Button(
-            onClick = { if (active) RadioService.stop(context) else RadioService.play(context, current, playlist) },
-            colors = ButtonDefaults.buttonColors(containerColor = if (active) Color(0xFFC62828) else Color(0xFF1B7A34)),
-            shape = RoundedCornerShape(28.dp),
-            modifier = Modifier.fillMaxWidth().heightIn(min = 140.dp),
-        ) { Text(stringResource(if (active) R.string.radio_stop else R.string.radio_play), fontSize = 44.sp, fontWeight = FontWeight.Bold) }
+        BigButton(
+            stringResource(if (active) R.string.radio_stop else R.string.radio_play), if (active) Tone.Warn else Tone.Ok,
+            symbol = if (active) "close" else "play", height = Ui.HeightHuge, textSize = TextSize.Huge,
+        ) { if (active) RadioService.stop(context) else RadioService.play(context, current, playlist) }
         if (stations.size > 1) Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            OutlinedButton(onClick = { select(index - 1) }, modifier = Modifier.weight(1f).heightIn(min = 72.dp), shape = RoundedCornerShape(20.dp)) {
-                Text("‹ " + stringResource(R.string.radio_prev), fontSize = 20.sp, color = Palette.Ink)
-            }
-            OutlinedButton(onClick = { select(index + 1) }, modifier = Modifier.weight(1f).heightIn(min = 72.dp), shape = RoundedCornerShape(20.dp)) {
-                Text(stringResource(R.string.radio_next) + " ›", fontSize = 20.sp, color = Palette.Ink)
-            }
+            BigOutlined("‹ " + stringResource(R.string.radio_prev), Modifier.weight(1f)) { select(index - 1) }
+            BigOutlined(stringResource(R.string.radio_next) + " ›", Modifier.weight(1f)) { select(index + 1) }
         }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            OutlinedButton(
-                onClick = { am.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_LOWER, AudioManager.FLAG_SHOW_UI) },
-                modifier = Modifier.weight(1f).heightIn(min = 72.dp), shape = RoundedCornerShape(20.dp),
-            ) { Text("🔉 " + stringResource(R.string.radio_quieter), fontSize = 20.sp, color = Palette.Ink) }
-            OutlinedButton(
-                onClick = { am.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_RAISE, AudioManager.FLAG_SHOW_UI) },
-                modifier = Modifier.weight(1f).heightIn(min = 72.dp), shape = RoundedCornerShape(20.dp),
-            ) { Text("🔊 " + stringResource(R.string.radio_louder), fontSize = 20.sp, color = Palette.Ink) }
+            BigOutlined(stringResource(R.string.radio_quieter), Modifier.weight(1f), symbol = "minus") {
+                am.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_LOWER, AudioManager.FLAG_SHOW_UI)
+            }
+            BigOutlined(stringResource(R.string.radio_louder), Modifier.weight(1f), symbol = "plus") {
+                am.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_RAISE, AudioManager.FLAG_SHOW_UI)
+            }
         }
     }
 }

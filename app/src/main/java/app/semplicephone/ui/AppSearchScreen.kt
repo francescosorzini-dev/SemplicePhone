@@ -1,5 +1,7 @@
 package app.semplicephone.ui
 
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.material3.IconButton
 import android.content.Intent
 import android.speech.RecognizerIntent
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -107,16 +109,14 @@ fun AppSearchScreen(
     }
 
     Column(
-        Modifier.fillMaxSize().background(Color(0xFFF6F4EF)).windowInsetsPadding(WindowInsets.safeDrawing).imePadding()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+        Modifier.fillMaxSize().background(Palette.Ground).windowInsetsPadding(WindowInsets.safeDrawing).imePadding()
+            .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            TextButton(onClick = onClose, modifier = Modifier.heightIn(min = 56.dp)) {
-                Text(stringResource(R.string.search_back), fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Palette.Ink)
-            }
-            Spacer(Modifier.width(8.dp))
-            Text(stringResource(R.string.search_title), fontSize = 26.sp, fontWeight = FontWeight.Bold, color = Palette.Ink)
+            Icon(Symbols.get("search"), null, Modifier.size(40.dp), tint = Palette.Ink)
+            Spacer(Modifier.width(12.dp))
+            FitText(stringResource(R.string.search_title), Palette.Ink, TextSize.Title, Modifier.weight(1f), align = TextAlign.Start)
         }
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             OutlinedTextField(
@@ -124,36 +124,39 @@ fun AppSearchScreen(
                 onValueChange = { query = it },
                 modifier = Modifier.weight(1f).focusRequester(focus),
                 singleLine = true,
-                textStyle = TextStyle(fontSize = 26.sp, color = Palette.Ink),
-                placeholder = { Text(stringResource(R.string.search_placeholder), fontSize = 20.sp) },
+                textStyle = TextStyle(fontSize = TextSize.Title, color = Palette.Ink),
+                placeholder = { Text(stringResource(R.string.search_placeholder), fontSize = TextSize.Label) },
                 leadingIcon = { Icon(Symbols.get("search"), null, Modifier.size(30.dp), tint = Palette.Ink) },
                 trailingIcon = if (query.isNotEmpty()) {
-                    { TextButton(onClick = { query = "" }) { Text("✕", fontSize = 24.sp, color = Palette.Ink) } }
+                    { IconButton(onClick = { query = "" }) { Icon(Symbols.get("backspace"), stringResource(R.string.search_clear), Modifier.size(30.dp), tint = Palette.Ink) } }
                 } else null,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Go),
                 keyboardActions = KeyboardActions(onGo = { results?.firstOrNull()?.let(::open) }),
-                shape = RoundedCornerShape(16.dp),
+                shape = Ui.ShapeSmall,
             )
             if (canSpeak) {
                 OutlinedButton(
                     onClick = { onExternalStart(); runCatching { dictate.launch(speech) } },
-                    modifier = Modifier.heightIn(min = 64.dp),
-                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.heightIn(min = Ui.HeightRow),
+                    shape = Ui.ShapeSmall,
+                    border = androidx.compose.foundation.BorderStroke(2.dp, Palette.Ink),
                     contentPadding = PaddingValues(horizontal = 12.dp),
-                ) { Text("🎤 " + stringResource(R.string.search_voice), fontSize = 18.sp, color = Palette.Ink) }
+                ) {
+                    Icon(Symbols.get("mic"), null, Modifier.size(28.dp), tint = Palette.Ink)
+                    Spacer(Modifier.width(6.dp))
+                    Text(stringResource(R.string.search_voice), fontSize = TextSize.Body, color = Palette.Ink)
+                }
             }
         }
 
         when {
-            results == null -> Text(stringResource(R.string.loading), fontSize = 22.sp, color = Palette.Ink)
-            results.isEmpty() -> Text(
-                stringResource(R.string.search_none, query.trim()), fontSize = 22.sp, color = Palette.Ink,
-                modifier = Modifier.padding(top = 24.dp),
-            )
-            else -> LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
+            results == null -> Text(stringResource(R.string.loading), fontSize = TextSize.Label, color = Palette.Ink, modifier = Modifier.weight(1f))
+            results.isEmpty() -> EmptyState("search", stringResource(R.string.search_none, query.trim()), Modifier.weight(1f).padding(top = 24.dp))
+            else -> LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth().weight(1f)) {
                 items(results, key = { it.target }) { app -> AppRow(app, launcher) { open(app) } }
             }
         }
+        CloseButton(onClose)
     }
 }
 
@@ -161,10 +164,10 @@ fun AppSearchScreen(
 private fun AppRow(app: AppEntry, launcher: TileLauncher, onOpen: () -> Unit) {
     val icon = remember(app.target) { runCatching { launcher.appIcon(app.target)?.toBitmap(112, 112)?.asImageBitmap() }.getOrNull() }
     Row(
-        Modifier.fillMaxWidth().heightIn(min = 76.dp)
-            .clip(RoundedCornerShape(16.dp))
+        Modifier.fillMaxWidth().heightIn(min = Ui.HeightRow)
+            .clip(Ui.ShapeSmall)
             .background(Color.White)
-            .border(2.dp, Palette.Ink, RoundedCornerShape(16.dp))
+            .border(2.dp, Palette.Ink, Ui.ShapeSmall)
             .combinedClickable(role = Role.Button, onClickLabel = app.label, onLongClick = { launcher.speakText(app.label) }, onClick = onOpen)
             .padding(horizontal = 14.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -174,6 +177,6 @@ private fun AppRow(app: AppEntry, launcher: TileLauncher, onOpen: () -> Unit) {
             if (icon != null) Image(icon, null, Modifier.size(56.dp))
             else Icon(Symbols.get("grid"), null, Modifier.size(40.dp), tint = Palette.Ink)
         }
-        Text(app.label, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Palette.Ink, maxLines = 2, overflow = TextOverflow.Ellipsis)
+        Text(app.label, fontSize = TextSize.Label, fontWeight = FontWeight.Bold, color = Palette.Ink, maxLines = 2, overflow = TextOverflow.Ellipsis)
     }
 }

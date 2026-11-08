@@ -1,5 +1,7 @@
 package app.semplicephone.ui.settings
 
+import app.semplicephone.ui.Ui
+import app.semplicephone.ui.TextSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.heightIn
@@ -126,7 +128,7 @@ fun LayoutEditor(
 
     fun updatePage(p: Page) = onDraftChange(draft.copy(pages = draft.pages.toMutableList().also { it[pageIndex] = p }))
 
-    Column(Modifier.fillMaxSize().background(Color(0xFFECE9E2)).windowInsetsPadding(WindowInsets.safeDrawing)) {
+    Column(Modifier.fillMaxSize().background(Palette.Soft).windowInsetsPadding(WindowInsets.safeDrawing)) {
         EditorHeader(stringResource(R.string.layout_title), onExit, stringResource(R.string.action_save), enabled = problems.isEmpty()) {
             if (noSos) confirm = context.getString(R.string.layout_no_sos_confirm) to onSave else onSave()
         }
@@ -137,12 +139,12 @@ fun LayoutEditor(
         ) {
             // Navigazione pagine
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(onClick = { onPageIndex(pageIndex - 1) }, enabled = pageIndex > 0, modifier = Modifier.heightIn(min = 48.dp)) { Text("‹") }
+                OutlinedButton(onClick = { onPageIndex(pageIndex - 1) }, enabled = pageIndex > 0, modifier = Modifier.heightIn(min = Ui.HeightSettings)) { Text("‹") }
                 Text(
                     stringResource(R.string.home_page_of, pageIndex + 1, draft.pages.size),
-                    fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f), textAlign = TextAlign.Center,
+                    fontSize = TextSize.Body, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f), textAlign = TextAlign.Center,
                 )
-                OutlinedButton(onClick = { onPageIndex(pageIndex + 1) }, enabled = pageIndex < draft.pages.size - 1, modifier = Modifier.heightIn(min = 48.dp)) { Text("›") }
+                OutlinedButton(onClick = { onPageIndex(pageIndex + 1) }, enabled = pageIndex < draft.pages.size - 1, modifier = Modifier.heightIn(min = Ui.HeightSettings)) { Text("›") }
             }
             Row(Modifier.height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedButton(
@@ -151,7 +153,7 @@ fun LayoutEditor(
                         onPageIndex(draft.pages.size)
                     },
                     enabled = draft.pages.size < 6,
-                    modifier = Modifier.weight(1f).fillMaxHeight().heightIn(min = 48.dp),
+                    modifier = Modifier.weight(1f).fillMaxHeight().heightIn(min = Ui.HeightSettings),
                 ) { Text(stringResource(R.string.layout_add_page)) }
                 OutlinedButton(
                     onClick = {
@@ -161,7 +163,7 @@ fun LayoutEditor(
                         }
                     },
                     enabled = draft.pages.size > 1,
-                    modifier = Modifier.weight(1f).fillMaxHeight().heightIn(min = 48.dp),
+                    modifier = Modifier.weight(1f).fillMaxHeight().heightIn(min = Ui.HeightSettings),
                 ) { Text(stringResource(R.string.layout_delete_page), color = if (draft.pages.size > 1) Palette.Sos else Color.Unspecified) }
             }
 
@@ -178,60 +180,60 @@ fun LayoutEditor(
             )
             Text(
                 stringResource(R.string.layout_hint),
-                fontSize = 15.sp, color = Color(0xFF4A4A4A),
+                fontSize = TextSize.Small, color = Palette.Mute,
             )
-            notice?.let { Text(it, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Palette.Ink) }
+            notice?.let { Text(it, fontSize = TextSize.Body, fontWeight = FontWeight.Bold, color = Palette.Ink) }
 
             if (problems.isNotEmpty()) {
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text(stringResource(R.string.layout_problems), color = Palette.Sos, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                    problems.forEach { Text("• $it", color = Palette.Sos, fontSize = 15.sp) }
+                    Text(stringResource(R.string.layout_problems), color = Palette.Sos, fontWeight = FontWeight.Bold, fontSize = TextSize.Body)
+                    problems.forEach { Text("• $it", color = Palette.Sos, fontSize = TextSize.Small) }
                 }
             }
-            if (noSos) Text(stringResource(R.string.layout_no_sos), color = Palette.Sos, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            if (noSos) Text(stringResource(R.string.layout_no_sos), color = Palette.Sos, fontWeight = FontWeight.Bold, fontSize = TextSize.Body)
             if (!noSos && draft.sos.numbers.isEmpty()) {
                 Text(stringResource(R.string.layout_sos_no_numbers),
-                    color = Palette.Sos, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    color = Palette.Sos, fontWeight = FontWeight.Bold, fontSize = TextSize.Body)
             }
-            if (error != null) Text(stringResource(R.string.layout_save_failed, error), color = Palette.Sos, fontSize = 15.sp)
+            if (error != null) Text(stringResource(R.string.layout_save_failed, error), color = Palette.Sos, fontSize = TextSize.Small)
 
             if (missingPermissions.isNotEmpty()) {
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     SectionLabel(stringResource(R.string.layout_missing_permissions))
-                    missingPermissions.map { it.why }.distinct().forEach { Text("• $it", fontSize = 15.sp, color = Palette.Ink) }
-                    OutlinedButton(onClick = onRequestPermissions, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text(stringResource(R.string.layout_grant_permissions)) }
+                    missingPermissions.map { it.why }.distinct().forEach { Text("• $it", fontSize = TextSize.Small, color = Palette.Ink) }
+                    OutlinedButton(onClick = onRequestPermissions, modifier = Modifier.fillMaxWidth().heightIn(min = Ui.HeightSettings)) { Text(stringResource(R.string.layout_grant_permissions)) }
                 }
             }
             if (restrictionHelp) RestrictedSettingsHelp(onExternalStart)
             missingSpecial.forEach { sp ->
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     SectionLabel(sp.label)
-                    Text(stringResource(R.string.layout_special_why, sp.why), fontSize = 15.sp, color = Palette.Ink)
-                    OutlinedButton(onClick = { onExternalStart(); onOpenSpecial(sp) }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
+                    Text(stringResource(R.string.layout_special_why, sp.why), fontSize = TextSize.Small, color = Palette.Ink)
+                    OutlinedButton(onClick = { onExternalStart(); onOpenSpecial(sp) }, modifier = Modifier.fillMaxWidth().heightIn(min = Ui.HeightSettings)) {
                         Text(stringResource(R.string.action_open_settings))
                     }
                 }
             }
 
             SectionLabel(stringResource(R.string.layout_more_settings))
-            OutlinedButton(onClick = onEditSos, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text(stringResource(R.string.layout_sos_numbers)) }
+            OutlinedButton(onClick = onEditSos, modifier = Modifier.fillMaxWidth().heightIn(min = Ui.HeightSettings)) { Text(stringResource(R.string.layout_sos_numbers)) }
             extraSections()
-            OutlinedButton(onClick = onChangePin, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text(stringResource(R.string.layout_change_pin)) }
+            OutlinedButton(onClick = onChangePin, modifier = Modifier.fillMaxWidth().heightIn(min = Ui.HeightSettings)) { Text(stringResource(R.string.layout_change_pin)) }
             Row(Modifier.height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedButton(
                     onClick = { onExternalStart(); exportDoc.launch("semplicephone-config.json") },
-                    modifier = Modifier.weight(1f).fillMaxHeight().heightIn(min = 52.dp),
+                    modifier = Modifier.weight(1f).fillMaxHeight().heightIn(min = Ui.HeightSettings),
                 ) { Text(stringResource(R.string.layout_export)) }
                 OutlinedButton(
                     onClick = { onExternalStart(); importDoc.launch(arrayOf("application/json", "text/plain", "application/octet-stream")) },
-                    modifier = Modifier.weight(1f).fillMaxHeight().heightIn(min = 52.dp),
+                    modifier = Modifier.weight(1f).fillMaxHeight().heightIn(min = Ui.HeightSettings),
                 ) { Text(stringResource(R.string.layout_import)) }
             }
             OutlinedButton(
                 onClick = { confirm = context.getString(R.string.layout_reset_confirm) to onResetDefaults },
-                modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
+                modifier = Modifier.fillMaxWidth().heightIn(min = Ui.HeightSettings),
             ) { Text(stringResource(R.string.layout_reset)) }
-            TextButton(onClick = { showAbout = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+            TextButton(onClick = { showAbout = true }, modifier = Modifier.fillMaxWidth().heightIn(min = Ui.HeightSettings)) {
                 Text(stringResource(R.string.layout_about), color = Palette.Ink)
             }
         }
@@ -243,16 +245,16 @@ fun LayoutEditor(
             title = { Text("SemplicePhone ${app.semplicephone.BuildConfig.VERSION_NAME}") },
             text = {
                 Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Copyright © 2026 Francesco Sorzini", fontSize = 15.sp)
+                    Text("Copyright © 2026 Francesco Sorzini", fontSize = TextSize.Small)
                     Text(
                         stringResource(R.string.about_license),
-                        fontSize = 15.sp,
+                        fontSize = TextSize.Small,
                     )
-                    Text(stringResource(R.string.about_sos), fontSize = 15.sp, fontWeight = FontWeight.Bold)
-                    Text(stringResource(R.string.about_source, "github.com/francescosorzini-dev/SemplicePhone"), fontSize = 15.sp)
+                    Text(stringResource(R.string.about_sos), fontSize = TextSize.Small, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.about_source, "github.com/francescosorzini-dev/SemplicePhone"), fontSize = TextSize.Small)
                     Text(
                         stringResource(R.string.about_components),
-                        fontSize = 14.sp, color = Color(0xFF4A4A4A),
+                        fontSize = TextSize.Small, color = Palette.Mute,
                     )
                 }
             },
@@ -273,11 +275,9 @@ fun LayoutEditor(
     }
 
     confirm?.let { (msg, action) ->
-        AlertDialog(
-            onDismissRequest = { confirm = null },
-            text = { Text(msg, fontSize = 17.sp) },
-            confirmButton = { TextButton(onClick = { confirm = null; action() }) { Text(stringResource(R.string.action_confirm)) } },
-            dismissButton = { TextButton(onClick = { confirm = null }) { Text(stringResource(R.string.action_cancel)) } },
+        app.semplicephone.ui.ConfirmDialog(
+            title = msg, text = null, confirm = stringResource(R.string.action_confirm),
+            onConfirm = { confirm = null; action() }, onDismiss = { confirm = null },
         )
     }
 }
@@ -306,12 +306,12 @@ private fun GridPreview(page: Page, onTile: (Tile) -> Unit, onEmpty: (Int, Int) 
                     Modifier
                         .offset(x = (cellW + Gap) * c, y = (cellH + Gap) * r)
                         .size(cellW, cellH)
-                        .clip(RoundedCornerShape(10.dp))
-                        .border(2.dp, Color(0xFF8A8A8A), RoundedCornerShape(10.dp))
+                        .clip(Ui.ShapeSmall)
+                        .border(2.dp, Palette.Mute, Ui.ShapeSmall)
                         .clickable { onEmpty(c, r) }
                         .semantics { contentDescription = context.getString(R.string.layout_empty_cell, c + 1, r + 1) },
                     contentAlignment = Alignment.Center,
-                ) { Text("+", fontSize = 26.sp, color = Color(0xFF4A4A4A)) }
+                ) { Text("+", fontSize = TextSize.Title, color = Palette.Mute) }
             }
         }
         page.tiles.forEach { t ->
@@ -339,9 +339,9 @@ private fun GridPreview(page: Page, onTile: (Tile) -> Unit, onEmpty: (Int, Int) 
                             },
                         )
                     }
-                    .clip(RoundedCornerShape(10.dp))
+                    .clip(Ui.ShapeSmall)
                     .background(bg)
-                    .border(if (inGrid) 1.dp else 3.dp, if (inGrid) Palette.Ink else Palette.Sos, RoundedCornerShape(10.dp))
+                    .border(if (inGrid) 1.dp else 3.dp, if (inGrid) Palette.Ink else Palette.Sos, Ui.ShapeSmall)
                     .clickable { onTile(t) }
                     .padding(6.dp),
                 contentAlignment = Alignment.Center,
@@ -349,7 +349,7 @@ private fun GridPreview(page: Page, onTile: (Tile) -> Unit, onEmpty: (Int, Int) 
                 Text(
                     previewLabel(context, t),
                     color = fg,
-                    fontSize = 15.sp,
+                    fontSize = TextSize.Small,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
                     maxLines = 2,
@@ -369,26 +369,26 @@ private fun RestrictedSettingsHelp(onExternalStart: () -> Unit) {
     val context = LocalContext.current
     var copied by remember { mutableStateOf(false) }
     Column(
-        Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Color(0xFFFFF0DF)).padding(14.dp),
+        Modifier.fillMaxWidth().clip(Ui.ShapeSmall).background(Palette.NoteSoft).padding(14.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Text(stringResource(R.string.restricted_title), fontSize = 17.sp, fontWeight = FontWeight.Bold, color = Palette.Ink)
+        Text(stringResource(R.string.restricted_title), fontSize = TextSize.Body, fontWeight = FontWeight.Bold, color = Palette.Ink)
         Text(
             stringResource(R.string.restricted_text),
-            fontSize = 15.sp, color = Palette.Ink,
+            fontSize = TextSize.Small, color = Palette.Ink,
         )
         Text(
             stringResource(R.string.restricted_steps),
-            fontSize = 15.sp, color = Palette.Ink,
+            fontSize = TextSize.Small, color = Palette.Ink,
         )
         OutlinedButton(
             onClick = { onExternalStart(); app.semplicephone.launch.Restrictions.openAppInfo(context) },
-            modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
+            modifier = Modifier.fillMaxWidth().heightIn(min = Ui.HeightSettings),
         ) { Text(stringResource(R.string.restricted_open_info)) }
-        Text(stringResource(R.string.restricted_adb), fontSize = 15.sp, color = Palette.Ink)
+        Text(stringResource(R.string.restricted_adb), fontSize = TextSize.Small, color = Palette.Ink)
         Text(
             app.semplicephone.launch.Restrictions.ADB_ALLOW,
-            fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace, fontSize = 13.sp,
+            fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace, fontSize = TextSize.Small,
             modifier = Modifier.fillMaxWidth().background(Color.White).padding(8.dp),
         )
         OutlinedButton(
@@ -397,7 +397,7 @@ private fun RestrictedSettingsHelp(onExternalStart: () -> Unit) {
                 cm.setPrimaryClip(android.content.ClipData.newPlainText("adb", app.semplicephone.launch.Restrictions.ADB_ALLOW))
                 copied = true
             },
-            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+            modifier = Modifier.fillMaxWidth().heightIn(min = Ui.HeightSettings),
         ) { Text(stringResource(if (copied) R.string.copied else R.string.copy_command)) }
     }
 }

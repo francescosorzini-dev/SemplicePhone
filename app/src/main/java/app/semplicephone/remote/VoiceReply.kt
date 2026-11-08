@@ -1,5 +1,7 @@
 package app.semplicephone.remote
 
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
@@ -94,7 +96,7 @@ object VoiceReplies {
     }
 }
 
-/** «🎤 Tieni premuto e rispondi»: verde a riposo, rosso mentre registra; al rilascio parte. */
+/** «Tieni premuto e rispondi»: verde a riposo, arancio mentre registra; al rilascio parte. */
 @Composable
 fun VoiceReplyButton(messageId: Long, modifier: Modifier = Modifier.fillMaxWidth()) {
     val context = LocalContext.current
@@ -106,8 +108,8 @@ fun VoiceReplyButton(messageId: Long, modifier: Modifier = Modifier.fillMaxWidth
     val sentText = stringResource(R.string.voice_reply_sent)
     val shortText = stringResource(R.string.voice_reply_short)
     Box(
-        modifier.heightIn(min = 110.dp).clip(RoundedCornerShape(26.dp))
-            .background(if (recording) Color(0xFFC62828) else Color(0xFF1B7A34))
+        modifier.heightIn(min = app.semplicephone.ui.Ui.HeightBig).clip(app.semplicephone.ui.Ui.ShapeBig)
+            .background(if (recording) app.semplicephone.ui.Palette.Warn else app.semplicephone.ui.Palette.Ok)
             .pointerInput(allowed) {
                 detectTapGestures(onPress = {
                     if (!allowed) { ask.launch(Manifest.permission.RECORD_AUDIO); return@detectTapGestures }
@@ -127,9 +129,13 @@ fun VoiceReplyButton(messageId: Long, modifier: Modifier = Modifier.fillMaxWidth
             .padding(12.dp),
         contentAlignment = Alignment.Center,
     ) {
-        Text(
-            status?.takeIf { !recording } ?: stringResource(if (recording) R.string.voice_reply_recording else R.string.voice_reply_hold),
-            color = Color.White, fontSize = 26.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center,
-        )
+        androidx.compose.foundation.layout.Row(verticalAlignment = Alignment.CenterVertically) {
+            androidx.compose.material3.Icon(app.semplicephone.ui.Symbols.get("mic"), null, Modifier.size(36.dp), tint = Color.White)
+            androidx.compose.foundation.layout.Spacer(Modifier.width(10.dp))
+            app.semplicephone.ui.FitText(
+                status?.takeIf { !recording } ?: stringResource(if (recording) R.string.voice_reply_recording else R.string.voice_reply_hold),
+                Color.White, app.semplicephone.ui.TextSize.Title,
+            )
+        }
     }
 }

@@ -1,5 +1,9 @@
 package app.semplicephone.ui.settings
 
+import app.semplicephone.ui.Ui
+import app.semplicephone.ui.TextSize
+import androidx.compose.material3.Icon
+import app.semplicephone.ui.Symbols
 import androidx.compose.foundation.layout.heightIn
 import app.semplicephone.R
 import androidx.compose.ui.res.stringResource
@@ -123,8 +127,8 @@ fun PinScreen(store: PinStore, mode: PinMode, onSuccess: () -> Unit, onCancel: (
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Spacer(Modifier.height(16.dp))
-        Text(title, fontSize = 28.sp, fontWeight = FontWeight.Bold, color = Palette.Ink)
-        Text(subtitle, fontSize = 18.sp, color = Color(0xFF4A4A4A), textAlign = TextAlign.Center)
+        Text(title, fontSize = TextSize.Title, fontWeight = FontWeight.Bold, color = Palette.Ink)
+        Text(subtitle, fontSize = TextSize.Body, color = Palette.Mute, textAlign = TextAlign.Center)
 
         val digitsDesc = stringResource(R.string.pin_digits_entered, digits.length)
         val deleteDesc = stringResource(R.string.pin_delete)
@@ -146,24 +150,24 @@ fun PinScreen(store: PinStore, mode: PinMode, onSuccess: () -> Unit, onCancel: (
         }
 
         val enabled = lockMs == 0L && !busy
-        val keys = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", "⌫")
+        val keys = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", "del")
         keys.chunked(3).forEach { row ->
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                 row.forEach { k ->
-                    val mod = Modifier.weight(1f).heightIn(min = 72.dp)
+                    val mod = Modifier.weight(1f).heightIn(min = Ui.HeightRow)
                     when (k) {
                         "" -> Spacer(mod)
-                        "⌫" -> TextButton(
+                        "del" -> TextButton(
                             onClick = { digits = digits.dropLast(1) },
                             enabled = enabled,
                             modifier = mod.semantics { contentDescription = deleteDesc },
-                        ) { Text("⌫", fontSize = 28.sp, color = Palette.Ink) }
+                        ) { Icon(Symbols.get("backspace"), null, Modifier.size(34.dp), tint = Palette.Ink) }
                         else -> OutlinedButton(
                             onClick = { if (digits.length < PinStore.PIN_LENGTH.last) digits += k },
                             enabled = enabled,
-                            shape = RoundedCornerShape(16.dp),
+                            shape = Ui.ShapeSmall,
                             modifier = mod,
-                        ) { Text(k, fontSize = 30.sp, fontWeight = FontWeight.Bold, color = Palette.Ink) }
+                        ) { Text(k, fontSize = TextSize.Title, fontWeight = FontWeight.Bold, color = Palette.Ink) }
                     }
                 }
             }
@@ -173,13 +177,13 @@ fun PinScreen(store: PinStore, mode: PinMode, onSuccess: () -> Unit, onCancel: (
             onClick = ::submit,
             enabled = enabled && digits.length in PinStore.PIN_LENGTH,
             colors = ButtonDefaults.buttonColors(containerColor = Palette.Ink),
-            shape = RoundedCornerShape(16.dp),
-            modifier = Modifier.fillMaxWidth().heightIn(min = 64.dp),
-        ) { Text(stringResource(R.string.action_confirm), fontSize = 22.sp, fontWeight = FontWeight.Bold) }
+            shape = Ui.ShapeSmall,
+            modifier = Modifier.fillMaxWidth().heightIn(min = Ui.HeightRow),
+        ) { Text(stringResource(R.string.action_confirm), fontSize = TextSize.Label, fontWeight = FontWeight.Bold) }
 
         Spacer(Modifier.weight(1f))
-        TextButton(onClick = onCancel, modifier = Modifier.heightIn(min = 56.dp)) {
-            Text(stringResource(R.string.pin_exit), fontSize = 20.sp, color = Palette.Ink)
+        TextButton(onClick = onCancel, modifier = Modifier.heightIn(min = Ui.HeightSettings)) {
+            Text(stringResource(R.string.pin_exit), fontSize = TextSize.Label, color = Palette.Ink)
         }
     }
 }

@@ -1,5 +1,8 @@
 package app.semplicephone.phone
 
+import app.semplicephone.ui.Ui
+import app.semplicephone.ui.TextSize
+import app.semplicephone.ui.Palette
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -30,6 +33,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -74,7 +78,7 @@ class FallDetector : Service(), SensorEventListener {
         val nm = getSystemService(NotificationManager::class.java)
         nm.createNotificationChannel(NotificationChannel(CHANNEL, getString(R.string.fall_channel), NotificationManager.IMPORTANCE_MIN))
         val n: Notification = NotificationCompat.Builder(this, CHANNEL)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(app.semplicephone.ui.SymbolDrawables.get("heart"))
             .setContentTitle(getString(R.string.fall_active))
             .setOngoing(true)
             .setContentIntent(PendingIntent.getActivity(this, 0, Intent(this, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE))
@@ -134,7 +138,7 @@ class FallDetector : Service(), SensorEventListener {
             app.semplicephone.reminders.ReminderScheduler.ensureChannel(context)
             val pi = PendingIntent.getActivity(context, 7, i, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
             val n = NotificationCompat.Builder(context, app.semplicephone.reminders.ReminderScheduler.CHANNEL)
-                .setSmallIcon(R.drawable.ic_launcher_foreground)
+                .setSmallIcon(app.semplicephone.ui.SymbolDrawables.get("alert"))
                 .setContentTitle(context.getString(R.string.fall_question))
                 .setContentText(context.getString(R.string.fall_reason))
                 .setStyle(NotificationCompat.BigTextStyle().bigText(context.getString(R.string.fall_reason)))
@@ -173,23 +177,20 @@ class FallActivity : ComponentActivity() {
         }.start()
         setContent {
             Column(
-                Modifier.fillMaxSize().background(Color(0xFFC62828)).padding(24.dp),
+                Modifier.fillMaxSize().background(app.semplicephone.ui.Palette.Sos).windowInsetsPadding(androidx.compose.foundation.layout.WindowInsets.safeDrawing).padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(24.dp, Alignment.CenterVertically),
             ) {
-                Text(stringResource(R.string.fall_question), color = Color.White, fontSize = 42.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+                Text(stringResource(R.string.fall_question), color = Color.White, fontSize = TextSize.Huge, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
                 // Il perché della domanda: senza, sembra un avviso qualsiasi.
-                Text(stringResource(R.string.fall_reason), color = Color.White, fontSize = 26.sp, lineHeight = 32.sp, textAlign = TextAlign.Center)
-                Text(stringResource(R.string.fall_countdown, left), color = Color.White, fontSize = 24.sp, textAlign = TextAlign.Center)
-                Button(
-                    onClick = { stopAlarm(); finishAndRemoveTask() },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Color(0xFF1B7A34)),
-                    shape = RoundedCornerShape(28.dp), modifier = Modifier.fillMaxWidth().heightIn(min = 160.dp),
-                ) { Text(stringResource(R.string.fall_ok), fontSize = 44.sp, fontWeight = FontWeight.Bold) }
-                Button(
-                    onClick = { help(auto = false) },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
-                    shape = RoundedCornerShape(28.dp), modifier = Modifier.fillMaxWidth().heightIn(min = 100.dp),
-                ) { Text(stringResource(R.string.fall_help), fontSize = 32.sp, fontWeight = FontWeight.Bold) }
+                Text(stringResource(R.string.fall_reason), color = Color.White, fontSize = TextSize.Title, lineHeight = 32.sp, textAlign = TextAlign.Center)
+                Text(stringResource(R.string.fall_countdown, left), color = Color.White, fontSize = TextSize.Label, textAlign = TextAlign.Center)
+                app.semplicephone.ui.BigButton(
+                    stringResource(R.string.fall_ok), app.semplicephone.ui.Tone.Ok, symbol = "check",
+                    height = app.semplicephone.ui.Ui.HeightHuge, textSize = app.semplicephone.ui.TextSize.Huge,
+                ) { stopAlarm(); finishAndRemoveTask() }
+                app.semplicephone.ui.BigButton(
+                    stringResource(R.string.fall_help), app.semplicephone.ui.Tone.Light, symbol = "alert", textSize = app.semplicephone.ui.TextSize.Title,
+                ) { help(auto = false) }
             }
         }
     }

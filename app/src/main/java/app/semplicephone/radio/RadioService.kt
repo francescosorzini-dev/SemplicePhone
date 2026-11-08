@@ -60,7 +60,7 @@ class RadioService : Service() {
         val open = PendingIntent.getActivity(this, 0, Intent(this, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE)
         val stop = PendingIntent.getService(this, 1, Intent(this, RadioService::class.java).setAction(ACTION_STOP), PendingIntent.FLAG_IMMUTABLE)
         val n: Notification = NotificationCompat.Builder(this, CHANNEL)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(app.semplicephone.ui.SymbolDrawables.get(if (playlist.isNotEmpty()) "music" else "radio"))
             .setContentTitle(st.name.ifBlank { getString(R.string.label_radio) })
             .setContentText(getString(R.string.radio_playing))
             .setOngoing(true)

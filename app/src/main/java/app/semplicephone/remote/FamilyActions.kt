@@ -74,7 +74,7 @@ object FindPhone {
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )
         val n = NotificationCompat.Builder(context, ReminderScheduler.CHANNEL)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(app.semplicephone.ui.SymbolDrawables.get("phone"))
             .setContentTitle(context.getString(R.string.find_title))
             .setContentText(context.getString(R.string.find_text))
             .setCategory(NotificationCompat.CATEGORY_ALARM)
@@ -174,7 +174,7 @@ object FamilyMessages {
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )
         val n = NotificationCompat.Builder(context, ReminderScheduler.CHANNEL)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(app.semplicephone.ui.SymbolDrawables.get("message"))
             .setContentTitle(if (m.from.isNotBlank()) context.getString(R.string.message_from, m.from) else context.getString(R.string.message_title))
             .setContentText(m.text)
             .setStyle(NotificationCompat.BigTextStyle().bigText(m.text))
@@ -222,7 +222,7 @@ object Notice {
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )
         val n = NotificationCompat.Builder(context, ReminderScheduler.CHANNEL)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(app.semplicephone.ui.SymbolDrawables.get(symbol))
             .setContentTitle(title)
             .setContentText(text)
             .setCategory(NotificationCompat.CATEGORY_REMINDER)

@@ -74,7 +74,7 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-private val TileShape = RoundedCornerShape(18.dp)
+private val TileShape = Ui.ShapeBig
 
 /**
  * Dimensioni del testo in dp convertite in sp senza fontScale: con il carattere di sistema
@@ -84,7 +84,7 @@ private val TileShape = RoundedCornerShape(18.dp)
 private fun Dp.fixedSp(): TextUnit = with(LocalDensity.current) { this@fixedSp.toSp() }
 
 /** Aspetto della Home: tema (normale, alto contrasto, notte) e apertura dei riquadri tenendo premuto. */
-data class TileLook(val contrast: Boolean = false, val night: Boolean = false, val holdToOpen: Boolean = false)
+data class TileLook(val contrast: Boolean = false, val night: Boolean = false, val holdToOpen: Boolean = false, val monoIcons: Boolean = false)
 
 val LocalTileLook = androidx.compose.runtime.staticCompositionLocalOf { TileLook() }
 
@@ -112,7 +112,7 @@ fun TileView(
         TileType.PHOTOS -> PhotosTile(tile, launcher, modifier)
         TileType.MISSED_CALLS -> MissedCallsTile(tile, sos, launcher, modifier)
         TileType.MESSAGES -> MessagesTile(tile, sos, launcher, modifier)
-        TileType.UNKNOWN -> Box(modifier.clip(TileShape).background(Color(0xFFD9D3C7)))
+        TileType.UNKNOWN -> Box(modifier.clip(TileShape).background(Palette.Line))
         else -> ActionTile(tile, sos, launcher, modifier, badge)
     }
 }
@@ -239,6 +239,22 @@ private fun TileLabel(text: String, color: Color, size: TextUnit, align: TextAli
     )
 }
 
+/**
+ * Livello monocromatico dell'icona adattiva (quello che Android 13+ usa per le «icone a tema»), se l'app
+ * lo fornisce. Il livello è largo 108 dp con la parte visibile nei 72 centrali: lo si allarga di 1/4 per lato.
+ */
+private fun monoIcon(d: android.graphics.drawable.Drawable?, px: Int): ImageBitmap? {
+    if (android.os.Build.VERSION.SDK_INT < 33 || d !is android.graphics.drawable.AdaptiveIconDrawable) return null
+    val m = d.monochrome ?: return null
+    return runCatching {
+        val bmp = android.graphics.Bitmap.createBitmap(px, px, android.graphics.Bitmap.Config.ARGB_8888)
+        val c = android.graphics.Canvas(bmp)
+        m.setBounds(-px / 4, -px / 4, px + px / 4, px + px / 4)
+        m.draw(c)
+        bmp.asImageBitmap()
+    }.getOrNull()
+}
+
 @Composable
 private fun TileIconView(tile: Tile, launcher: TileLauncher, tint: Color, size: Dp) {
     val useApp = tile.icon.kind == IconKind.APP ||
@@ -247,11 +263,15 @@ private fun TileIconView(tile: Tile, launcher: TileLauncher, tint: Color, size: 
         tile.icon.kind == IconKind.NONE -> Unit
         useApp -> {
             val px = with(LocalDensity.current) { size.roundToPx() }
-            val bmp: ImageBitmap? = remember(tile.target, px) {
+            val monoWanted = LocalTileLook.current.monoIcons
+            val (bmp, mono) = remember(tile.target, px, monoWanted) {
                 val pkgTarget = if (tile.type == TileType.SHORTCUT) tile.target.substringBefore('/') else tile.target
-                launcher.appIcon(pkgTarget)?.toBitmap(px, px)?.asImageBitmap()
+                val d = launcher.appIcon(pkgTarget)
+                monoIcon(d, px).takeIf { monoWanted }?.let { it to true } ?: (d?.toBitmap(px, px)?.asImageBitmap() to false)
             }
-            if (bmp != null) Image(bmp, contentDescription = null, modifier = Modifier.size(size))
+            // Tinta unita: la versione monocromatica fornita dall'app stessa, nel colore del testo del riquadro.
+            if (bmp != null) Image(bmp, contentDescription = null, modifier = Modifier.size(size),
+                colorFilter = if (mono) androidx.compose.ui.graphics.ColorFilter.tint(tint) else null)
             else Icon(Symbols.get("grid"), null, Modifier.size(size), tint = tint)
         }
         tile.icon.kind == IconKind.PHOTO || (tile.icon.kind == IconKind.AUTO && tile.type in PersonTypes) ->
@@ -282,7 +302,7 @@ private fun ContactPhoto(tile: Tile, launcher: TileLauncher, tint: Color, size: 
             modifier = Modifier.size(size).clip(CircleShape).border(3.dp, tint, CircleShape),
         )
         initialsFallback -> Box(
-            Modifier.size(size).clip(CircleShape).background(Color(0xFFD9D3C7)).border(3.dp, tint, CircleShape),
+            Modifier.size(size).clip(CircleShape).background(Palette.Line).border(3.dp, tint, CircleShape),
             contentAlignment = Alignment.Center,
         ) {
             Text(initials(tile.label), color = Palette.Ink, fontSize = (size * 0.38f).fixedSp(), fontWeight = FontWeight.Bold)
@@ -376,7 +396,7 @@ private fun SosTile(tile: Tile, sos: SosConfig, launcher: TileLauncher, modifier
                         if (job.isActive) {
                             job.cancel()
                             if (released) {
-                                Toast.makeText(context, holdToast, Toast.LENGTH_SHORT).show()
+                                Hint.show(context, holdToast, speak = false)
                             }
                         }
                         scope.launch { progress.snapTo(0f) }
@@ -536,7 +556,7 @@ private fun PhotosTile(tile: Tile, launcher: TileLauncher, modifier: Modifier) {
                         if (item?.video == true) Box(
                             Modifier.size(72.dp).clip(androidx.compose.foundation.shape.CircleShape).background(Color(0xCC000000)),
                             contentAlignment = Alignment.Center,
-                        ) { Text("▶", color = Color.White, fontSize = 34.dp.fixedSp(), fontWeight = FontWeight.Bold) }
+                        ) { Icon(Symbols.get("play"), null, Modifier.size(40.dp), tint = Color.White) }
                     }
                 }
                 if (tile.label.isNotBlank()) {
@@ -638,9 +658,9 @@ private fun MissedCallsTile(tile: Tile, sos: SosConfig, launcher: TileLauncher, 
                 val call = stringResource(R.string.missed_call_back_desc, row.name)
                 Row(
                     Modifier.fillMaxWidth().height(rowHeight)
-                        .clip(RoundedCornerShape(14.dp))
+                        .clip(Ui.ShapeSmall)
                         .background(Color.White)
-                        .border(2.dp, Palette.Ink, RoundedCornerShape(14.dp))
+                        .border(2.dp, Palette.Ink, Ui.ShapeSmall)
                         .combinedClickable(
                             role = Role.Button,
                             onClickLabel = call,
@@ -658,7 +678,7 @@ private fun MissedCallsTile(tile: Tile, sos: SosConfig, launcher: TileLauncher, 
                             color = Palette.Ink, fontSize = 15.dp.fixedSp(), maxLines = 1, overflow = TextOverflow.Ellipsis,
                         )
                     }
-                    Box(Modifier.size(44.dp).clip(CircleShape).background(Color(0xFF1E7B34)), contentAlignment = Alignment.Center) {
+                    Box(Modifier.size(44.dp).clip(CircleShape).background(Palette.Ok), contentAlignment = Alignment.Center) {
                         Icon(Symbols.get("phone"), null, Modifier.size(26.dp), tint = Color.White)
                     }
                 }
@@ -745,9 +765,9 @@ private fun MessagesTile(tile: Tile, sos: SosConfig, launcher: TileLauncher, mod
                 val spoken = if (m.suspicious) warning else stringResource(R.string.messages_spoken_one, m.sender.ifBlank { m.app }, m.app, m.text)
                 Row(
                     Modifier.fillMaxWidth().height(rowHeight)
-                        .clip(RoundedCornerShape(14.dp))
-                        .background(if (m.suspicious) Color(0xFFFFE0B2) else Color.White)
-                        .border(if (m.suspicious) 4.dp else 2.dp, if (m.suspicious) Palette.Sos else Palette.Ink, RoundedCornerShape(14.dp))
+                        .clip(Ui.ShapeSmall)
+                        .background(if (m.suspicious) Palette.WarnSoft else Color.White)
+                        .border(if (m.suspicious) 4.dp else 2.dp, if (m.suspicious) Palette.Sos else Palette.Ink, Ui.ShapeSmall)
                         .combinedClickable(
                             role = Role.Button,
                             onClickLabel = spoken,
@@ -765,8 +785,11 @@ private fun MessagesTile(tile: Tile, sos: SosConfig, launcher: TileLauncher, mod
                                     .format(DateTimeFormatter.ofLocalizedTime(java.time.format.FormatStyle.SHORT)),
                             color = Palette.Ink, fontSize = 17.dp.fixedSp(), fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis,
                         )
-                        Text(if (m.suspicious) "⚠ " + stringResource(R.string.scam_label) else m.text, color = if (m.suspicious) Palette.Sos else Palette.Ink,
-                            fontSize = 17.dp.fixedSp(), fontWeight = if (m.suspicious) FontWeight.Bold else FontWeight.Normal, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            if (m.suspicious) Icon(Symbols.get("alert"), null, Modifier.size(20.dp).padding(end = 4.dp), tint = Palette.Warn)
+                            Text(if (m.suspicious) stringResource(R.string.scam_label) else m.text, color = if (m.suspicious) Palette.Warn else Palette.Ink,
+                                fontSize = 17.dp.fixedSp(), fontWeight = if (m.suspicious) FontWeight.Bold else FontWeight.Normal, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        }
                     }
                 }
             }

@@ -1,5 +1,6 @@
 package app.semplicephone.ui.settings
 
+import app.semplicephone.ui.Ui
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -45,7 +46,7 @@ fun MediaThumb(ref: String, size: androidx.compose.ui.unit.Dp, modifier: Modifie
     if (bmp != null) {
         Image(
             bmp, null, contentScale = ContentScale.Crop,
-            modifier = modifier.size(size).clip(RoundedCornerShape(12.dp)).border(2.dp, Palette.Ink, RoundedCornerShape(12.dp)),
+            modifier = modifier.size(size).clip(Ui.ShapeSmall).border(2.dp, Palette.Ink, Ui.ShapeSmall),
         )
     }
 }
@@ -79,12 +80,12 @@ fun MediaPickButtons(onPicked: (String) -> Unit, onExternalStart: () -> Unit, mu
         OutlinedButton(
             onClick = { onExternalStart(); if (multiple) pickMany.launch(request) else pickOne.launch(request) },
             enabled = !busy,
-            modifier = Modifier.weight(1f).heightIn(min = 52.dp),
+            modifier = Modifier.weight(1f).heightIn(min = Ui.HeightSettings),
         ) { Text(stringResource(if (busy) R.string.loading else R.string.media_choose)) }
         OutlinedButton(
             onClick = { onExternalStart(); runCatching { takePicture.launch(shotUri) } },
             enabled = !busy,
-            modifier = Modifier.weight(1f).heightIn(min = 52.dp),
+            modifier = Modifier.weight(1f).heightIn(min = Ui.HeightSettings),
         ) { Text(stringResource(R.string.media_take)) }
     }
 }
@@ -96,7 +97,7 @@ fun SinglePhotoField(ref: String, onChange: (String) -> Unit, onExternalStart: (
         if (ref.isNotBlank()) {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 MediaThumb(ref, 96.dp)
-                OutlinedButton(onClick = { onChange("") }, modifier = Modifier.heightIn(min = 48.dp)) {
+                OutlinedButton(onClick = { onChange("") }, modifier = Modifier.heightIn(min = Ui.HeightSettings)) {
                     Text(stringResource(R.string.media_remove), color = Palette.Sos)
                 }
             }
