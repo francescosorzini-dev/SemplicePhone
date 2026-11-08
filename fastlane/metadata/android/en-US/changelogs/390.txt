@@ -1,0 +1,1 @@
+- Clock: holding it now vibrates like the other tiles while it says the time

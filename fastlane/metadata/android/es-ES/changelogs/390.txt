@@ -1,0 +1,1 @@
+- Reloj: al mantenerlo pulsado vibra como las demás casillas mientras dice la hora

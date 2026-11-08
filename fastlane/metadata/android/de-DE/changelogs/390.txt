@@ -1,0 +1,1 @@
+- Uhr: beim Gedrückthalten vibriert sie jetzt wie die anderen Kacheln, während sie die Uhrzeit sagt

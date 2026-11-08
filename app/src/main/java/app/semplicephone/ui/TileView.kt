@@ -342,13 +342,19 @@ private fun ClockTile(tile: Tile, launcher: TileLauncher, modifier: Modifier, on
     val clockDesc = stringResource(R.string.clock_desc, time, date)
     // Pressione lunga (con «leggi i riquadri» attivo): il telefono dice ora e data.
     val spoken by androidx.compose.runtime.rememberUpdatedState(stringResource(R.string.clock_spoken, time, date))
+    // Stessa vibrazione breve degli altri riquadri alla pressione lunga (lì la fa combinedClickable da solo;
+    // qui il gestore è nostro, per contare i 5 tocchi delle impostazioni, che restano senza vibrazione).
+    val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
 
     BoxWithConstraints(
         modifier
             .clip(TileShape)
             .background(bg)
             .border(if (bg.isLight()) 2.dp else 0.dp, Palette.Ink, TileShape)
-            .secretTaps(taps, onLongPress = { launcher.speakText(spoken) }) { secretTap() }
+            .secretTaps(taps, onLongPress = {
+                haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                launcher.speakText(spoken)
+            }) { secretTap() }
             .semantics { contentDescription = clockDesc },
         contentAlignment = Alignment.Center,
     ) {

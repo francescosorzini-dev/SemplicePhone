@@ -1,0 +1,1 @@
+- Horloge : un appui long la fait vibrer comme les autres tuiles pendant qu'elle dit l'heure
