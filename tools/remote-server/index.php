@@ -2122,6 +2122,7 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
         check('simAlert', T('sim_alert'), T('sim_alert_hint')),
         field(T('inactive'), select({0: T('never_cap'), 4: '4 h', 6: '6 h', 8: '8 h', 12: '12 h'}, String(p.inactivityHours || 0), v => set('inactivityHours', +v)), T('inactive_hint')),
         check('fallDetection', T('fall'), T('fall_hint')),
+        p.fallDetection ? field(T('fall_sens'), select({low: T('fall_low'), medium: T('fall_medium'), high: T('fall_high')}, p.fallSensitivity || 'medium', v => set('fallSensitivity', v)), T('fall_sens_hint')) : '',
         check('heatAlert', T('heat'), T('heat_hint')),
         p.heatAlert ? field(T('heat_from'), select(Object.fromEntries([28, 30, 32, 34, 36].map(n => [n, n + '°'])), String(p.heatThreshold || 32), v => set('heatThreshold', +v))) : '',
         el('h4', {style: 'margin-top:14px'}, sym('pin'), ' ', T('zone')),

@@ -1,0 +1,7 @@
+{"version":1,"pages":[{"cols":2,"rows":5,"tiles":[
+ {"id":"clock","col":0,"row":0,"w":2,"h":1,"type":"clock","color":"#FFFFFF"},
+ {"id":"msg","col":0,"row":1,"w":2,"h":2,"type":"messages","label":"Messaggi nuovi","color":"#1F4FA8"},
+ {"id":"radio","col":0,"row":3,"w":1,"h":1,"type":"radio","label":"Radio","color":"#FFA726","stations":[{"name":"Paradise","url":"https://stream.radioparadise.com/mp3-128"},{"name":"Due","url":"http://example.invalid/x.mp3"}]},
+ {"id":"cerca","col":1,"row":3,"w":1,"h":1,"type":"search","label":"Cerca","color":"#6A1B9A"}]},
+ {"cols":2,"rows":5,"tiles":[]}],
+ "phone":{"homeButton":true,"homeButtonSide":"left","homeButtonLabel":false,"homeButtonColor":"#FFA726","theme":"contrast","holdToOpen":true}}

@@ -1,0 +1,5 @@
+{"version":1,"pages":[{"cols":2,"rows":5,"tiles":[
+ {"id":"clock","col":0,"row":0,"w":2,"h":1,"type":"clock","color":"#FFFFFF"},
+ {"id":"missed","col":0,"row":1,"w":2,"h":3,"type":"missed_calls","label":"Chiamate perse","color":"#FFE7A8"},
+ {"id":"set","col":0,"row":4,"w":2,"h":1,"type":"app","target":"com.android.settings","label":"Impostazioni","color":"#1F4FA8"}]}],
+ "phone":{"homeButton":true}}

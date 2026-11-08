@@ -561,6 +561,10 @@
     <string name="action_remove">Quitar</string>
     <string name="pin_how_back">Para volver aquí: 5 toques rápidos en el reloj o en un espacio vacío de la pantalla de inicio.</string>
     <string name="tile_page_current">Página %1$d (esta)</string>
+    <string name="phone_fall_sensitivity">Sensibilidad a las caídas</string>
+    <string name="phone_fall_low">Baja: solo caídas claras, menos avisos en el coche</string>
+    <string name="phone_fall_medium">Media (recomendada)</string>
+    <string name="phone_fall_high">Alta: también caídas suaves, más falsas alarmas</string>
     <string name="color_blue">Azul</string>
     <string name="color_green">Verde</string>
     <string name="color_purple">Morado</string>

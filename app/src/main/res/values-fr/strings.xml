@@ -561,6 +561,10 @@
     <string name="action_remove">Retirer</string>
     <string name="pin_how_back">Pour revenir ici : 5 touches rapides sur l\'horloge ou sur un espace vide de l\'écran d\'accueil.</string>
     <string name="tile_page_current">Page %1$d (celle-ci)</string>
+    <string name="phone_fall_sensitivity">Sensibilité aux chutes</string>
+    <string name="phone_fall_low">Basse : seulement les chutes nettes, moins d\'alertes en voiture</string>
+    <string name="phone_fall_medium">Moyenne (conseillée)</string>
+    <string name="phone_fall_high">Haute : aussi les chutes douces, plus de fausses alertes</string>
     <string name="color_blue">Bleu</string>
     <string name="color_green">Vert</string>
     <string name="color_purple">Violet</string>

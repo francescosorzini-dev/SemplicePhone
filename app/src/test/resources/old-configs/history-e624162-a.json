@@ -1,0 +1,4 @@
+{"version":1,"pages":[{"cols":2,"rows":5,"tiles":[
+ {"id":"clock","col":0,"row":0,"w":2,"h":1,"type":"clock","color":"#FFFFFF"},
+ {"id":"sos","col":0,"row":4,"w":2,"h":1,"type":"sos","label":"SOS","color":"#B71C1C"}]}],
+ "sos":{"numbers":["3331234567"]},"phone":{"autoAnswer":true,"autoAnswerSeconds":5,"announceCaller":true}}

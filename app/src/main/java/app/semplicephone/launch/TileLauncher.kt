@@ -75,7 +75,7 @@ class TileLauncher(
     /** Pressione lunga con «leggi i riquadri» attivo: dice il nome del riquadro. */
     fun speakLabel(tile: Tile): Boolean {
         if (!app.semplicephone.data.ConfigRepository.get(context).config.value.phone.speakTiles) return false
-        app.semplicephone.ui.Voice.speak(context, tile.label)
+        app.semplicephone.ui.Voice.speak(context, tile.label.ifBlank { app.semplicephone.ui.settings.defaultLabel(context, tile.type) })
         return true
     }
 

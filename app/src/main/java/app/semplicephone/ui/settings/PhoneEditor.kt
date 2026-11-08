@@ -201,6 +201,15 @@ fun PhoneEditor(
             Toggle(stringResource(R.string.phone_sim), stringResource(R.string.phone_sim_detail), p.simAlert) { p = p.copy(simAlert = it) }
             Stepper(stringResource(R.string.phone_inactive), p.inactivityHours / 2, 0..6, { p = p.copy(inactivityHours = it * 2) }, format = { if (it == 0) never else "${it * 2} h" })
             Toggle(stringResource(R.string.phone_fall), stringResource(R.string.phone_fall_detail), p.fallDetection) { p = p.copy(fallDetection = it) }
+            if (p.fallDetection) {
+                val levels = mapOf(
+                    "low" to stringResource(R.string.phone_fall_low), "medium" to stringResource(R.string.phone_fall_medium),
+                    "high" to stringResource(R.string.phone_fall_high),
+                )
+                OptionPicker(stringResource(R.string.phone_fall_sensitivity), levels.keys.toList(), p.fallSensitivity.takeIf { it in levels } ?: "medium", { levels[it].orEmpty() }) {
+                    p = p.copy(fallSensitivity = it)
+                }
+            }
             Toggle(stringResource(R.string.phone_heat), stringResource(R.string.phone_heat_detail), p.heatAlert) { p = p.copy(heatAlert = it) }
             if (p.heatAlert) Stepper(stringResource(R.string.phone_heat_threshold), p.heatThreshold, 28..38, { p = p.copy(heatThreshold = it) }, format = { "$it°" })
             if (BuildConfig.FULL) Text(

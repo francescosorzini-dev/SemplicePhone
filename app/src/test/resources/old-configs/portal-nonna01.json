@@ -1,0 +1,224 @@
+{
+    "version": 1,
+    "pages": [
+        {
+            "cols": 2,
+            "rows": 5,
+            "tiles": [
+                {
+                    "id": "clock",
+                    "col": 0,
+                    "row": 0,
+                    "w": 2,
+                    "h": 1,
+                    "type": "clock",
+                    "color": "#FFFFFF"
+                },
+                {
+                    "id": "tmw2logoe480",
+                    "col": 0,
+                    "row": 1,
+                    "w": 1,
+                    "h": 1,
+                    "type": "call",
+                    "target": "3331234567",
+                    "label": "Anna",
+                    "icon": {
+                        "kind": "auto",
+                        "ref": ""
+                    },
+                    "color": "#0B6E4F"
+                },
+                {
+                    "id": "tmw2logoe6cs",
+                    "col": 1,
+                    "row": 1,
+                    "w": 1,
+                    "h": 1,
+                    "type": "wa_video",
+                    "target": "3331234567",
+                    "label": "Video Anna",
+                    "icon": {
+                        "kind": "auto",
+                        "ref": ""
+                    },
+                    "color": "#00695C"
+                },
+                {
+                    "id": "tmw2logoe5kq",
+                    "col": 0,
+                    "row": 2,
+                    "w": 1,
+                    "h": 1,
+                    "type": "call",
+                    "target": "3477654321",
+                    "label": "Luca",
+                    "icon": {
+                        "kind": "auto",
+                        "ref": ""
+                    },
+                    "color": "#00695C"
+                },
+                {
+                    "id": "tmw2logoe7di",
+                    "col": 1,
+                    "row": 2,
+                    "w": 1,
+                    "h": 1,
+                    "type": "radio",
+                    "target": "@dialer",
+                    "label": "Radio",
+                    "icon": {
+                        "kind": "auto",
+                        "ref": ""
+                    },
+                    "color": "#1F4FA8",
+                    "stations": [
+                        {
+                            "name": "Paradise",
+                            "url": "https://stream.radioparadise.com/mp3-128"
+                        }
+                    ]
+                },
+                {
+                    "id": "tmw2logoe2o5",
+                    "col": 0,
+                    "row": 3,
+                    "w": 2,
+                    "h": 1,
+                    "type": "messages",
+                    "target": "",
+                    "label": "Messaggi nuovi",
+                    "color": "#FFE7A8"
+                },
+                {
+                    "id": "sos",
+                    "col": 0,
+                    "row": 4,
+                    "w": 2,
+                    "h": 1,
+                    "type": "sos",
+                    "label": "SOS",
+                    "color": "#B71C1C"
+                }
+            ]
+        },
+        {
+            "cols": 2,
+            "rows": 5,
+            "tiles": [
+                {
+                    "id": "tmw2logoepb",
+                    "col": 0,
+                    "row": 0,
+                    "w": 1,
+                    "h": 1,
+                    "type": "app",
+                    "target": "@sms",
+                    "label": "Messaggi",
+                    "icon": {
+                        "kind": "auto",
+                        "ref": ""
+                    },
+                    "color": "#1F4FA8"
+                },
+                {
+                    "id": "tmw2logoe2rg",
+                    "col": 1,
+                    "row": 0,
+                    "w": 1,
+                    "h": 1,
+                    "type": "app",
+                    "target": "com.whatsapp",
+                    "label": "WhatsApp",
+                    "icon": {
+                        "kind": "auto",
+                        "ref": ""
+                    },
+                    "color": "#1B6E34"
+                },
+                {
+                    "id": "tmw2logoe2e2",
+                    "col": 0,
+                    "row": 1,
+                    "w": 1,
+                    "h": 1,
+                    "type": "app",
+                    "target": "@camera",
+                    "label": "Fotocamera",
+                    "icon": {
+                        "kind": "auto",
+                        "ref": ""
+                    },
+                    "color": "#6A1B9A"
+                }
+            ]
+        }
+    ],
+    "sos": {
+        "numbers": [
+            "3331234567",
+            "3477654321"
+        ],
+        "holdSeconds": 3,
+        "countdownSeconds": 5,
+        "message": "Ho bisogno di aiuto."
+    },
+    "reminders": [
+        {
+            "id": "rmw2logoe1ry",
+            "time": "08:00",
+            "days": [],
+            "title": "Medicina",
+            "detail": "",
+            "icon": "pill",
+            "snoozeMinutes": 10,
+            "repeatMinutes": 5,
+            "maxRepeats": 6,
+            "enabled": true
+        },
+        {
+            "id": "cal-81cd5b11b0fd",
+            "time": "14:00",
+            "date": "2026-11-08",
+            "days": [],
+            "title": "Visita cardiologo",
+            "detail": "alle 15:00",
+            "icon": "calendar",
+            "snoozeMinutes": 10,
+            "repeatMinutes": 5,
+            "maxRepeats": 2,
+            "enabled": true
+        },
+        {
+            "id": "cal-381cbcd2edd7",
+            "time": "20:00",
+            "date": "2026-11-07",
+            "days": [],
+            "title": "Domani: Visita cardiologo",
+            "detail": "alle 15:00",
+            "icon": "calendar",
+            "snoozeMinutes": 10,
+            "repeatMinutes": 5,
+            "maxRepeats": 2,
+            "enabled": true
+        }
+    ],
+    "phone": {
+        "ringerLock": false,
+        "ringVolumePercent": 100,
+        "batteryAlertPercent": 15,
+        "badges": true,
+        "smsUpdateCommand": false,
+        "freshStart": true,
+        "speakerCalls": true,
+        "speakTiles": true,
+        "voiceConfirm": false,
+        "homeButton": true,
+        "autoAnswer": true,
+        "announceCaller": true,
+        "blockUnknown": false,
+        "bedsideClock": false,
+        "autoAnswerSeconds": 10
+    }
+}

@@ -733,5 +733,10 @@
  "app_icons": "Icone delle app",
  "app_icons_original": "Originali, colorate",
  "app_icons_mono": "A tinta unita, come i simboli",
- "app_icons_hint": "Tinta unita solo per le app che la prevedono (Android 13+); app SemplicePhone 0.18 o successiva."
+ "app_icons_hint": "Tinta unita solo per le app che la prevedono (Android 13+); app SemplicePhone 0.18 o successiva.",
+ "fall_sens": "Sensibilità",
+ "fall_low": "Bassa: solo cadute nette, meno allarmi in auto",
+ "fall_medium": "Media (consigliata)",
+ "fall_high": "Alta: anche cadute morbide, più falsi allarmi",
+ "fall_sens_hint": "Se scatta in auto o sul bus, scegli Bassa. Fino alla versione 0.18 dell'app il livello era fisso su Alta."
 }

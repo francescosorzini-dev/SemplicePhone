@@ -95,6 +95,11 @@ data class PhoneConfig(
     val inactivityHours: Int = 0,
     /** Rilevamento caduta: urto forte e immobilità → «Stai bene?» → SOS. */
     val fallDetection: Boolean = false,
+    /**
+     * Sensibilità della caduta: "low", "medium", "high" (vedi FallDetector.Level). Più bassa = servono
+     * una caduta più lunga, un colpo più forte e un'immobilità più completa (meno allarmi in auto).
+     */
+    val fallSensitivity: String = "medium",
     /** Zona sicura (solo edizione completa): raggio in metri attorno al punto indicato, 0 = no. */
     val safeZoneRadius: Int = 0,
     val safeZoneLat: Double = 0.0,

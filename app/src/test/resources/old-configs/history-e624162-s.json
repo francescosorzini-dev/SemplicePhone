@@ -1,0 +1,3 @@
+{"version":1,"pages":[{"cols":2,"rows":5,"tiles":[
+ {"id":"clock","col":0,"row":0,"w":2,"h":1,"type":"clock","color":"#FFFFFF"},
+ {"id":"cerca","col":0,"row":1,"w":2,"h":1,"type":"search","label":"Cerca app","color":"#1F4FA8"}]}],"phone":{}}

@@ -127,6 +127,9 @@ private fun ActionTile(tile: Tile, sos: SosConfig, launcher: TileLauncher, modif
     val wide = tile.w > tile.h
     val badgeDesc = stringResource(R.string.tile_badge_desc, badge)
     val hold = LocalTileLook.current.holdToOpen
+    // Riquadro senza scritta (solo icona): per TalkBack e per la voce vale il nome predefinito del tipo.
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val name = tile.label.ifBlank { app.semplicephone.ui.settings.defaultLabel(context, tile.type) }
 
     Box(
         modifier
@@ -135,12 +138,15 @@ private fun ActionTile(tile: Tile, sos: SosConfig, launcher: TileLauncher, modif
             .border(if (bg.isLight()) 2.dp else 0.dp, Palette.Ink, TileShape)
             .combinedClickable(
                 role = Role.Button,
-                onClickLabel = tile.label,
+                onClickLabel = name,
                 // «Tieni premuto per aprire» (tremore): il tocco breve dice solo il nome.
                 onLongClick = { if (hold) launcher.launch(tile, sos) else launcher.speakLabel(tile) },
                 onClick = { if (hold) launcher.holdHint(tile) else launcher.launch(tile, sos) },
             )
-            .semantics { if (badge > 0) stateDescription = badgeDesc },
+            .semantics {
+                if (tile.label.isBlank() && name.isNotBlank()) contentDescription = name
+                if (badge > 0) stateDescription = badgeDesc
+            },
         contentAlignment = Alignment.Center,
     ) {
         val fullPhoto = tile.icon.fill &&

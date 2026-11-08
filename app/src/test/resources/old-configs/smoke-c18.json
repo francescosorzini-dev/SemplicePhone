@@ -1,0 +1,15 @@
+{"version":1,"pages":[{"cols":2,"rows":6,"tiles":[
+ {"id":"clock","col":0,"row":0,"w":2,"h":1,"type":"clock","color":"#FFFFFF"},
+ {"id":"lente","col":0,"row":1,"type":"magnifier","label":"","color":"#FFD54F"},
+ {"id":"dove","col":1,"row":1,"type":"where","label":"","color":"#1A1A1A"},
+ {"id":"news","col":0,"row":2,"type":"news","label":"","target":"https://example.invalid/feed.xml","color":"#1A1A1A"},
+ {"id":"radio","col":1,"row":2,"type":"radio","label":"","color":"#FFA726"},
+ {"id":"chiamami","col":0,"row":3,"type":"call_me","label":"Anna","target":"+393331234567","color":"#1B7A34"},
+ {"id":"cerca","col":1,"row":3,"type":"search","label":"","color":"#1A1A1A"},
+ {"id":"pill","col":0,"row":4,"type":"call","target":"3331234567","label":"Luca","color":"#1F4FA8","icon":{"kind":"symbol","ref":"pill"}},
+ {"id":"key","col":1,"row":4,"type":"call","target":"3337654321","label":"Badante","color":"#6A1B9A","icon":{"kind":"symbol","ref":"key"}},
+ {"id":"sos","col":0,"row":5,"w":2,"h":1,"type":"sos","label":"SOS","color":"#C62828"}]}],
+ "sos":{"numbers":["+393331234567"]},
+ "emergency":{"name":"Maria Rossi","medications":"Cardioaspirina","allergies":"Penicillina"},
+ "reminders":[{"id":"r1","time":"08:00","title":"Pastiglia della pressione","icon":"pill","detail":"Una compressa dopo colazione"}],
+ "phone":{"holdToOpen":true,"morningBrief":false}}

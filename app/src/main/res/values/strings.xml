@@ -562,6 +562,10 @@
     <string name="action_remove">Remove</string>
     <string name="pin_how_back">To come back here: tap 5 times quickly on the clock or on an empty spot of the Home screen.</string>
     <string name="tile_page_current">Page %1$d (this one)</string>
+    <string name="phone_fall_sensitivity">Fall sensitivity</string>
+    <string name="phone_fall_low">Low: only clear falls, fewer alarms in the car</string>
+    <string name="phone_fall_medium">Medium (recommended)</string>
+    <string name="phone_fall_high">High: soft falls too, more false alarms</string>
     <string name="color_blue">Blue</string>
     <string name="color_green">Green</string>
     <string name="color_purple">Purple</string>

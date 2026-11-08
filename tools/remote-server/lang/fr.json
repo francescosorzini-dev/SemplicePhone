@@ -733,5 +733,10 @@
  "app_icons": "Icônes des apps",
  "app_icons_original": "Originales, en couleur",
  "app_icons_mono": "Unies, comme les symboles",
- "app_icons_hint": "Unies seulement pour les apps qui le prévoient (Android 13+) ; appli SemplicePhone 0.18 ou plus."
+ "app_icons_hint": "Unies seulement pour les apps qui le prévoient (Android 13+) ; appli SemplicePhone 0.18 ou plus.",
+ "fall_sens": "Sensibilité",
+ "fall_low": "Basse : seulement les chutes nettes, moins d'alertes en voiture",
+ "fall_medium": "Moyenne (conseillée)",
+ "fall_high": "Haute : aussi les chutes douces, plus de fausses alertes",
+ "fall_sens_hint": "S'il se déclenche en voiture ou en bus, choisissez Basse. Jusqu'à la version 0.18 de l'appli, le niveau était fixé sur Haute."
 }

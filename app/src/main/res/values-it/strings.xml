@@ -561,6 +561,10 @@
     <string name="action_remove">Rimuovi</string>
     <string name="pin_how_back">Per tornare qui: 5 tocchi rapidi sull\'orologio o su uno spazio vuoto della Home.</string>
     <string name="tile_page_current">Pagina %1$d (questa)</string>
+    <string name="phone_fall_sensitivity">Sensibilità della caduta</string>
+    <string name="phone_fall_low">Bassa: solo cadute nette, meno allarmi in auto</string>
+    <string name="phone_fall_medium">Media (consigliata)</string>
+    <string name="phone_fall_high">Alta: anche cadute morbide, più falsi allarmi</string>
     <string name="color_blue">Blu</string>
     <string name="color_green">Verde</string>
     <string name="color_purple">Viola</string>

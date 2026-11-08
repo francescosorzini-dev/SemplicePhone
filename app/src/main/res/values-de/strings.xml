@@ -561,6 +561,10 @@
     <string name="action_remove">Entfernen</string>
     <string name="pin_how_back">Um hierher zurückzukommen: 5 schnelle Tipper auf die Uhr oder auf eine freie Stelle des Startbildschirms.</string>
     <string name="tile_page_current">Seite %1$d (diese)</string>
+    <string name="phone_fall_sensitivity">Sturz-Empfindlichkeit</string>
+    <string name="phone_fall_low">Niedrig: nur deutliche Stürze, weniger Alarme im Auto</string>
+    <string name="phone_fall_medium">Mittel (empfohlen)</string>
+    <string name="phone_fall_high">Hoch: auch sanfte Stürze, mehr Fehlalarme</string>
     <string name="color_blue">Blau</string>
     <string name="color_green">Grün</string>
     <string name="color_purple">Violett</string>

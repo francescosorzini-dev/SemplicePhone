@@ -67,6 +67,21 @@ import kotlin.math.sqrt
  * Gira come servizio in primo piano solo se l'opzione è attiva.
  */
 class FallDetector : Service(), SensorEventListener {
+    /**
+     * Soglie per livello. Una caduta vera da in piedi dà ~0,3–0,5 s di caduta libera, un colpo di
+     * 3–6 g e poi una persona quasi immobile a terra (scarto < 0,05 g). In auto una buca dà un «salto»
+     * breve e la marcia vibra sempre un po': per questo il livello basso chiede caduta più lunga,
+     * colpo più forte e immobilità più completa.
+     */
+    enum class Level(val freeFallMs: Long, val impactG: Float, val stillSd: Float, val stillMs: Long) {
+        LOW(200, 3.0f, 0.05f, 10_000), MEDIUM(120, 2.7f, 0.08f, 8_000), HIGH(80, 2.5f, 0.12f, 8_000);
+
+        companion object {
+            fun of(key: String) = when (key) { "low" -> LOW; "high" -> HIGH; else -> MEDIUM }
+        }
+    }
+
+    private var level = Level.MEDIUM
     private var freeFallStart = 0L
     private var freeFallEnd = 0L
     private var impactAt = 0L
@@ -85,8 +100,19 @@ class FallDetector : Service(), SensorEventListener {
             .setContentIntent(PendingIntent.getActivity(this, 0, Intent(this, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE))
             .build()
         ServiceCompat.startForeground(this, ID, n, ServiceInfo.FOREGROUND_SERVICE_TYPE_HEALTH)
+        readLevel()
         val sm = getSystemService(SensorManager::class.java)
         sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)?.let { sm.registerListener(this, it, SensorManager.SENSOR_DELAY_GAME) }
+    }
+
+    /** Rilegge la sensibilità (anche quando la config cambia: sync() riavvia il servizio). */
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        readLevel()
+        return START_STICKY
+    }
+
+    private fun readLevel() {
+        level = Level.of(runCatching { ConfigRepository.readCurrent(this).phone.fallSensitivity }.getOrDefault("medium"))
     }
 
     override fun onDestroy() {
@@ -101,18 +127,18 @@ class FallDetector : Service(), SensorEventListener {
         val now = SystemClock.elapsedRealtime()
         when {
             impactAt > 0 -> {
-                // Dopo l'urto: 2 s di assestamento, poi 8 s di osservazione.
+                // Dopo l'urto: 2 s di assestamento, poi l'osservazione dell'immobilità.
                 if (now - impactAt < 2000) return
                 still += g
-                if (now - impactAt >= 10_000) {
+                if (now - impactAt >= 2000 + level.stillMs) {
                     val mean = still.average().toFloat()
                     val sd = sqrt(still.map { (it - mean) * (it - mean) }.average()).toFloat()
                     impactAt = 0; still.clear()
-                    if (sd < 0.12f) onFall(this)
+                    if (sd < level.stillSd) onFall(this)
                 }
             }
             g < 0.5f -> { if (freeFallStart == 0L) freeFallStart = now; freeFallEnd = now }
-            freeFallStart > 0 && g > 2.5f && freeFallEnd - freeFallStart >= 80 && now - freeFallEnd < 1000 -> {
+            freeFallStart > 0 && g > level.impactG && freeFallEnd - freeFallStart >= level.freeFallMs && now - freeFallEnd < 1000 -> {
                 impactAt = now; freeFallStart = 0; still.clear()
             }
             freeFallStart > 0 && now - freeFallEnd > 1000 -> freeFallStart = 0

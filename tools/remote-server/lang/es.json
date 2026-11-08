@@ -733,5 +733,10 @@
  "app_icons": "Iconos de las apps",
  "app_icons_original": "Originales, en color",
  "app_icons_mono": "De un color, como los símbolos",
- "app_icons_hint": "De un color solo en las apps que lo permiten (Android 13+); app SemplicePhone 0.18 o posterior."
+ "app_icons_hint": "De un color solo en las apps que lo permiten (Android 13+); app SemplicePhone 0.18 o posterior.",
+ "fall_sens": "Sensibilidad",
+ "fall_low": "Baja: solo caídas claras, menos avisos en el coche",
+ "fall_medium": "Media (recomendada)",
+ "fall_high": "Alta: también caídas suaves, más falsas alarmas",
+ "fall_sens_hint": "Si salta en el coche o en el autobús, elige Baja. Hasta la versión 0.18 de la app el nivel era fijo en Alta."
 }
