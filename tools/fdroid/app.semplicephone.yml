@@ -40,10 +40,16 @@ Builds:
     subdir: app
     gradle:
       - completo
+  - versionName: 0.18.1
+    versionCode: 380
+    commit: 8ad973d029f261c3f9c878417ade2ce91f822d25
+    subdir: app
+    gradle:
+      - completo
 
 AllowedAPKSigningKeys: 3871cf5b478aea297ec9aa665cebc98f7e62d9076fab62a548bac70e10f8819e
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
-CurrentVersion: 0.18.0
-CurrentVersionCode: 370
+CurrentVersion: 0.18.1
+CurrentVersionCode: 380
