@@ -71,6 +71,12 @@ object SymbolDrawables {
         "chevron" to R.drawable.sym_chevron,
         "minus" to R.drawable.sym_minus,
         "plus" to R.drawable.sym_plus,
+        "bell" to R.drawable.sym_bell,
+        "settings" to R.drawable.sym_settings,
+        "chart" to R.drawable.sym_chart,
+        "history" to R.drawable.sym_history,
+        "refresh" to R.drawable.sym_refresh,
+        "edit" to R.drawable.sym_edit,
     )
 
     fun get(name: String): Int = ids[name] ?: R.drawable.sym_grid

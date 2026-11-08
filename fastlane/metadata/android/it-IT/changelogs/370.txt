@@ -1,0 +1,6 @@
+- Aspetto unico: ogni schermata grande ha titolo con simbolo e CHIUDI in basso
+- Colori con significato: rosso solo per SOS, verde per «sì», arancio per «attenzione»
+- Simboli corretti e molti nuovi (sveglia, chiavi, piante, spazzatura…); niente più emoji
+- Testi che non escono dai pulsanti in nessuna lingua
+- Avvisi brevi grandi e letti a voce; notifiche col simbolo giusto
+- Icone delle app a tinta unita (facoltativo)

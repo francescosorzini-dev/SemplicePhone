@@ -1,0 +1,6 @@
+- Un seul style : chaque grand écran a un titre avec symbole et FERMER en bas
+- Couleurs avec un sens : rouge seulement pour le SOS, vert pour « oui », orange pour « attention »
+- Symboles corrigés et beaucoup de nouveaux (réveil, clés, plantes…) ; plus d'emoji
+- Les textes ne débordent plus des boutons
+- Messages courts grands et lus à voix haute ; notifications avec le bon symbole
+- Icônes d'apps unies (au choix)

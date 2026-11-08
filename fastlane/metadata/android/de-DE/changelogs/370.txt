@@ -1,0 +1,6 @@
+- Einheitlich: jeder große Bildschirm mit Titel und Symbol, SCHLIESSEN unten
+- Farben mit Bedeutung: Rot nur für SOS, Grün für „ja“, Orange für „Achtung“
+- Korrigierte und viele neue Symbole (Wecker, Schlüssel, Pflanzen, Müll…); keine Emojis mehr
+- Texte passen in jeder Sprache in die Tasten
+- Kurze Hinweise groß und vorgelesen; Benachrichtigungen mit passendem Symbol
+- Einfarbige App-Symbole (wahlweise)

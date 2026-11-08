@@ -42,6 +42,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -67,7 +68,7 @@ fun FitText(
 ) {
     BasicText(
         text, modifier,
-        style = TextStyle(color = color, fontFamily = Atkinson, fontWeight = if (bold) FontWeight.Bold else FontWeight.Normal, textAlign = align, lineHeight = max * 1.15f),
+        style = TextStyle(color = color, fontFamily = Atkinson, fontWeight = if (bold) FontWeight.Bold else FontWeight.Normal, textAlign = align, lineHeight = 1.15.em),
         maxLines = maxLines,
         autoSize = TextAutoSize.StepBased(minFontSize = min, maxFontSize = max, stepSize = 1.sp),
     )

@@ -148,6 +148,23 @@ function t(string $k, ...$a): string {
     return $s;
 }
 function th(string $k, ...$a): string { return h(t($k, ...$a)); }
+/*SYM-BEGIN*/ const SYM_UI_JSON = '["speaker","mic","folder","close","backspace","play","chevron","minus","plus","check","settings","chart","history","refresh","edit"]'; const SYM_JSON = '{"phone":["M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"],"message":["M6 4h12a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9l-5 4V6a2 2 0 0 1 2-2z"],"video":["M5 6h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z","M15 10.5l6-3.5v10l-6-3.5"],"photo":["M5 4h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z","M7 10a2 2 0 1 0 4 0a2 2 0 1 0-4 0","M21 16l-5-5-9 9"],"camera":["M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z","M8.5 13a3.5 3.5 0 1 0 7 0a3.5 3.5 0 1 0-7 0"],"weather":["M8 12a4 4 0 1 0 8 0a4 4 0 1 0-8 0","M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M5 19l1.5-1.5M17.5 6.5L19 5"],"web":["M3 12a9 9 0 1 0 18 0a9 9 0 1 0-18 0","M3 12h18","M12 3a14 14 0 0 1 0 18a14 14 0 0 1 0-18"],"person":["M8 8a4 4 0 1 0 8 0a4 4 0 1 0-8 0","M4 21a8 8 0 0 1 16 0"],"alert":["M12 3.5l9 16.5H3z","M12 10v4.5","M12 17.5v.5"],"pill":["M5.1 12.9l7.8-7.8a4.2 4.2 0 0 1 6 6l-7.8 7.8a4.2 4.2 0 0 1-6-6z","M9 9l6 6"],"home":["M3 11l9-7 9 7","M5 10v10h14V10","M10 20v-6h4v6"],"heart":["M12 20s-8-4.9-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 9c0 6.1-8 11-8 11z"],"music":["M9 18V6l10-2v12","M5 18a2 2 0 1 0 4 0a2 2 0 1 0-4 0","M15 16a2 2 0 1 0 4 0a2 2 0 1 0-4 0"],"radio":["M5 9h14a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1","M7 9L16 4","M13 14.5a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0-5 0","M7 13h3M7 16h3"],"grid":["M4 5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z","M14 5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1z","M4 15a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z","M14 15a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1z"],"shower":["M5.5 21V7a3 3 0 0 1 3-3h3a3 3 0 0 1 3 3","M10.5 11a4 4 0 0 1 8 0z","M12 14.5v1.5M17 14.5v1.5M14.5 14.5v1.5M13 19v1M16 19v1"],"cart":["M3 4h2l2.5 11h10L20 7H6","M9 19.5a1 1 0 1 0 2 0a1 1 0 1 0-2 0","M16 19.5a1 1 0 1 0 2 0a1 1 0 1 0-2 0"],"doctor":["M5 4v6a4 4 0 0 0 8 0V4","M4 4h2M12 4h2","M9 14v2a4 4 0 0 0 8 0v-1","M15 13a2 2 0 1 0 4 0a2 2 0 1 0-4 0"],"cards":["M5 9a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2z","M9 7V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-2"],"calendar":["M6 5h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z","M4 10h16","M8 3v4M16 3v4","M8 14h.01M12 14h.01M16 14h.01M8 17.5h.01M12 17.5h.01"],"walk":["M11.25 4.5a1.75 1.75 0 1 0 3.5 0a1.75 1.75 0 1 0-3.5 0","M12.5 8.5L11 14","M11 14l-2.5 3.5L7 21","M11 14l3 3 .5 4","M12.5 8.5L9.5 10l-1 3","M12.5 8.5l2 3 2.5 1"],"food":["M4.5 3v5a3.5 3.5 0 0 0 7 0V3","M8 3v18","M19.5 14V3a4 4 0 0 0-4 4v5a2 2 0 0 0 2 2h2z","M19.5 14v7"],"bed":["M3 5v14","M3 15h18v4","M21 15v-3a3 3 0 0 0-3-3h-7v6","M5.5 11.5a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0-3 0"],"water":["M6 4h12l-1.5 16h-9z","M7 9h10"],"cloud":["M7 18h10a4 4 0 0 0 0-8a5.5 5.5 0 0 0-10.6 1.5A3.3 3.3 0 0 0 7 18z"],"rain":["M7 14h10a4 4 0 0 0 0-8a5.5 5.5 0 0 0-10.6 1.5A3.3 3.3 0 0 0 7 14z","M8 17l-1 3M12 17l-1 3M16 17l-1 3"],"snow":["M7 14h10a4 4 0 0 0 0-8a5.5 5.5 0 0 0-10.6 1.5A3.3 3.3 0 0 0 7 14z","M8 18h.01M12 18h.01M16 18h.01M10 21h.01M14 21h.01"],"storm":["M7 14h10a4 4 0 0 0 0-8a5.5 5.5 0 0 0-10.6 1.5A3.3 3.3 0 0 0 7 14z","M12 14l-2 4h4l-2 4"],"fog":["M4 8h16M6 12h12M4 16h16"],"missed":["M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2","M16 3l5 5M21 3l-5 5"],"battery":["M4.5 6h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-12a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z","M21.5 10v4","M12 9.5L9.5 12H13l-2.5 3"],"search":["M4 10a6 6 0 1 0 12 0a6 6 0 1 0-12 0","M14.5 14.5L20 20"],"torch":["M7 3h10v3l-3 4v11h-4V10L7 6z","M7 6h10","M12 13v2"],"magnifier":["M3 10a7 7 0 1 0 14 0a7 7 0 1 0-14 0","M15 15l6 6","M10 7v6M7 10h6"],"pin":["M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z","M9.5 10a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0-5 0"],"news":["M4 5h13v14H6a2 2 0 0 1-2-2z","M17 9h3v8a2 2 0 0 1-2 2","M7 8h7M7 11h7M7 14h4"],"callme":["M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2","M21 3l-6 6","M15 4v5h5"],"check":["M3 12a9 9 0 1 0 18 0a9 9 0 1 0-18 0","M8 12.5l2.5 2.5 5.5-6"],"clock":["M3 12a9 9 0 1 0 18 0a9 9 0 1 0-18 0","M12 7v5l3 2"],"car":["M6.5 10l1.5-4h8l1.5 4","M5 10h14a2 2 0 0 1 2 2v4a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-4a2 2 0 0 1 2-2z","M7 13.5h.01M17 13.5h.01","M5.5 17v2M18.5 17v2"],"bus":["M6 3h12a2 2 0 0 1 2 2v12H4V5a2 2 0 0 1 2-2z","M4 11h16","M7 17v3M17 17v3","M8 14h.01M16 14h.01"],"key":["M4 16a4 4 0 1 0 8 0a4 4 0 1 0-8 0","M10.8 13.2L20 4","M17 7l2.5 2.5M14.5 9.5l2 2"],"glasses":["M3 13.5a3.5 3.5 0 1 0 7 0a3.5 3.5 0 1 0-7 0","M14 13.5a3.5 3.5 0 1 0 7 0a3.5 3.5 0 1 0-7 0","M10 13a2 2 0 0 1 4 0","M3.5 12L5 6.5M20.5 12L19 6.5"],"paw":["M8.5 16.5c0-2.5 1.6-4.5 3.5-4.5s3.5 2 3.5 4.5c0 2-1.6 3-3.5 3s-3.5-1-3.5-3z","M4.5 11a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0-3 0","M8 6.5a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0-3 0","M13 6.5a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0-3 0","M16.5 11a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0-3 0"],"plant":["M7 14h10l-1.5 7h-7z","M12 14V8","M12 10C9 10 7 8 7 5c3 0 5 2 5 5z","M12 8c0-3 2-5 5-5 0 3-2 5-5 5z"],"tooth":["M7 3C4.5 3 3 5 3 7.5c0 3 1.5 4.5 2 7l1 5c.3 1.3 2 1.3 2.3 0l1.2-4.5c.3-1 2.7-1 3 0l1.2 4.5c.3 1.3 2 1.3 2.3 0l1-5c.5-2.5 2-4 2-7C21 5 19.5 3 17 3c-2 0-3 1-5 1S9 3 7 3z"],"cake":["M5 21v-7a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v7","M3 21h18","M12 13V9","M12 6.5c-.8-.8-.8-2 0-3 .8 1 .8 2.2 0 3z","M5 16.5c1.2 0 1.2 1 2.3 1s1.2-1 2.3-1 1.2 1 2.4 1 1.2-1 2.3-1 1.2 1 2.3 1 1.2-1 2.4-1"],"trash":["M4 7h16","M9 7V4h6v3","M6 7l1 13h10l1-13","M10 11v6M14 11v6"],"wallet":["M4 7a2 2 0 0 1 2-2h11v4","M4 7v11a2 2 0 0 0 2 2h14V9H6a2 2 0 0 1-2-2z","M16 14.5h.01"],"book":["M12 6.5C10 5 7 4.5 3 5v14c4-.5 7 0 9 1.5 2-1.5 5-2 9-1.5V5c-4-.5-7 0-9 1.5z","M12 6.5v14"],"tv":["M5 7h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2z","M8 3l4 4 4-4"],"mail":["M5 5h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z","M3.5 7l8.5 6 8.5-6"],"thermometer":["M10 14.5V5a2 2 0 0 1 4 0v9.5a4 4 0 1 1-4 0z","M12 9v8"],"syringe":["M16 5l3 3-9 9-3-3z","M14 3l7 7","M8.5 15.5L3 21","M12.5 9.5l2 2"],"family":["M5 8.5a3 3 0 1 0 6 0a3 3 0 1 0-6 0","M2.5 20a5.5 5.5 0 0 1 11 0","M14 9.5a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0-5 0","M15 14.7a4.5 4.5 0 0 1 6.5 4v1.3"],"moon":["M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"],"speaker":["M4 9h3l5-4v14l-5-4H4z","M15.5 9a4 4 0 0 1 0 6","M18 6.5a7.5 7.5 0 0 1 0 11"],"mic":["M9 6a3 3 0 0 1 6 0v5a3 3 0 0 1-6 0z","M5.5 11a6.5 6.5 0 0 0 13 0","M12 17.5V21","M9 21h6"],"folder":["M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"],"close":["M6 6l12 12M18 6L6 18"],"backspace":["M8 5h11a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H8l-6-7z","M11 9l6 6M17 9l-6 6"],"play":["M6 4.5v15L19 12z"],"chevron":["M6 9l6 6 6-6"],"minus":["M5 12h14"],"plus":["M12 5v14M5 12h14"],"bell":["M6 16v-5a6 6 0 0 1 12 0v5l2 2H4z","M10 20.5a2 2 0 0 0 4 0","M12 3v2"],"settings":["M4 7h9M17 7h3","M13 7a2 2 0 1 0 4 0a2 2 0 1 0-4 0","M4 12h3M11 12h9","M7 12a2 2 0 1 0 4 0a2 2 0 1 0-4 0","M4 17h11M19 17h1","M15 17a2 2 0 1 0 4 0a2 2 0 1 0-4 0"],"chart":["M4 20h16","M6 20v-6M10 20V8M14 20v-9M18 20V5"],"history":["M4 12a8 8 0 1 0 2.3-5.6","M4 4v4h4","M12 8v4l3 2"],"refresh":["M20 12a8 8 0 1 1-2.3-5.6","M20 4v4h-4"],"edit":["M5 19l1-4L16 5l3 3L9 18z","M14 7l3 3"]}'; /*SYM-END*/
+/** Simbolo dell'app come SVG in linea (stessi tracciati del telefono, da tools/symbols/gen.py). */
+function sym_svg(string $name, string $cls = 'sym'): string {
+    static $all = null;
+    $all ??= json_decode(SYM_JSON, true) ?: [];
+    $paths = $all[$name] ?? $all['grid'] ?? [];
+    return '<svg class="' . h($cls) . '" viewBox="0 0 24 24" aria-hidden="true">' . implode('', array_map(fn($d) => '<path d="' . h($d) . '"/>', $paths)) . '</svg>';
+}
+/** Simbolo di ogni tipo di avviso, per le pagine del portale (email e Telegram restano con le emoji). */
+const EV_SYM = ['sos' => 'alert', 'fall' => 'alert', 'reminder_missed' => 'pill', 'pills_low' => 'pill', 'battery' => 'battery', 'offline' => 'web', 'online' => 'check',
+    'test' => 'bell', 'call_blocked' => 'phone', 'call_out_blocked' => 'phone', 'long_call' => 'phone', 'sim_changed' => 'phone', 'location' => 'pin', 'zone_left' => 'pin',
+    'zone_back' => 'home', 'ring_done' => 'bell', 'message_read' => 'message', 'remote_app' => 'alert', 'scam_message' => 'alert', 'inactive' => 'moon',
+    'active_again' => 'check', 'heat' => 'thermometer', 'call_me' => 'callme', 'voice_reply' => 'mic'];
+/** Toglie le emoji in testa a un titolo (per le pagine, dove c'è il simbolo). */
+function no_emoji(string $s): string { return preg_replace('/^[\p{So}\p{Sk}\x{FE0F}\x{200D}\x{2190}-\x{21FF}\x{2300}-\x{23FF}\s]+/u', '', $s) ?? $s; }
+/** Titolo dell'avviso per le pagine: simbolo + testo senza emoji. */
+function ev_title_html(string $type): string { return sym_svg(EV_SYM[$type] ?? 'bell') . ' ' . h(no_emoji(ev_title($type))); }
 function ev_title(string $type): string { return in_array($type, EVENT_TYPES, true) ? t('ev_' . $type) : $type; }
 /**
  * Testo di un avviso nella lingua del portale. I telefoni dalla 0.17.2 mandano «key» (nome della
@@ -1279,14 +1296,14 @@ details summary{cursor:pointer;font-weight:600}
 
   <?php if ($loaded): ?><div class="msg warn"><?= h($loaded) ?></div><?php endif; ?>
   <?php $lastV = history($edit)[0] ?? null; $lastH = $lastV ? read_json(DATA . "/history/$edit/$lastV.json", []) : [];
-    if (!$loaded && ($lastH['source'] ?? '') === 'phone'): ?><p class="hint">📱 <?= th('phone_changed_info', date('d/m/Y H:i', (int)($lastH['at'] ?? 0)), implode('; ', (array)($lastH['changes'] ?? []))) ?></p><?php endif; ?>
+    if (!$loaded && ($lastH['source'] ?? '') === 'phone'): ?><p class="hint"><?= sym_svg('phone') ?> <?= th('phone_changed_info', date('d/m/Y H:i', (int)($lastH['at'] ?? 0)), implode('; ', (array)($lastH['changes'] ?? []))) ?></p><?php endif; ?>
   <?php if (isset($meta['badgesAccess']) && !$meta['badgesAccess']): ?><div class="msg warn"><?= th('no_notif_access') ?></div><?php endif; ?>
   <?php foreach (access_warnings($meta) as $w): ?><div class="msg warn"><?= h($w) ?></div><?php endforeach; ?>
   <div class="pagetabs">
-    <button type="button" data-ptab="p-config">🛠 <?= th('ptab_config') ?></button>
-    <button type="button" data-ptab="p-talk">💬 <?= th('ptab_talk') ?></button>
-    <button type="button" data-ptab="p-status">📊 <?= th('ptab_status') ?></button>
-    <button type="button" data-ptab="p-settings">⚙ <?= th('ptab_settings') ?></button>
+    <button type="button" data-ptab="p-config"><?= sym_svg('edit') ?> <?= th('ptab_config') ?></button>
+    <button type="button" data-ptab="p-talk"><?= sym_svg('message') ?> <?= th('ptab_talk') ?></button>
+    <button type="button" data-ptab="p-status"><?= sym_svg('chart') ?> <?= th('ptab_status') ?></button>
+    <button type="button" data-ptab="p-settings"><?= sym_svg('settings') ?> <?= th('ptab_settings') ?></button>
   </div>
   <section class="pagepanel" id="p-config">
   <?php $lastLocPre = null; foreach ($urgent as $ev) if (isset($ev['lat'], $ev['lon']) && $ev['lat'] !== null) { $lastLocPre = ['lat' => (float)$ev['lat'], 'lon' => (float)$ev['lon']]; break; } ?>
@@ -1297,7 +1314,7 @@ details summary{cursor:pointer;font-weight:600}
       <div><label for="pin"><?= th('new_pin') ?> <span class="hint"><?= th('new_pin_hint') ?></span></label><input id="pin" type="text" name="pin" inputmode="numeric" pattern="\d{4,8}" autocomplete="off" placeholder="<?= th('pin_placeholder') ?>"></div>
     </div>
 
-    <details class="card" id="wizard" <?= history($edit) ? '' : 'open' ?>><summary><?= th('wiz_title') ?></summary><div id="wizbody"></div></details>
+    <details class="card" id="wizard" <?= history($edit) ? '' : 'open' ?>><summary><?= sym_svg('check') ?> <?= th('wiz_title') ?></summary><div id="wizbody"></div></details>
     <div class="msg warn" id="warns" hidden></div>
     <div class="tabs" role="tablist">
       <button type="button" role="tab" aria-selected="true" data-tab="t-screen"><?= th('tab_screen') ?></button>
@@ -1337,7 +1354,7 @@ details summary{cursor:pointer;font-weight:600}
   ?>
   </section>
   <section class="pagepanel" id="p-talk" hidden>
-  <h2 id="where">📍 <?= th('locate_title') ?></h2>
+  <h2 id="where"><?= sym_svg('pin') ?> <?= th('locate_title') ?></h2>
   <div class="card">
     <?php if ($lastLoc): $la = $lastLoc['lat'] ?? null; $lo = $lastLoc['lon'] ?? null; ?>
       <p><b><?= th('locate_last', date('d/m H:i', (int)(($lastLoc['at'] ?? 0) / 1000))) ?></b>
@@ -1352,7 +1369,7 @@ details summary{cursor:pointer;font-weight:600}
 
   <?php $fm = $meta['message'] ?? null; $ringing = time() - (int)($meta['ringRequest'] ?? 0) < 3600;
     $oldApp = !empty($meta['appVersion']) && version_compare((string)$meta['appVersion'], APP_FEATURES_0130, '<'); ?>
-  <h2 id="family"><?= th('family_title') ?></h2>
+  <h2 id="family"><?= sym_svg('message') ?> <?= th('family_title') ?></h2>
   <div class="card">
     <?php if ($oldApp): ?><p class="msg warn"><?= th('family_old_app', $meta['appVersion']) ?></p><?php endif; ?>
     <form method="post" enctype="multipart/form-data" id="msgform" data-vmax="<?= video_max() ?>"><input type="hidden" name="csrf" value="<?= h($csrf) ?>"><input type="hidden" name="act" value="message"><input type="hidden" name="id" value="<?= h($edit) ?>">
@@ -1414,15 +1431,15 @@ details summary{cursor:pointer;font-weight:600}
       });
     })();
     </script>
-    <?php if ($fm): ?><p class="hint"><?= !empty($fm['video']) ? '🎬 ' : '' ?><?= th('message_last', date('d/m H:i', (int)$fm['at']), $fm['text']) ?> —
+    <?php if ($fm): ?><p class="hint"><?= !empty($fm['video']) ? sym_svg('video') . ' ' : '' ?><?= th('message_last', date('d/m H:i', (int)$fm['at']), $fm['text']) ?> —
       <b><?= !empty($fm['readAt']) ? th('message_read_at', date('d/m H:i', (int)$fm['readAt'])) : th('message_waiting') ?></b></p><?php endif; ?>
     <hr style="border:0;border-top:1px solid #ddd;margin:16px 0">
     <form method="post"><input type="hidden" name="csrf" value="<?= h($csrf) ?>"><input type="hidden" name="act" value="ring"><input type="hidden" name="id" value="<?= h($edit) ?>">
-      <button class="sec"><?= th('ring_button') ?></button></form>
+      <button class="sec"><?= sym_svg('bell') ?> <?= th('ring_button') ?></button></form>
     <?php if ($ringing): ?><p class="msg warn"><?= th('ring_pending') ?></p><?php endif; ?>
     <p class="hint"><?= th('family_hint') ?></p>
     <?php $voices = array_reverse(glob(DATA . "/voice/$edit/*.m4a") ?: []); if ($voices): ?>
-      <h3 style="margin-top:18px">🎤 <?= th('voice_replies') ?></h3>
+      <h3 style="margin-top:18px"><?= sym_svg('mic') ?> <?= th('voice_replies') ?></h3>
       <?php foreach (array_slice($voices, 0, 10) as $vf): $vn = basename($vf); ?>
         <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:8px 0">
           <span class="hint" style="min-width:110px"><?= h(date('d/m H:i', (int)$vn)) ?></span>
@@ -1434,19 +1451,19 @@ details summary{cursor:pointer;font-weight:600}
 
   </section>
   <section class="pagepanel" id="p-status" hidden>
-  <h2>📊 <?= th('weekly_card') ?></h2>
+  <h2><?= sym_svg('chart') ?> <?= th('weekly_card') ?></h2>
   <div class="card"><ul style="margin:0;padding-left:20px"><?php foreach (weekly_lines($edit) as $l): ?><li><?= h($l) ?></li><?php endforeach; ?></ul></div>
 
-  <h2>🔔 <?= th('alerts_from_phone') ?></h2>
+  <h2><?= sym_svg('bell') ?> <?= th('alerts_from_phone') ?></h2>
   <div class="card">
   <?php if (!$urgent): ?><p class="hint"><?= th('no_alerts_received') ?></p><?php else: ?>
     <table><tr><th><?= th('col_when') ?></th><th><?= th('col_what') ?></th></tr>
-    <?php foreach ($urgent as $ev): ?><tr><td><?= h(date('d/m H:i', (int)(($ev['at'] ?? 0) / 1000))) ?></td><td><b><?= h(ev_title((string)($ev['type'] ?? ''))) ?></b><br><span class="hint"><?= nl2br(h(ev_text($ev))) ?></span></td></tr><?php endforeach; ?>
+    <?php foreach ($urgent as $ev): ?><tr><td><?= h(date('d/m H:i', (int)(($ev['at'] ?? 0) / 1000))) ?></td><td><b><?= ev_title_html((string)($ev['type'] ?? '')) ?></b><br><span class="hint"><?= nl2br(h(ev_text($ev))) ?></span></td></tr><?php endforeach; ?>
     </table>
   <?php endif; ?>
   </div>
 
-  <h2>💊 <?= th('rem_what_happened') ?></h2>
+  <h2><?= sym_svg('pill') ?> <?= th('rem_what_happened') ?></h2>
   <div class="card">
   <?php if (!$events): ?><p class="hint"><?= th('no_news') ?></p><?php else: ?>
     <table><tr><th><?= th('col_when') ?></th><th><?= th('col_reminder') ?></th><th><?= th('col_result') ?></th></tr>
@@ -1458,7 +1475,7 @@ details summary{cursor:pointer;font-weight:600}
 
   </section>
   <section class="pagepanel" id="p-settings" hidden>
-  <h2>🕘 <?= th('prev_versions') ?></h2>
+  <h2><?= sym_svg('history') ?> <?= th('prev_versions') ?></h2>
   <div class="card">
   <?php if (!$versions): ?><p class="hint"><?= th('no_publications') ?></p><?php else: ?>
     <table><tr><th><?= th('col_published') ?></th><th></th></tr>
@@ -1477,7 +1494,7 @@ details summary{cursor:pointer;font-weight:600}
   <?php endif; ?>
   </div>
 
-  <h2>📱 <?= th('installed_apps') ?></h2>
+  <h2><?= sym_svg('grid') ?> <?= th('installed_apps') ?></h2>
   <div class="card">
   <?php if (!$devApps): ?>
     <p class="hint"><?= th('apps_not_received') ?></p>
@@ -1490,7 +1507,7 @@ details summary{cursor:pointer;font-weight:600}
   <?php endif; ?>
   </div>
 
-  <details class="card" id="calendar" <?= !empty($meta['calendarUrl']) ? 'open' : '' ?>><summary><?= th('cal_title') ?></summary>
+  <details class="card" id="calendar" <?= !empty($meta['calendarUrl']) ? 'open' : '' ?>><summary><?= sym_svg('calendar') ?> <?= th('cal_title') ?></summary>
     <p class="hint"><?= th('cal_hint') ?></p>
     <form method="post"><input type="hidden" name="csrf" value="<?= h($csrf) ?>"><input type="hidden" name="act" value="calendar"><input type="hidden" name="id" value="<?= h($edit) ?>">
       <label for="calurl"><?= th('cal_url') ?></label><input id="calurl" type="url" name="calendarUrl" value="<?= h($meta['calendarUrl'] ?? '') ?>" placeholder="https://calendar.google.com/calendar/ical/…/basic.ics">
@@ -1500,7 +1517,7 @@ details summary{cursor:pointer;font-weight:600}
       <p><button><?= th('cal_save') ?></button></p></form>
     <?php if (!empty($meta['calendarUrl'])): ?><p class="hint"><?= !empty($meta['calendarError']) ? '<span class="pill bad">' . th('cal_error') . '</span>' : th('cal_status', (int)($meta['calendarCount'] ?? 0), ago(isset($meta['calendarAt']) ? (int)$meta['calendarAt'] : null)) ?></p><?php endif; ?>
   </details>
-  <details class="card" id="alertlang"><summary>🌐 <?= th('alert_lang_title') ?></summary>
+  <details class="card" id="alertlang"><summary><?= sym_svg('web') ?> <?= th('alert_lang_title') ?></summary>
     <p class="hint"><?= th('alert_lang_hint') ?></p>
     <form method="post"><input type="hidden" name="csrf" value="<?= h($csrf) ?>"><input type="hidden" name="act" value="alertlang"><input type="hidden" name="id" value="<?= h($edit) ?>">
       <?php $al = (string)($meta['alertLang'] ?? ''); $pl = (string)($meta['lang'] ?? ''); ?>
@@ -1509,12 +1526,12 @@ details summary{cursor:pointer;font-weight:600}
         <?php foreach (langs() as $l): ?><option value="<?= $l ?>" <?= $al === $l ? 'selected' : '' ?>><?= h(lang_table($l)['lang_name'] ?? $l) ?></option><?php endforeach; ?></select></div></div>
       <p><button><?= th('alert_lang_save') ?></button></p></form>
   </details>
-  <details class="card"><summary>🔄 <?= th('reinstalled') ?></summary>
+  <details class="card"><summary><?= sym_svg('refresh') ?> <?= th('reinstalled') ?></summary>
     <p><?= th('reinstalled_text') ?></p>
     <form method="post"><input type="hidden" name="csrf" value="<?= h($csrf) ?>"><input type="hidden" name="act" value="forget"><input type="hidden" name="id" value="<?= h($edit) ?>">
       <button class="danger"><?= th('accept_next') ?></button></form>
   </details>
-  <details class="card"><summary>⚙ <?= th('other_actions') ?></summary>
+  <details class="card"><summary><?= sym_svg('settings') ?> <?= th('other_actions') ?></summary>
     <form method="post" style="margin:10px 0"><input type="hidden" name="csrf" value="<?= h($csrf) ?>"><input type="hidden" name="act" value="ignore"><input type="hidden" name="id" value="<?= h($edit) ?>">
       <button class="sec"><?= th(empty($meta['ignoreOffline']) ? 'ignore_offline' : 'unignore_offline') ?></button></form>
     <form method="post" id="delform"><input type="hidden" name="csrf" value="<?= h($csrf) ?>"><input type="hidden" name="act" value="delete"><input type="hidden" name="id" value="<?= h($edit) ?>">
@@ -1567,10 +1584,10 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
   const typeColor = k => TYPE_COLOR[k] || '#1F4FA8';
   const OLD_COLORS = {'#0B6E4F': '#1B7A34', '#00695C': '#4FC3F7', '#B71C1C': '#C62828', '#A84300': '#FFA726', '#FFF3C4': '#FFD54F', '#FFE7A8': '#FFD54F',
     '#37474F': '#1A1A1A', '#0277BD': '#4FC3F7'};
-  /*SYM-BEGIN*/ const SYM_PATHS = {"phone":["M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"],"message":["M6 4h12a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9l-5 4V6a2 2 0 0 1 2-2z"],"video":["M5 6h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z","M15 10.5l6-3.5v10l-6-3.5"],"photo":["M5 4h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z","M7 10a2 2 0 1 0 4 0a2 2 0 1 0-4 0","M21 16l-5-5-9 9"],"camera":["M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z","M8.5 13a3.5 3.5 0 1 0 7 0a3.5 3.5 0 1 0-7 0"],"weather":["M8 12a4 4 0 1 0 8 0a4 4 0 1 0-8 0","M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M5 19l1.5-1.5M17.5 6.5L19 5"],"web":["M3 12a9 9 0 1 0 18 0a9 9 0 1 0-18 0","M3 12h18","M12 3a14 14 0 0 1 0 18a14 14 0 0 1 0-18"],"person":["M8 8a4 4 0 1 0 8 0a4 4 0 1 0-8 0","M4 21a8 8 0 0 1 16 0"],"alert":["M12 3.5l9 16.5H3z","M12 10v4.5","M12 17.5v.5"],"pill":["M5.1 12.9l7.8-7.8a4.2 4.2 0 0 1 6 6l-7.8 7.8a4.2 4.2 0 0 1-6-6z","M9 9l6 6"],"home":["M3 11l9-7 9 7","M5 10v10h14V10","M10 20v-6h4v6"],"heart":["M12 20s-8-4.9-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 9c0 6.1-8 11-8 11z"],"music":["M9 18V6l10-2v12","M5 18a2 2 0 1 0 4 0a2 2 0 1 0-4 0","M15 16a2 2 0 1 0 4 0a2 2 0 1 0-4 0"],"radio":["M5 9h14a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1","M7 9L16 4","M13 14.5a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0-5 0","M7 13h3M7 16h3"],"grid":["M4 5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z","M14 5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1z","M4 15a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z","M14 15a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1z"],"shower":["M5.5 21V7a3 3 0 0 1 3-3h3a3 3 0 0 1 3 3","M10.5 11a4 4 0 0 1 8 0z","M12 14.5v1.5M17 14.5v1.5M14.5 14.5v1.5M13 19v1M16 19v1"],"cart":["M3 4h2l2.5 11h10L20 7H6","M9 19.5a1 1 0 1 0 2 0a1 1 0 1 0-2 0","M16 19.5a1 1 0 1 0 2 0a1 1 0 1 0-2 0"],"doctor":["M5 4v6a4 4 0 0 0 8 0V4","M4 4h2M12 4h2","M9 14v2a4 4 0 0 0 8 0v-1","M15 13a2 2 0 1 0 4 0a2 2 0 1 0-4 0"],"cards":["M5 9a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2z","M9 7V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-2"],"calendar":["M6 5h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z","M4 10h16","M8 3v4M16 3v4","M8 14h.01M12 14h.01M16 14h.01M8 17.5h.01M12 17.5h.01"],"walk":["M11.25 4.5a1.75 1.75 0 1 0 3.5 0a1.75 1.75 0 1 0-3.5 0","M12.5 8.5L11 14","M11 14l-2.5 3.5L7 21","M11 14l3 3 .5 4","M12.5 8.5L9.5 10l-1 3","M12.5 8.5l2 3 2.5 1"],"food":["M4.5 3v5a3.5 3.5 0 0 0 7 0V3","M8 3v18","M19.5 14V3a4 4 0 0 0-4 4v5a2 2 0 0 0 2 2h2z","M19.5 14v7"],"bed":["M3 5v14","M3 15h18v4","M21 15v-3a3 3 0 0 0-3-3h-7v6","M5.5 11.5a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0-3 0"],"water":["M6 4h12l-1.5 16h-9z","M7 9h10"],"cloud":["M7 18h10a4 4 0 0 0 0-8a5.5 5.5 0 0 0-10.6 1.5A3.3 3.3 0 0 0 7 18z"],"rain":["M7 14h10a4 4 0 0 0 0-8a5.5 5.5 0 0 0-10.6 1.5A3.3 3.3 0 0 0 7 14z","M8 17l-1 3M12 17l-1 3M16 17l-1 3"],"snow":["M7 14h10a4 4 0 0 0 0-8a5.5 5.5 0 0 0-10.6 1.5A3.3 3.3 0 0 0 7 14z","M8 18h.01M12 18h.01M16 18h.01M10 21h.01M14 21h.01"],"storm":["M7 14h10a4 4 0 0 0 0-8a5.5 5.5 0 0 0-10.6 1.5A3.3 3.3 0 0 0 7 14z","M12 14l-2 4h4l-2 4"],"fog":["M4 8h16M6 12h12M4 16h16"],"missed":["M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2","M16 3l5 5M21 3l-5 5"],"battery":["M4.5 6h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-12a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z","M21.5 10v4","M12 9.5L9.5 12H13l-2.5 3"],"search":["M4 10a6 6 0 1 0 12 0a6 6 0 1 0-12 0","M14.5 14.5L20 20"],"torch":["M7 3h10v3l-3 4v11h-4V10L7 6z","M7 6h10","M12 13v2"],"magnifier":["M3 10a7 7 0 1 0 14 0a7 7 0 1 0-14 0","M15 15l6 6","M10 7v6M7 10h6"],"pin":["M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z","M9.5 10a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0-5 0"],"news":["M4 5h13v14H6a2 2 0 0 1-2-2z","M17 9h3v8a2 2 0 0 1-2 2","M7 8h7M7 11h7M7 14h4"],"callme":["M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2","M21 3l-6 6","M15 4v5h5"],"check":["M3 12a9 9 0 1 0 18 0a9 9 0 1 0-18 0","M8 12.5l2.5 2.5 5.5-6"],"clock":["M3 12a9 9 0 1 0 18 0a9 9 0 1 0-18 0","M12 7v5l3 2"],"car":["M6.5 10l1.5-4h8l1.5 4","M5 10h14a2 2 0 0 1 2 2v4a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-4a2 2 0 0 1 2-2z","M7 13.5h.01M17 13.5h.01","M5.5 17v2M18.5 17v2"],"bus":["M6 3h12a2 2 0 0 1 2 2v12H4V5a2 2 0 0 1 2-2z","M4 11h16","M7 17v3M17 17v3","M8 14h.01M16 14h.01"],"key":["M4 16a4 4 0 1 0 8 0a4 4 0 1 0-8 0","M10.8 13.2L20 4","M17 7l2.5 2.5M14.5 9.5l2 2"],"glasses":["M3 13.5a3.5 3.5 0 1 0 7 0a3.5 3.5 0 1 0-7 0","M14 13.5a3.5 3.5 0 1 0 7 0a3.5 3.5 0 1 0-7 0","M10 13a2 2 0 0 1 4 0","M3.5 12L5 6.5M20.5 12L19 6.5"],"paw":["M8.5 16.5c0-2.5 1.6-4.5 3.5-4.5s3.5 2 3.5 4.5c0 2-1.6 3-3.5 3s-3.5-1-3.5-3z","M4.5 11a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0-3 0","M8 6.5a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0-3 0","M13 6.5a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0-3 0","M16.5 11a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0-3 0"],"plant":["M7 14h10l-1.5 7h-7z","M12 14V8","M12 10C9 10 7 8 7 5c3 0 5 2 5 5z","M12 8c0-3 2-5 5-5 0 3-2 5-5 5z"],"tooth":["M7 3C4.5 3 3 5 3 7.5c0 3 1.5 4.5 2 7l1 5c.3 1.3 2 1.3 2.3 0l1.2-4.5c.3-1 2.7-1 3 0l1.2 4.5c.3 1.3 2 1.3 2.3 0l1-5c.5-2.5 2-4 2-7C21 5 19.5 3 17 3c-2 0-3 1-5 1S9 3 7 3z"],"cake":["M5 21v-7a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v7","M3 21h18","M12 13V9","M12 6.5c-.8-.8-.8-2 0-3 .8 1 .8 2.2 0 3z","M5 16.5c1.2 0 1.2 1 2.3 1s1.2-1 2.3-1 1.2 1 2.4 1 1.2-1 2.3-1 1.2 1 2.3 1 1.2-1 2.4-1"],"trash":["M4 7h16","M9 7V4h6v3","M6 7l1 13h10l1-13","M10 11v6M14 11v6"],"wallet":["M4 7a2 2 0 0 1 2-2h11v4","M4 7v11a2 2 0 0 0 2 2h14V9H6a2 2 0 0 1-2-2z","M16 14.5h.01"],"book":["M12 6.5C10 5 7 4.5 3 5v14c4-.5 7 0 9 1.5 2-1.5 5-2 9-1.5V5c-4-.5-7 0-9 1.5z","M12 6.5v14"],"tv":["M5 7h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2z","M8 3l4 4 4-4"],"mail":["M5 5h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z","M3.5 7l8.5 6 8.5-6"],"thermometer":["M10 14.5V5a2 2 0 0 1 4 0v9.5a4 4 0 1 1-4 0z","M12 9v8"],"syringe":["M16 5l3 3-9 9-3-3z","M14 3l7 7","M8.5 15.5L3 21","M12.5 9.5l2 2"],"family":["M5 8.5a3 3 0 1 0 6 0a3 3 0 1 0-6 0","M2.5 20a5.5 5.5 0 0 1 11 0","M14 9.5a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0-5 0","M15 14.7a4.5 4.5 0 0 1 6.5 4v1.3"],"moon":["M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"],"speaker":["M4 9h3l5-4v14l-5-4H4z","M15.5 9a4 4 0 0 1 0 6","M18 6.5a7.5 7.5 0 0 1 0 11"],"mic":["M9 6a3 3 0 0 1 6 0v5a3 3 0 0 1-6 0z","M5.5 11a6.5 6.5 0 0 0 13 0","M12 17.5V21","M9 21h6"],"folder":["M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"],"close":["M6 6l12 12M18 6L6 18"],"backspace":["M8 5h11a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H8l-6-7z","M11 9l6 6M17 9l-6 6"],"play":["M6 4.5v15L19 12z"],"chevron":["M6 9l6 6 6-6"],"minus":["M5 12h14"],"plus":["M12 5v14M5 12h14"]}; /*SYM-END*/
+  const SYM_PATHS = <?= SYM_JSON ?>;
   // Simboli del telefono (stessi tracciati di Symbols.kt, copiati da tools/symbols/gen.py): l'anteprima e la
   // scelta mostrano esattamente quello che vedrà il telefono.
-  const SYM_UI = new Set(['speaker', 'mic', 'folder', 'close', 'backspace', 'play', 'chevron', 'minus', 'plus', 'check']);
+  const SYM_UI = new Set(<?= SYM_UI_JSON ?>);
   const TYPE_SYM = {call: 'phone', wa_video: 'video', tg_video: 'video', sms: 'message', url: 'web', sos: 'alert', weather: 'weather', photos: 'photo',
     missed_calls: 'missed', search: 'search', messages: 'message', radio: 'radio', torch: 'torch', magnifier: 'magnifier', where: 'pin', call_me: 'callme',
     music: 'music', news: 'news', clock: 'clock'};
@@ -2053,7 +2070,8 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
     const check = (k, label, hint) => el('div', {style: 'margin:12px 0'},
       el('label', {style: 'font-weight:600'}, el('input', {type: 'checkbox', checked: !!p[k], onchange: e => set(k, e.target.checked)}), ' ' + label),
       el('div', {class: 'hint'}, hint));
-    const group = (k, ...kids) => el('div', {class: 'phgroup'}, el('h4', {}, T(k)), ...kids);
+    const GRP_SYM = {grp_calls: 'phone', grp_aids: 'heart', grp_home: 'home', grp_battery: 'battery', grp_safety: 'alert', grp_comfort: 'moon', grp_remote: 'web'};
+    const group = (k, ...kids) => el('div', {class: 'phgroup'}, el('h4', {}, sym(GRP_SYM[k] || 'grid'), ' ', T(k)), ...kids);
     box.replaceChildren(
       group('grp_calls',
       check('blockUnknown', T('block_unknown'), T('block_unknown_hint')),
@@ -2106,7 +2124,7 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
         check('fallDetection', T('fall'), T('fall_hint')),
         check('heatAlert', T('heat'), T('heat_hint')),
         p.heatAlert ? field(T('heat_from'), select(Object.fromEntries([28, 30, 32, 34, 36].map(n => [n, n + '°'])), String(p.heatThreshold || 32), v => set('heatThreshold', +v))) : '',
-        el('h4', {style: 'margin-top:14px'}, T('zone')),
+        el('h4', {style: 'margin-top:14px'}, sym('pin'), ' ', T('zone')),
         document.getElementById('pubform').dataset.edition === 'completo'
           ? el('div', {},
               el('p', {class: 'hint'}, T('zone_hint')),

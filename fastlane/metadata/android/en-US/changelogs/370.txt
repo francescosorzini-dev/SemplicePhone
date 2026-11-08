@@ -1,0 +1,6 @@
+- One look: every large screen has a title with symbol and CLOSE at the bottom
+- Colours with meaning: red only for SOS, green for "yes", orange for "careful"
+- Fixed symbols and many new ones (alarm, keys, plants, rubbish…); no more emoji
+- Text never spills out of buttons, in any language
+- Short notices large and read aloud; notifications with the right symbol
+- Single-colour app icons (optional)

@@ -77,15 +77,19 @@ val Atkinson = FontFamily(
     Font(R.font.atkinson_bold, FontWeight.Bold),
 )
 
+/**
+ * Atkinson ovunque e interlinea libera: con l'interlinea fissa di Material (24 sp) un testo ingrandito
+ * su due righe si sovrapponeva (es. il titolo di un promemoria lungo in francese).
+ */
 private fun Typography.withFamily(f: FontFamily) = Typography(
-    displayLarge = displayLarge.copy(fontFamily = f), displayMedium = displayMedium.copy(fontFamily = f),
-    displaySmall = displaySmall.copy(fontFamily = f), headlineLarge = headlineLarge.copy(fontFamily = f),
-    headlineMedium = headlineMedium.copy(fontFamily = f), headlineSmall = headlineSmall.copy(fontFamily = f),
-    titleLarge = titleLarge.copy(fontFamily = f), titleMedium = titleMedium.copy(fontFamily = f),
-    titleSmall = titleSmall.copy(fontFamily = f), bodyLarge = bodyLarge.copy(fontFamily = f),
-    bodyMedium = bodyMedium.copy(fontFamily = f), bodySmall = bodySmall.copy(fontFamily = f),
-    labelLarge = labelLarge.copy(fontFamily = f), labelMedium = labelMedium.copy(fontFamily = f),
-    labelSmall = labelSmall.copy(fontFamily = f),
+    displayLarge = displayLarge.copy(fontFamily = f, lineHeight = androidx.compose.ui.unit.TextUnit.Unspecified), displayMedium = displayMedium.copy(fontFamily = f, lineHeight = androidx.compose.ui.unit.TextUnit.Unspecified),
+    displaySmall = displaySmall.copy(fontFamily = f, lineHeight = androidx.compose.ui.unit.TextUnit.Unspecified), headlineLarge = headlineLarge.copy(fontFamily = f, lineHeight = androidx.compose.ui.unit.TextUnit.Unspecified),
+    headlineMedium = headlineMedium.copy(fontFamily = f, lineHeight = androidx.compose.ui.unit.TextUnit.Unspecified), headlineSmall = headlineSmall.copy(fontFamily = f, lineHeight = androidx.compose.ui.unit.TextUnit.Unspecified),
+    titleLarge = titleLarge.copy(fontFamily = f, lineHeight = androidx.compose.ui.unit.TextUnit.Unspecified), titleMedium = titleMedium.copy(fontFamily = f, lineHeight = androidx.compose.ui.unit.TextUnit.Unspecified),
+    titleSmall = titleSmall.copy(fontFamily = f, lineHeight = androidx.compose.ui.unit.TextUnit.Unspecified), bodyLarge = bodyLarge.copy(fontFamily = f, lineHeight = androidx.compose.ui.unit.TextUnit.Unspecified),
+    bodyMedium = bodyMedium.copy(fontFamily = f, lineHeight = androidx.compose.ui.unit.TextUnit.Unspecified), bodySmall = bodySmall.copy(fontFamily = f, lineHeight = androidx.compose.ui.unit.TextUnit.Unspecified),
+    labelLarge = labelLarge.copy(fontFamily = f, lineHeight = androidx.compose.ui.unit.TextUnit.Unspecified), labelMedium = labelMedium.copy(fontFamily = f, lineHeight = androidx.compose.ui.unit.TextUnit.Unspecified),
+    labelSmall = labelSmall.copy(fontFamily = f, lineHeight = androidx.compose.ui.unit.TextUnit.Unspecified),
 )
 
 @Composable

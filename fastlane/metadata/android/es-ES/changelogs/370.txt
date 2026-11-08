@@ -1,0 +1,6 @@
+- Un solo estilo: cada pantalla grande tiene título con símbolo y CERRAR abajo
+- Colores con sentido: rojo solo para SOS, verde para «sí», naranja para «atención»
+- Símbolos corregidos y muchos nuevos (despertador, llaves, plantas, basura…); sin emojis
+- Los textos ya no se salen de los botones
+- Avisos breves grandes y leídos en voz alta; notificaciones con el símbolo adecuado
+- Iconos de apps de un color (opcional)

@@ -3,7 +3,7 @@
 Genera dai tracciati di Symbols.kt (sorgente unica):
   - app/src/main/res/drawable/sym_<nome>.xml  (icone delle notifiche, tratto bianco)
   - app/src/main/java/app/semplicephone/ui/SymbolDrawables.kt  (nome -> R.drawable)
-  - il blocco SYM_PATHS nel portale (tools/remote-server/index.php, tra /*SYM-BEGIN*/ e /*SYM-END*/)
+  - la costante SYM_JSON del portale (tools/remote-server/index.php, tra /*SYM-BEGIN*/ e /*SYM-END*/)
 Uso: python3 tools/symbols/gen.py [--check]   (--check: errore se qualcosa non è aggiornato)
 """
 import json, re, sys
@@ -54,7 +54,9 @@ object SymbolDrawables {{
 }}
 '''
     php = PHP.read_text()
-    block = '/*SYM-BEGIN*/ const SYM_PATHS = ' + json.dumps(sym, separators=(',', ':')) + '; /*SYM-END*/'
+    ui = re.findall(r'"([a-z]+)"', re.search(r'private val uiOnly = setOf\((.*?)\)', SRC.read_text()).group(1))
+    block = ("/*SYM-BEGIN*/ const SYM_UI_JSON = '" + json.dumps(ui, separators=(',', ':')) + "'; const SYM_JSON = '"
+             + json.dumps(sym, separators=(',', ':')) + "'; /*SYM-END*/")
     php2 = re.sub(r'/\*SYM-BEGIN\*/.*?/\*SYM-END\*/', lambda m: block, php, flags=re.S)
     if php2 == php and block not in php: sys.exit('marcatori SYM-BEGIN/SYM-END mancanti in index.php')
     files[PHP] = php2

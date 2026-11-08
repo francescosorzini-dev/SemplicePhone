@@ -86,6 +86,12 @@ object Symbols {
         "chevron" to listOf("M6 9l6 6 6-6"),
         "minus" to listOf("M5 12h14"),
         "plus" to listOf("M12 5v14M5 12h14"),
+        "bell" to listOf("M6 16v-5a6 6 0 0 1 12 0v5l2 2H4z", "M10 20.5a2 2 0 0 0 4 0", "M12 3v2"),
+        "settings" to listOf("M4 7h9M17 7h3", "M13 7a2 2 0 1 0 4 0a2 2 0 1 0-4 0", "M4 12h3M11 12h9", "M7 12a2 2 0 1 0 4 0a2 2 0 1 0-4 0", "M4 17h11M19 17h1", "M15 17a2 2 0 1 0 4 0a2 2 0 1 0-4 0"),
+        "chart" to listOf("M4 20h16", "M6 20v-6M10 20V8M14 20v-9M18 20V5"),
+        "history" to listOf("M4 12a8 8 0 1 0 2.3-5.6", "M4 4v4h4", "M12 8v4l3 2"),
+        "refresh" to listOf("M20 12a8 8 0 1 1-2.3-5.6", "M20 4v4h-4"),
+        "edit" to listOf("M5 19l1-4L16 5l3 3L9 18z", "M14 7l3 3"),
     )
 
     private val cache = mutableMapOf<String, ImageVector>()
@@ -93,7 +99,7 @@ object Symbols {
     val names: Set<String> get() = paths.keys
 
     /** Simboli dei pulsanti dell'app: non si scelgono per riquadri e promemoria. */
-    private val uiOnly = setOf("speaker", "mic", "folder", "close", "backspace", "play", "chevron", "minus", "plus", "check")
+    private val uiOnly = setOf("speaker", "mic", "folder", "close", "backspace", "play", "chevron", "minus", "plus", "check", "settings", "chart", "history", "refresh", "edit")
 
     /** Simboli da offrire nella scelta (riquadri, promemoria). */
     val pickable: List<String> get() = paths.keys.filter { it !in uiOnly }
