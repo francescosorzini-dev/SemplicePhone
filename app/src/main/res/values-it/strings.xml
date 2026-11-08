@@ -560,6 +560,7 @@
     <string name="phone_app_icons_detail">Nel colore del riquadro, come i simboli. Solo per le app che lo prevedono (Android 13 e successivi): le altre restano com\'erano.</string>
     <string name="action_remove">Rimuovi</string>
     <string name="pin_how_back">Per tornare qui: 5 tocchi rapidi sull\'orologio o su uno spazio vuoto della Home.</string>
+    <string name="tile_page_current">Pagina %1$d (questa)</string>
     <string name="color_blue">Blu</string>
     <string name="color_green">Verde</string>
     <string name="color_purple">Viola</string>

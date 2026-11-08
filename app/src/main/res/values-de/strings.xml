@@ -560,6 +560,7 @@
     <string name="phone_app_icons_detail">In der Farbe der Kachel, wie die Symbole. Nur bei Apps, die das anbieten (ab Android 13): die anderen bleiben wie sie sind.</string>
     <string name="action_remove">Entfernen</string>
     <string name="pin_how_back">Um hierher zurückzukommen: 5 schnelle Tipper auf die Uhr oder auf eine freie Stelle des Startbildschirms.</string>
+    <string name="tile_page_current">Seite %1$d (diese)</string>
     <string name="color_blue">Blau</string>
     <string name="color_green">Grün</string>
     <string name="color_purple">Violett</string>

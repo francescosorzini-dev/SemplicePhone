@@ -560,6 +560,7 @@
     <string name="phone_app_icons_detail">Dans la couleur de la case, comme les symboles. Seulement pour les apps qui le prévoient (Android 13 et plus) : les autres restent comme avant.</string>
     <string name="action_remove">Retirer</string>
     <string name="pin_how_back">Pour revenir ici : 5 touches rapides sur l\'horloge ou sur un espace vide de l\'écran d\'accueil.</string>
+    <string name="tile_page_current">Page %1$d (celle-ci)</string>
     <string name="color_blue">Bleu</string>
     <string name="color_green">Vert</string>
     <string name="color_purple">Violet</string>

@@ -334,14 +334,12 @@ fun TileEditor(
 
             if (!isNew && pageCount > 1) {
                 var noRoom by remember { mutableStateOf<Int?>(null) }
-                SectionLabel(stringResource(R.string.tile_move_page))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                    (0 until pageCount).filter { it != pageIndex }.take(4).forEach { n ->
-                        androidx.compose.material3.OutlinedButton(
-                            onClick = { if (!onMove(t, n)) noRoom = n },
-                            modifier = Modifier.weight(1f).heightIn(min = Ui.HeightSettings),
-                        ) { Text(stringResource(R.string.tile_page_n, n + 1)) }
-                    }
+                // Menu con tutte le pagine (prima erano al massimo 4 pulsanti: con 6 pagine le ultime mancavano).
+                val labels = (0 until pageCount).associateWith { n ->
+                    if (n == pageIndex) stringResource(R.string.tile_page_current, n + 1) else stringResource(R.string.tile_page_n, n + 1)
+                }
+                OptionPicker(stringResource(R.string.tile_move_page), (0 until pageCount).toList(), pageIndex, { labels[it].orEmpty() }) { n ->
+                    if (n != pageIndex && !onMove(t, n)) noRoom = n
                 }
                 noRoom?.let { Text(stringResource(R.string.tile_move_no_room, it + 1), color = Palette.Warn, fontSize = TextSize.Small) }
             }

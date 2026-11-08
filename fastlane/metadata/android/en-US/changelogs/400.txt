@@ -1,0 +1,2 @@
+- Edit tile: "Move to another page" is a menu with all pages (before, at most 4 were shown)
+- Settings: no more default purple, buttons and controls in the app's black

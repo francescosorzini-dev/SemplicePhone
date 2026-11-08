@@ -560,6 +560,7 @@
     <string name="phone_app_icons_detail">Del color de la casilla, como los símbolos. Solo en las apps que lo permiten (Android 13 o posterior): las demás se quedan igual.</string>
     <string name="action_remove">Quitar</string>
     <string name="pin_how_back">Para volver aquí: 5 toques rápidos en el reloj o en un espacio vacío de la pantalla de inicio.</string>
+    <string name="tile_page_current">Página %1$d (esta)</string>
     <string name="color_blue">Azul</string>
     <string name="color_green">Verde</string>
     <string name="color_purple">Morado</string>

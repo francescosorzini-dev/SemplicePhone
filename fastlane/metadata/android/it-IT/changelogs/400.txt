@@ -1,0 +1,2 @@
+- Modifica riquadro: «Sposta su un'altra pagina» è un menu con tutte le pagine (prima se ne vedevano al massimo 4)
+- Impostazioni: via il viola predefinito, pulsanti e controlli nel nero dello stile

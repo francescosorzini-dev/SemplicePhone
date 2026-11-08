@@ -1,0 +1,2 @@
+- Editar casilla: «Mover a otra página» es un menú con todas las páginas (antes se veían como máximo 4)
+- Ajustes: sin el morado predeterminado, botones y controles en el negro de la app

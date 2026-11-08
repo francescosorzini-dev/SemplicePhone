@@ -1,0 +1,2 @@
+- Kachel bearbeiten: „Auf eine andere Seite verschieben“ ist ein Menü mit allen Seiten (vorher höchstens 4)
+- Einstellungen: kein Standard-Lila mehr, Tasten und Regler im Schwarz der App

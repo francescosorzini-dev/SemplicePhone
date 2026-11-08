@@ -1,0 +1,2 @@
+- Modifier la tuile : « Déplacer vers une autre page » est un menu avec toutes les pages (avant, 4 au maximum)
+- Paramètres : plus de violet par défaut, boutons et contrôles dans le noir de l'appli

@@ -95,7 +95,21 @@ private fun Typography.withFamily(f: FontFamily) = Typography(
 @Composable
 fun SempliceTheme(content: @Composable () -> Unit) {
     MaterialTheme(
+        // Nero dello stile al posto del viola predefinito di Material (pulsanti, interruttori, campi, + e −).
         colorScheme = lightColorScheme(
+            primary = Palette.Ink,
+            onPrimary = Color.White,
+            primaryContainer = Palette.Soft,
+            onPrimaryContainer = Palette.Ink,
+            secondary = Palette.Accent,
+            onSecondary = Color.White,
+            secondaryContainer = Palette.Soft,
+            onSecondaryContainer = Palette.Ink,
+            tertiary = Palette.Accent,
+            surfaceVariant = Palette.Soft,
+            onSurfaceVariant = Palette.Mute,
+            outline = Palette.Mute,
+            outlineVariant = Palette.Line,
             background = Palette.Ground,
             surface = Palette.Ground,
             onBackground = Palette.Ink,
