@@ -207,7 +207,8 @@ Ogni opzione si toglie da Impostazioni › Protezione, compreso il ruolo di Devi
 ## Lingue e privacy
 
 - App e portale in italiano, inglese, tedesco, francese e spagnolo. L'app segue la lingua del
-  telefono; da Android 13 se ne può scegliere una solo per SemplicePhone. Per tradurre:
+  telefono; da Android 13 se ne può scegliere una solo per SemplicePhone. Gli avvisi alla famiglia
+  arrivano nella lingua del telefono, o in quella scelta nel portale per quel telefono. Per tradurre:
   [TRANSLATING.md](TRANSLATING.md).
 - Nessun account, nessuna statistica, nessun dato allo sviluppatore. Con la gestione da remoto i
   dati vanno solo al portale del familiare: [PRIVACY.md](PRIVACY.md).

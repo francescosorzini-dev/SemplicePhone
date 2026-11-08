@@ -126,7 +126,8 @@ automatically and enables silent updates (full edition).
 ## Languages and privacy
 
 - App and portal in English, Italian, German, French and Spanish. The app follows the phone's
-  language; Android 13+ can set one just for SemplicePhone. To translate: [TRANSLATING.md](TRANSLATING.md).
+  language; Android 13+ can set one just for SemplicePhone. Family alerts come in the phone's
+  language, or in the one chosen in the portal for that phone. To translate: [TRANSLATING.md](TRANSLATING.md).
 - No account, no analytics, no data to the developer. With remote management, data only goes to
   the family's own portal: [PRIVACY.md](PRIVACY.md) (in Italian).
 

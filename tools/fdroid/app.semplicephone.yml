@@ -28,10 +28,16 @@ Builds:
     subdir: app
     gradle:
       - completo
+  - versionName: 0.17.2
+    versionCode: 360
+    commit: a664303288145d377e3bb605e930bcc87e231072
+    subdir: app
+    gradle:
+      - completo
 
 AllowedAPKSigningKeys: 3871cf5b478aea297ec9aa665cebc98f7e62d9076fab62a548bac70e10f8819e
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
-CurrentVersion: 0.17.1
-CurrentVersionCode: 350
+CurrentVersion: 0.17.2
+CurrentVersionCode: 360
