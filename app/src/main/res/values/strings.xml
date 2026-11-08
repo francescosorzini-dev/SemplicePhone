@@ -241,7 +241,7 @@
     <string name="type_weather">Weather</string>
     <string name="type_photos">Album</string>
     <string name="tile_photos">Photos</string>
-    <string name="tile_photos_hint">Photos change by themselves; one tap shows the next. A tap on a video (▶) opens it full screen.</string>
+    <string name="tile_photos_hint">Photos change by themselves; one tap shows the next. A tap on a video opens it full screen.</string>
     <string name="tile_unknown_hint">This tile is of a type this app version does not know: update it.</string>
     <string name="weather_place">Place</string>
     <string name="weather_current_place">Now: %1$s</string>
@@ -452,7 +452,7 @@
     <string name="callme_sms">Could you call me back when you can? (message from SemplicePhone)</string>
     <string name="callme_event">Asks to be called back by: %1$s</string>
     <string name="emergency_title">Information for rescuers</string>
-    <string name="emergency_open">ℹ INFORMATION FOR RESCUERS</string>
+    <string name="emergency_open">INFORMATION FOR RESCUERS</string>
     <string name="emergency_read">READ</string>
     <string name="emergency_empty">The card is not filled in.</string>
     <string name="emergency_editor_hint">Shown on the SOS screen after sending, for whoever comes to help. It stays on the phone and in the portal.</string>

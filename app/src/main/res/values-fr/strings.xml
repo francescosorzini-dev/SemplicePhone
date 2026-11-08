@@ -240,7 +240,7 @@
     <string name="type_weather">Météo</string>
     <string name="type_photos">Album</string>
     <string name="tile_photos">Photos</string>
-    <string name="tile_photos_hint">Les photos défilent seules ; un appui affiche la suivante. Un appui sur une vidéo (▶) l\'ouvre en plein écran.</string>
+    <string name="tile_photos_hint">Les photos défilent seules ; un appui affiche la suivante. Un appui sur une vidéo l\'ouvre en plein écran.</string>
     <string name="tile_unknown_hint">Cette tuile est d\'un type que cette version de l\'appli ne connaît pas : mettez-la à jour.</string>
     <string name="weather_place">Lieu</string>
     <string name="weather_current_place">Actuel : %1$s</string>
@@ -451,7 +451,7 @@
     <string name="callme_sms">Tu peux me rappeler quand tu peux ? (message de SemplicePhone)</string>
     <string name="callme_event">Demande à être rappelé par : %1$s</string>
     <string name="emergency_title">Informations pour les secours</string>
-    <string name="emergency_open">ℹ INFOS POUR LES SECOURS</string>
+    <string name="emergency_open">INFOS POUR LES SECOURS</string>
     <string name="emergency_read">LIRE</string>
     <string name="emergency_empty">La fiche n\'est pas remplie.</string>
     <string name="emergency_editor_hint">Affichée sur l\'écran SOS après l\'envoi, pour qui vient aider. Elle reste sur le téléphone et dans le portail.</string>

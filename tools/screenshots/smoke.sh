@@ -371,10 +371,12 @@ adb push /tmp/c18.json /data/local/tmp/c18.json >/dev/null
 for L in it de fr; do
   adb shell cmd locale set-app-locales $P --locales $L
   adb shell am force-stop $P
-  adb shell "run-as $P sh -c 'cp /data/local/tmp/c18.json files/config.json; rm -f shared_prefs/pin.xml'"
+  echo '{"device":"*","id":7,"text":"Domenica pranzo da noi alle 13.","from":"Anna","at":1}' > /tmp/m18.json
+  adb push /tmp/m18.json /data/local/tmp/m18.json >/dev/null
+  adb shell "run-as $P sh -c 'cp /data/local/tmp/c18.json files/config.json; cp /data/local/tmp/m18.json files/family_message.json; rm -f shared_prefs/pin.xml'"
   home; shot "v18_${L}_1_home" 4
   adb shell am start -W -n $P/.phone.FallActivity >/dev/null; shot "v18_${L}_3_fall" 3
-  python3 tap.py --regex "(?i)^(STO BENE|MIR GEHT|ÇA VA|I'M OK)" >/dev/null || adb shell input keyevent BACK; sleep 1
+  python3 tap.py --regex "^(STO BENE|MIR GEHT'S GUT|ÇA VA|I'M OK)$" >/dev/null || true; adb shell input keyevent BACK; sleep 1
   adb shell am start -W -n $P/.reminders.ReminderActivity --es id r1 >/dev/null; shot "v18_${L}_4_reminder" 3
   adb shell input keyevent BACK; sleep 1
   echo '{"device":"*","id":7,"text":"Domenica pranzo da noi alle 13.","from":"Anna","at":1}' > /tmp/m18.json
@@ -383,9 +385,9 @@ for L in it de fr; do
   adb shell am start -W -n $P/.remote.MessageActivity >/dev/null; shot "v18_${L}_5_message" 3
   adb shell input keyevent BACK; sleep 1; home
   # Pressione lunga (tenere premuto è acceso) sui riquadri degli strumenti
-  for t in "lente:^(Lente|Lupe|Loupe)$" "dove:^(Dove sono\?|Wo bin ich\?|Où suis-je \?)$" "news:^(Notizie|Nachrichten|Actualités)$" \
-           "radio:^Radio$" "chiamami:^Anna$" "cerca:^(Cerca app|Apps suchen|Chercher une appli)$"; do
-    python3 tap.py --long 1600 --regex "${t#*:}" >/dev/null || true; shot "v18_${L}_6_${t%%:*}" 5
+  # Riquadri senza scritta (vale la scritta predefinita): coordinate dalla griglia 2x6 con la fascia del messaggio
+  for t in "lente:283 929" "dove:797 929" "news:283 1236" "radio:797 1236" "chiamami:283 1543" "cerca:797 1543"; do
+    XY=${t#*:}; adb shell input swipe $XY $XY 1600; shot "v18_${L}_6_${t%%:*}" 5
     adb shell input keyevent BACK; sleep 1; home; sleep 1
   done
   # Tocco breve con «tenere premuto»: fascia grande in basso invece del toast

@@ -240,7 +240,7 @@
     <string name="type_weather">Meteo</string>
     <string name="type_photos">Album</string>
     <string name="tile_photos">Foto</string>
-    <string name="tile_photos_hint">Le foto scorrono da sole; un tocco passa alla successiva. Un tocco su un video (▶) lo apre a tutto schermo.</string>
+    <string name="tile_photos_hint">Le foto scorrono da sole; un tocco passa alla successiva. Un tocco su un video lo apre a tutto schermo.</string>
     <string name="tile_unknown_hint">Questo riquadro è di un tipo che questa versione dell\'app non conosce: aggiornala.</string>
     <string name="weather_place">Località</string>
     <string name="weather_current_place">Ora: %1$s</string>
@@ -451,7 +451,7 @@
     <string name="callme_sms">Mi richiami quando puoi? (messaggio da SemplicePhone)</string>
     <string name="callme_event">Chiede di essere richiamato da: %1$s</string>
     <string name="emergency_title">Informazioni per i soccorsi</string>
-    <string name="emergency_open">ℹ INFORMAZIONI PER I SOCCORSI</string>
+    <string name="emergency_open">INFORMAZIONI PER I SOCCORSI</string>
     <string name="emergency_read">LEGGI</string>
     <string name="emergency_empty">La scheda non è compilata.</string>
     <string name="emergency_editor_hint">Compare nella schermata SOS dopo l\'invio, per chi arriva ad aiutare. Resta sul telefono e nel portale.</string>

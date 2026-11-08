@@ -240,7 +240,7 @@
     <string name="type_weather">Wetter</string>
     <string name="type_photos">Album</string>
     <string name="tile_photos">Fotos</string>
-    <string name="tile_photos_hint">Die Fotos wechseln von selbst; ein Tipp zeigt das nächste. Ein Tipp auf ein Video (▶) öffnet es im Vollbild.</string>
+    <string name="tile_photos_hint">Die Fotos wechseln von selbst; ein Tipp zeigt das nächste. Ein Tipp auf ein Video öffnet es im Vollbild.</string>
     <string name="tile_unknown_hint">Diese Kachel hat einen Typ, den diese App-Version nicht kennt: bitte aktualisieren.</string>
     <string name="weather_place">Ort</string>
     <string name="weather_current_place">Aktuell: %1$s</string>
@@ -451,7 +451,7 @@
     <string name="callme_sms">Rufst du mich zurück, wenn du kannst? (Nachricht von SemplicePhone)</string>
     <string name="callme_event">Bittet um Rückruf von: %1$s</string>
     <string name="emergency_title">Informationen für Rettungskräfte</string>
-    <string name="emergency_open">ℹ INFOS FÜR RETTUNGSKRÄFTE</string>
+    <string name="emergency_open">INFOS FÜR RETTUNGSKRÄFTE</string>
     <string name="emergency_read">VORLESEN</string>
     <string name="emergency_empty">Die Karte ist nicht ausgefüllt.</string>
     <string name="emergency_editor_hint">Erscheint nach dem Senden im SOS-Bildschirm für Helfende. Bleibt auf dem Telefon und im Portal.</string>

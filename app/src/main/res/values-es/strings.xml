@@ -240,7 +240,7 @@
     <string name="type_weather">Tiempo</string>
     <string name="type_photos">Álbum</string>
     <string name="tile_photos">Fotos</string>
-    <string name="tile_photos_hint">Las fotos pasan solas; un toque muestra la siguiente. Un toque en un vídeo (▶) lo abre a pantalla completa.</string>
+    <string name="tile_photos_hint">Las fotos pasan solas; un toque muestra la siguiente. Un toque en un vídeo lo abre a pantalla completa.</string>
     <string name="tile_unknown_hint">Este mosaico es de un tipo que esta versión de la app no conoce: actualízala.</string>
     <string name="weather_place">Lugar</string>
     <string name="weather_current_place">Ahora: %1$s</string>
@@ -451,7 +451,7 @@
     <string name="callme_sms">¿Me llamas cuando puedas? (mensaje de SemplicePhone)</string>
     <string name="callme_event">Pide que le llame: %1$s</string>
     <string name="emergency_title">Información para los servicios de emergencia</string>
-    <string name="emergency_open">ℹ INFORMACIÓN PARA EMERGENCIAS</string>
+    <string name="emergency_open">INFORMACIÓN PARA EMERGENCIAS</string>
     <string name="emergency_read">LEER</string>
     <string name="emergency_empty">La ficha no está rellenada.</string>
     <string name="emergency_editor_hint">Aparece en la pantalla SOS tras el envío, para quien venga a ayudar. Se queda en el teléfono y en el portal.</string>
