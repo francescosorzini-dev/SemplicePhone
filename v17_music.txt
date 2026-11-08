@@ -1,0 +1,3 @@
+  * ServiceRecord{2cbdd4e u0 app.semplicephone/.radio.RadioService}
+    intent={act=app.semplicephone.RADIO_PLAY cmp=app.semplicephone/.radio.RadioService}
+    infoAllowStartForeground=[callingPackage: app.semplicephone; callingUid: 10192; uidState: TOP ; uidBFSL: [BFSL]; intent: Intent { act=app.semplicephone.RADIO_PLAY cmp=app.semplicephone/.radio.RadioService (has extras) }; code:PROC_STATE_TOP; tempAllowListReason:<null>; targetSdkVersion:36; callerTargetSdkVersion:36; startForegroundCount:0; bindFromPackage:null: isBindService:false]

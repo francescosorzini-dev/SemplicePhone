@@ -1,0 +1,12 @@
+text="15:45" text="Sunday, November 8" text="Phone" text="Messages" text="Family" text="Maria" text="Missed calls (1)" text="0612345678" text="today 3:34 PM" text="SOS" text="press and hold"  <- en home
+text="08:00" text="Shower" text="DONE" text="Remind me in 10 minutes"  <- en reminder
+text="09:00" text="Time for your medicine" text="TAKEN" text="Remind me in 10 minutes"  <- en reminder2
+text="08:00" text="Shower" text="DONE" text="Remind me in 10 minutes"  <- en reminder3
+text="15:46" text="Sonntag, 8. November" text="Telefon" text="Nachrichten" text="Familie" text="Maria" text="Verpasste Anrufe (1)" text="0612345678" text="heute 15:34" text="SOS" text="gedrückt halten"  <- de home
+text="08:00" text="Duschen" text="ERLEDIGT" text="In 10 Minuten erinnern"  <- de reminder
+text="09:00" text="Zeit für die Medizin" text="GENOMMEN" text="In 10 Minuten erinnern"  <- de reminder2
+text="08:00" text="Duschen" text="ERLEDIGT" text="In 10 Minuten erinnern"  <- de reminder3
+text="15:46" text="Domenica 8 novembre" text="Telefono" text="Messaggi" text="Famiglia" text="Maria" text="Chiamate perse (1)" text="0612345678" text="oggi 15:34" text="SOS" text="tieni premuto"  <- it home
+text="08:00" text="Doccia" text="FATTO" text="Ricordamelo tra 10 minuti"  <- it reminder
+text="09:00" text="È ora della medicina" text="PRESO" text="Ricordamelo tra 10 minuti"  <- it reminder2
+text="08:00" text="Doccia" text="FATTO" text="Ricordamelo tra 10 minuti"  <- it reminder3

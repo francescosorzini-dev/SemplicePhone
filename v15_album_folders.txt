@@ -1,0 +1,22 @@
+                    "folders": [],
+                    "stations": [],
+                    "open": "default",
+                    "homeButton": true
+--
+                    "folders": [],
+                    "stations": [],
+                    "open": "default",
+                    "homeButton": true
+--
+                    "folders": [
+                        "content://com.android.externalstorage.documents/tree/primary%3ARicordi"
+                    ],
+                    "stations": [],
+--
+                    "folders": [],
+                    "stations": [],
+                    "open": "default",
+                    "homeButton": true
+--------- beginning of main
+11-08 15:54:21.717 10065 10100 I Album   : dalle cartelle: 3 (1 video): top.png, deep.png, clip.mp4
+11-08 15:54:32.917 10065 10098 I Album   : dalle cartelle: 3 (1 video): top.png, deep.png, clip.mp4

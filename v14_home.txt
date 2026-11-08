@@ -1,0 +1,1 @@
+text="15:50" text="Domenica 8 novembre" text="Messaggi nuovi" text="Nessun messaggio da leggere" text="Radio" text="Cerca" 

@@ -1,0 +1,1 @@
+text="Cerca un'app" text="sett" text="Parla" text="Nessuna app con «sett»" text="CHIUDI"   mCurrentFocus=Window{73cca79 u0 app.semplicephone/app.semplicephone.MainActivity}

@@ -1,0 +1,15 @@
+   Current: 2 (speaker): 5, 40000000 (default): 3
+   Devices: speaker(2)
+   Current: 2 (speaker): 5, 40000000 (default): 5
+   Devices: speaker(2)
+   Current: 2 (speaker): 5, 40000000 (default): 5
+   Devices: speaker(2)
+   Current: 2 (speaker): 5, 40000000 (default): 5
+   Devices: speaker(2)
+   Current: 2 (speaker): 6, 40000000 (default): 6
+   Devices: speaker(2)
+   Current: 2 (speaker): 5, 40000000 (default): 5
+   Devices: speaker(2)
+   Current: 2 (speaker): 7, 40000000 (default): 7
+   Devices: speaker(2)
+   Current: 2 (speaker): 5, 40000000 (default): 5

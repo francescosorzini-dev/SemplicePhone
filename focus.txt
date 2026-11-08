@@ -1,0 +1,7 @@
+  mCurrentFocus=Window{a5d821c u0 app.semplicephone/app.semplicephone.MainActivity}
+  mCurrentFocus=Window{41203ea u0 com.google.android.contacts/com.google.android.apps.contacts.activities.OnboardingSignInActivity}
+  mCurrentFocus=Window{a5d821c u0 app.semplicephone/app.semplicephone.MainActivity}
+  mCurrentFocus=Window{e1524c5 u0 com.google.android.dialer/com.android.incallui.LegacyInCallActivity}
+  mCurrentFocus=Window{32f3a9f u0 com.google.android.contacts/com.google.android.apps.contacts.activities.OnboardingSignInActivity}
+  mCurrentFocus=Window{73cca79 u0 app.semplicephone/app.semplicephone.MainActivity}
+  mCurrentFocus=Window{c7512b u0 app.semplicephone/app.semplicephone.MainActivity}

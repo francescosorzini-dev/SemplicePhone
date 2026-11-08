@@ -1,0 +1,60 @@
+11-08 15:49:47.094  8877  8877 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 0 <<<<<<
+11-08 15:49:47.097  8877  8877 I AndroidRuntime: Using default boot image
+11-08 15:49:47.097  8877  8877 I AndroidRuntime: Leaving lock profiling enabled
+11-08 15:49:47.098  8877  8877 I app_process: Core platform API reporting enabled, enforcing=false
+11-08 15:49:47.099  8877  8877 I app_process: Using CollectorTypeCC GC.
+11-08 15:49:47.134  8877  8877 D nativeloader: InitDefaultPublicLibraries for_preload=1: libandroid.so:libaaudio.so:libamidi.so:libbinder_ndk.so:libc.so:libcamera2ndk.so:libdl.so:libEGL.so:libGLESv1_CM.so:libGLESv2.so:libGLESv3.so:libicu.so:libicui18n.so:libicuuc.so:libjnigraphics.so:liblog.so:libmediandk.so:libm.so:libnativehelper.so:libnativewindow.so:libOpenMAXAL.so:libOpenSLES.so:libRS.so:libstdc++.so:libsync.so:libvulkan.so:libwebviewchromium_plat_support.so:libz.so
+11-08 15:49:47.140  8877  8877 D app_process: Time zone APEX ICU file found: /apex/com.android.tzdata/etc/icu/icu_tzdata.dat
+11-08 15:49:47.140  8877  8877 D app_process: I18n APEX ICU file found: /apex/com.android.i18n/etc/icu/icudt72l.dat
+11-08 15:49:47.143  8877  8877 W app_process: Unexpected CPU variant for x86: x86_64.
+11-08 15:49:47.143  8877  8877 W app_process: Known variants: atom, sandybridge, silvermont, goldmont, goldmont-plus, tremont, kabylake, default
+11-08 15:49:47.144  8877  8877 W app_process: ClassLoaderContext shared library size mismatch. Expected=2, found=0 (PCL[]{PCL[/system/framework/android.test.base.jar*836642756]#PCL[/system/framework/android.test.mock.jar*3186112116]} | PCL[])
+--
+11-08 15:49:47.153  8877  8877 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+11-08 15:49:47.158  8877  8877 D UiAutomationConnection: Created on user UserHandle{0}
+11-08 15:49:47.158  8877  8877 I UiAutomation: Initialized for user 0 on display 0
+11-08 15:49:47.158  8877  8877 W UiAutomation: Created with deprecatead constructor, assumes DEFAULT_DISPLAY
+11-08 15:49:47.162   517  1180 D AccessibilityManagerService: changeCurrentUserForTestAutomationIfNeededLocked(0): ignoring because device doesn't support visible background users
+11-08 15:49:47.162   517  1180 I UiAutomationManager: Registering UiTestAutomationService (id=com.android.server.accessibility/UiAutomation) when called by user 0
+11-08 15:49:47.163   517  1180 W WindowMagnificationMgr: requestConnection duplicated request: connect=false, mConnectionState=DISCONNECTED
+11-08 15:49:47.164  8877  8891 V UiAutomation: Init UiAutomation@a8af42a[id=59, displayId=0, flags=0]
+11-08 15:49:47.165   517  1017 W WindowMagnificationMgr: requestConnection duplicated request: connect=false, mConnectionState=DISCONNECTED
+--
+11-08 15:49:49.208  8877  8877 D AndroidRuntime: Shutting down VM
+11-08 15:49:49.210   517   517 D BatterySaverPolicy: accessibility changed to false, updating policy.
+11-08 15:49:49.211  4224  4224 W PageIndicator: Total number of pages invalid: 0. Assuming 1 page.
+11-08 15:49:49.212  4224  4224 D SsMediaDataProvider: Forwarding Smartspace updates []
+11-08 15:49:50.060  1071  1071 I Telephony: : onDisconnect: callId=TC@2_1, cause=NORMAL
+11-08 15:49:50.063  1071  1071 V Telephony: GsmConnection: Update state from ACTIVE to DISCONNECTED for TC@2_1
+11-08 15:49:50.063  1071  1071 V Telephony: onStateChanged, state: DISCONNECTED
+11-08 15:49:50.063  1071  1071 D Telephony: TelephonyConferenceController: Recalculate conference calls null [].
+11-08 15:49:50.063  1071  1071 D Telephony: Is there a match for all connections in connection service true
+--
+11-08 15:49:57.508  8931  8931 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 0 <<<<<<
+11-08 15:49:57.510  8931  8931 I AndroidRuntime: Using default boot image
+11-08 15:49:57.510  8931  8931 I AndroidRuntime: Leaving lock profiling enabled
+11-08 15:49:57.512  8931  8931 I app_process: Core platform API reporting enabled, enforcing=false
+11-08 15:49:57.512  8931  8931 I app_process: Using CollectorTypeCC GC.
+11-08 15:49:57.547  8931  8931 D nativeloader: InitDefaultPublicLibraries for_preload=1: libandroid.so:libaaudio.so:libamidi.so:libbinder_ndk.so:libc.so:libcamera2ndk.so:libdl.so:libEGL.so:libGLESv1_CM.so:libGLESv2.so:libGLESv3.so:libicu.so:libicui18n.so:libicuuc.so:libjnigraphics.so:liblog.so:libmediandk.so:libm.so:libnativehelper.so:libnativewindow.so:libOpenMAXAL.so:libOpenSLES.so:libRS.so:libstdc++.so:libsync.so:libvulkan.so:libwebviewchromium_plat_support.so:libz.so
+11-08 15:49:57.553  8931  8931 D app_process: Time zone APEX ICU file found: /apex/com.android.tzdata/etc/icu/icu_tzdata.dat
+11-08 15:49:57.553  8931  8931 D app_process: I18n APEX ICU file found: /apex/com.android.i18n/etc/icu/icudt72l.dat
+11-08 15:49:57.556  8931  8931 W app_process: Unexpected CPU variant for x86: x86_64.
+11-08 15:49:57.556  8931  8931 W app_process: Known variants: atom, sandybridge, silvermont, goldmont, goldmont-plus, tremont, kabylake, default
+11-08 15:49:57.557  8931  8931 W app_process: ClassLoaderContext shared library size mismatch. Expected=2, found=0 (PCL[]{PCL[/system/framework/android.test.base.jar*836642756]#PCL[/system/framework/android.test.mock.jar*3186112116]} | PCL[])
+--
+11-08 15:49:57.567  8931  8931 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+11-08 15:49:57.568  8931  8931 D UiAutomationConnection: Created on user UserHandle{0}
+11-08 15:49:57.568  8931  8931 I UiAutomation: Initialized for user 0 on display 0
+11-08 15:49:57.569  8931  8931 W UiAutomation: Created with deprecatead constructor, assumes DEFAULT_DISPLAY
+11-08 15:49:57.570   517  2466 D AccessibilityManagerService: changeCurrentUserForTestAutomationIfNeededLocked(0): ignoring because device doesn't support visible background users
+11-08 15:49:57.570   517  2466 I UiAutomationManager: Registering UiTestAutomationService (id=com.android.server.accessibility/UiAutomation) when called by user 0
+11-08 15:49:57.571   517  2466 W WindowMagnificationMgr: requestConnection duplicated request: connect=false, mConnectionState=DISCONNECTED
+11-08 15:49:57.576   517   517 D BatterySaverPolicy: accessibility changed to true, updating policy.
+11-08 15:49:57.579  1668  3659 I AiAiEcho: Settings changed for uri: content://settings/secure/accessibility_enabled
+--
+11-08 15:49:58.615  8931  8931 D AndroidRuntime: Shutting down VM
+11-08 15:49:58.617   517   517 D BatterySaverPolicy: accessibility changed to false, updating policy.
+11-08 15:49:58.617  1668  3659 I AiAiEcho: Settings changed for uri: content://settings/secure/accessibility_enabled
+11-08 15:49:58.617  1668  1963 I AiAiEcho: Predicting[0]: 
+11-08 15:49:58.617  1668  1963 I AiAiEcho: EchoTargets: 
+11-08 15:49:58.617  1668  1963 I AiAiEcho: Filtered by AiAi flag check: 

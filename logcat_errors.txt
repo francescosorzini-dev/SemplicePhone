@@ -1,0 +1,1 @@
+11-08 15:46:52.909   517  2508 W WindowManager: Exception thrown during dispatchAppVisibility Window{757d151 u0 app.semplicephone/app.semplicephone.MainActivity EXITING}

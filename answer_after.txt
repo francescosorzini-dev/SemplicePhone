@@ -1,0 +1,5 @@
+    [Call id=TC@2, state=ACTIVE, tpac=ComponentInfo{com.android.phone/com.android.services.telephony.TelephonyConnectionService}, 1, UserHandle{0}, cmgr=ComponentInfo{com.android.phone/com.android.services.telephony.TelephonyConnectionService}, 1, UserHandle{0}, handle=tel:********67, vidst=A, childs(0), has_parent(false), cap=[ hld sup_hld mut !v2a spd_aud], prop=[]], voip=false
+    [Call id=TC@2, state=ACTIVE, tpac=ComponentInfo{com.android.phone/com.android.services.telephony.TelephonyConnectionService}, 1, UserHandle{0}, cmgr=ComponentInfo{com.android.phone/com.android.services.telephony.TelephonyConnectionService}, 1, UserHandle{0}, handle=tel:********67, vidst=A, childs(0), has_parent(false), cap=[ hld sup_hld mut !v2a spd_aud], prop=[]], voip=false
+      Current state: ActiveSpeakerRoute
+    Call TC@1: {
+    Call TC@2: {

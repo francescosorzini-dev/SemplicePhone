@@ -1,0 +1,1 @@
+  mCurrentFocus=Window{c7512b u0 app.semplicephone/app.semplicephone.MainActivity}
