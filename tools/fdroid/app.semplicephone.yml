@@ -58,10 +58,16 @@ Builds:
     subdir: app
     gradle:
       - completo
+  - versionName: 0.19.0
+    versionCode: 410
+    commit: 0698f0bff400f57e9c82f00301a61f75fafaf355
+    subdir: app
+    gradle:
+      - completo
 
 AllowedAPKSigningKeys: 3871cf5b478aea297ec9aa665cebc98f7e62d9076fab62a548bac70e10f8819e
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
-CurrentVersion: 0.18.3
-CurrentVersionCode: 400
+CurrentVersion: 0.19.0
+CurrentVersionCode: 410
